@@ -6,7 +6,7 @@
 <details id="setup"><summary>One-time Google setup</summary><ol><li>In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>, create or choose a project and enable the <b>AdSense Management API</b>.</li><li>Configure Google Auth Platform branding and audience. For a personal testing app, add the AdSense account owner's email as a test user. Add the read-only scope <code>https://www.googleapis.com/auth/adsense.readonly</code> under Data Access.</li><li>Create an OAuth client of type <b>Web application</b>. Add this exact Authorized JavaScript origin: <code>https://lesliedaft.github.io</code>.</li><li>Copy the client ID (ending in <code>.apps.googleusercontent.com</code>) below. No client secret is needed.</li></ol></details>
 <label style="margin:18px 0">Google OAuth client ID<input id="client-id" placeholder="…apps.googleusercontent.com" autocomplete="off" spellcheck="false"></label>
 <div class="row"><button id="connect" type="button">Connect Google</button><button id="refresh" type="button" disabled>Refresh totals</button><button class="secondary" id="disconnect" type="button" disabled>Disconnect</button></div>
-<p id="auto-status" role="status">Not connected. Complete the one-time setup, then connect Google.</p>
+<p id="auto-status" role="status">Client configured. Click Connect Google and choose your AdSense account.</p>
 <div class="cards"><div class="card">Today<strong id="auto-today">—</strong><small>AdSense account timezone</small></div><div class="card">Previous 7 days<strong id="auto-week">—</strong><small>Excludes today</small></div><div class="card">This month<strong id="auto-month">—</strong><small>Includes today</small></div></div>
 <h2>Daily impressions · previous 30 days</h2><div class="table"><table><thead><tr><th>Date</th><th>Impressions</th></tr></thead><tbody id="auto-history"><tr><td colspan="2">Connect Google to load reports.</td></tr></tbody></table></div>
 <p class="note">Read-only access. Your access token stays in memory and is never saved to this site or browser storage. Reloading this page or an expired session requires reconnecting. Your client ID is saved in this browser. Other visitors cannot see your reports. Zero or empty reports may occur before ads are approved and serving.</p></section>
@@ -16,7 +16,7 @@
 'use strict';
 const el=id=>document.getElementById(id),base='https://adsense.googleapis.com/v2/',account='accounts/pub-3739385001345239',scope='https://www.googleapis.com/auth/adsense.readonly';
 let token='',expires=0,busy=false,generation=0;
-try{el('client-id').value=localStorage.getItem('daft-adsense-client-id')||''}catch{}
+el('client-id').value='95072277743-7keudht6e1q6o1jejoifm3hqakl4o1ei.apps.googleusercontent.com';
 el('setup').open=!el('client-id').value;
 function status(s){el('auto-status').textContent=s}
 function clearData(){for(const id of ['auto-today','auto-week','auto-month'])el(id).textContent='—';el('auto-history').replaceChildren()}
