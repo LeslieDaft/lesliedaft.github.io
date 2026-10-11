@@ -19,7 +19,7 @@ const demand=Math.abs(curve)*(speed/190)**2,targetSlip=clamp((demand-.88)/.9,0,1
 slip+=(targetSlip-slip)*(1-Math.exp(-6*dt));
 const grip=1-.45*slip,targetLateral=steer*(.5+speed/140)*grip*(sliding?1.2:1)-curve*(speed/198)**2*(.9+1.25*slip);
 lateralSpeed+=(targetLateral-lateralSpeed)*(1-Math.exp(-(slip>.1?2.6:9)*dt));x+=lateralSpeed*dt;
-railCooldown=Math.max(0,railCooldown-dt);const railLimit=1.58*track.width;
+railCooldown=Math.max(0,railCooldown-dt);const railLimit=1.58*track.width-.2;
 if(Math.abs(x)>railLimit){const side=Math.sign(x);x=side*(railLimit-.07);if(railCooldown<=0){speed*=.65;flash=.5;railCooldown=.65;beep(85,.2,'sawtooth')}if(lateralSpeed*side>0)lateralSpeed=-side*.25;}
 const oldz=z;z+=speed*dt;
 for(const r of rivals){if(r.finish!==null)continue;const c=track.curve(mod(r.z,L)/L),ahead=track.curve(mod(r.z+110,L)/L),turn=Math.max(Math.abs(c),Math.abs(ahead));const target=Math.min(r.base,190*Math.sqrt(.95/(turn+.12))*(1.02+difficulty*.055));r.speed+=clamp(target-r.speed,-130*dt,90*dt);r.z+=r.speed*dt;r.x+=(Math.sin(time*.7+r.phase)*.4+Math.sign(c)*.18-r.x)*(1-Math.exp(-3*dt));if(r.z>=L*3){r.finish=time;r.z=L*3}if(Math.abs(r.z-z)<18&&Math.abs(r.x-x)<.23&&flash<=0){speed*=.7;x+=x>=r.x?.16:-.16;flash=.5;beep(110,.12,'sawtooth')}}
