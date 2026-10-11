@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Ad tracker · Daft Arcade</title>
+<style>:root{color-scheme:dark;font:16px system-ui;background:#101315;color:#f4f5ed}*{box-sizing:border-box}body{max-width:980px;margin:auto;padding:28px 20px}a{color:#d5fa74}header,.row{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}h1{font-size:42px;letter-spacing:-2px;margin-bottom:8px}p{color:#aab4ae;line-height:1.6}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}.card,form,section{background:#191e20;border:1px solid #343b39;border-radius:14px;padding:22px}.card strong{display:block;font-size:34px;color:#d5fa74;margin-top:12px}.card small{color:#aab4ae}form{display:flex;gap:16px;align-items:end;flex-wrap:wrap}label{display:grid;gap:8px;flex:1}input,button,.button{font:inherit;border-radius:8px;padding:12px;border:1px solid #46514b}input{width:100%;background:#101315;color:white}button,.button{background:#d5fa74;color:#101315;font-weight:700;cursor:pointer;text-decoration:none}button.secondary{background:transparent;color:#d5fa74}section{margin-top:22px}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:12px 4px;border-bottom:1px solid #343b39}td:last-child{text-align:right}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #a4dfff;outline-offset:3px}#status{min-height:24px;color:#d5fa74}.note{font-size:13px}.table{overflow:auto}@media(max-width:600px){.cards{grid-template-columns:1fr}.card strong{font-size:28px}h1{font-size:34px}}</style>
+<header><a href="./">← Daft Arcade</a><a class="button" href="https://adsense.google.com/" target="_blank" rel="noopener">Open AdSense ↗</a></header>
+<h1>Your ad notebook.</h1><p>Keep your daily AdSense impression totals in one place.</p>
+<p><b>Manual tracker — not connected to Google.</b> Open AdSense → Reports, select this site and a single date, then copy its Impressions total below. Entries stay in this browser; they are not uploaded or shared with other visitors.</p>
+<div class="cards"><div class="card">Today<strong id="today">—</strong><small id="todayNote">No entry yet</small></div><div class="card">Last 7 days<strong id="week">—</strong><small id="coverage">No recorded days</small></div><div class="card">All recorded days<strong id="all">—</strong><small>Impressions you entered</small></div></div>
+<form id="form"><label>Date<input id="date" type="date" required></label><label>AdSense impressions<input id="count" type="number" min="0" max="9007199254740991" step="1" required placeholder="e.g. 120"></label><button>Save day</button></form>
+<p class="note">Saving an existing date replaces its total. Use the same reporting timezone as AdSense. Today's figure may still change; update it later.</p><p id="status" role="status"></p>
+<section><div class="row"><h2>Daily history</h2><button class="secondary" id="export" type="button">Export CSV backup</button></div><div class="table"><table><thead><tr><th>Date</th><th>Impressions</th><th>Actions</th></tr></thead><tbody id="history"></tbody></table></div><p class="note">Clearing browser data removes your entries. Export a backup to keep a copy. Empty dates mean “not entered,” not zero.</p></section>
+<p class="note">This page loads no ads. A normal visit to your games may register impressions, but Google can filter invalid traffic. Never click your own ads or repeatedly reload pages to increase impressions.</p>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),key='daft-ad-notebook-v1';let entries={};
+const localDate=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=localDate(new Date()),validDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
+try{const raw=JSON.parse(localStorage.getItem(key)||'{}');if(raw&&typeof raw==='object')for(const [d,n] of Object.entries(raw))if(validDate(d)&&Number.isSafeInteger(n)&&n>=0)entries[d]=n}catch{$('status').textContent='Saved data could not be read. New entries will try to save.'}
+$('date').value=today;$('date').max=today;
+function persist(next){try{localStorage.setItem(key,JSON.stringify(next));entries=next;return true}catch{$('status').textContent='Browser storage is unavailable. Entry was not saved.';return false}}
+const format=n=>n.toLocaleString();
+function render(){
+const keys=Object.keys(entries).sort().reverse(),weekDates=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);weekDates.push(localDate(d))}
+const recorded=weekDates.filter(d=>Object.hasOwn(entries,d));
+$('today').textContent=Object.hasOwn(entries,today)?format(entries[today]):'—';$('todayNote').textContent=Object.hasOwn(entries,today)?'Latest manually entered total':'No entry yet';
+$('week').textContent=recorded.length?format(recorded.reduce((s,d)=>s+entries[d],0)):'—';$('coverage').textContent=recorded.length+' of 7 days entered';
+$('all').textContent=keys.length?format(keys.reduce((s,d)=>s+entries[d],0)):'—';
+$('history').replaceChildren();$('export').disabled=!keys.length;
+if(!keys.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=3;td.textContent='No entries yet. Add your first daily total above.';tr.append(td);$('history').append(tr)}
+for(const d of keys){const tr=document.createElement('tr');for(const v of [d,format(entries[d])]){const td=document.createElement('td');td.textContent=v;tr.append(td)}const td=document.createElement('td'),edit=document.createElement('button'),del=document.createElement('button');edit.type=del.type='button';edit.textContent='Edit';del.textContent='Delete';del.className='secondary';del.style.marginLeft='8px';edit.setAttribute('aria-label','Edit '+d);del.setAttribute('aria-label','Delete '+d);edit.onclick=()=>{$('date').value=d;$('count').value=entries[d];$('count').focus()};del.onclick=()=>{if(!confirm('Delete the entry for '+d+'?'))return;const next={...entries};delete next[d];if(persist(next)){render();$('status').textContent='Entry deleted.'}};td.append(edit,del);tr.append(td);$('history').append(tr)}
+}
+$('date').onchange=()=>{$('count').value=entries[$('date').value]??''};
+$('form').onsubmit=e=>{e.preventDefault();const d=$('date').value,n=Number($('count').value);if(!validDate(d)||d>today||!Number.isSafeInteger(n)||n<0){$('status').textContent='Enter a valid date and a nonnegative whole number.';return}if(persist({...entries,[d]:n})){render();$('status').textContent='Saved '+format(n)+' impressions for '+d+'.'}};
+$('export').onclick=()=>{const csv='Date,Impressions\r\n'+Object.keys(entries).sort().map(d=>d+','+entries[d]).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})),a=document.createElement('a');a.href=url;a.download='daft-ad-impressions-'+today+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+render();
+})();
+</script></html>
