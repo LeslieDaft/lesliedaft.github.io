@@ -2,7 +2,65 @@
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Ad tracker · Daft Arcade</title>
 <style>:root{color-scheme:dark;font:16px system-ui;background:#101315;color:#f4f5ed}*{box-sizing:border-box}body{max-width:980px;margin:auto;padding:28px 20px}a{color:#d5fa74}header,.row{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}h1{font-size:42px;letter-spacing:-2px;margin-bottom:8px}p{color:#aab4ae;line-height:1.6}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}.card,form,section{background:#191e20;border:1px solid #343b39;border-radius:14px;padding:22px}.card strong{display:block;font-size:34px;color:#d5fa74;margin-top:12px}.card small{color:#aab4ae}form{display:flex;gap:16px;align-items:end;flex-wrap:wrap}label{display:grid;gap:8px;flex:1}input,button,.button{font:inherit;border-radius:8px;padding:12px;border:1px solid #46514b}input{width:100%;background:#101315;color:white}button,.button{background:#d5fa74;color:#101315;font-weight:700;cursor:pointer;text-decoration:none}button.secondary{background:transparent;color:#d5fa74}section{margin-top:22px}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:12px 4px;border-bottom:1px solid #343b39}td:last-child{text-align:right}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #a4dfff;outline-offset:3px}#status{min-height:24px;color:#d5fa74}.note{font-size:13px}.table{overflow:auto}@media(max-width:600px){.cards{grid-template-columns:1fr}.card strong{font-size:28px}h1{font-size:34px}}</style>
 <header><a href="./">← Daft Arcade</a><a class="button" href="https://adsense.google.com/" target="_blank" rel="noopener">Open AdSense ↗</a></header>
-<h1>Your ad notebook.</h1><p>Keep your daily AdSense impression totals in one place.</p>
+<section aria-labelledby="auto-title"><h1 id="auto-title">AdSense dashboard</h1><p>Automatic reports for <b>lesliedaft.github.io</b>. Connect your AdSense Google account to load actual impressions. Reports refresh every 5 minutes while this page is visible and your connection is active. Google reporting is delayed, not a live counter.</p>
+<details id="setup"><summary>One-time Google setup</summary><ol><li>In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>, create or choose a project and enable the <b>AdSense Management API</b>.</li><li>Configure Google Auth Platform branding and audience. For a personal testing app, add the AdSense account owner's email as a test user. Add the read-only scope <code>https://www.googleapis.com/auth/adsense.readonly</code> under Data Access.</li><li>Create an OAuth client of type <b>Web application</b>. Add this exact Authorized JavaScript origin: <code>https://lesliedaft.github.io</code>.</li><li>Copy the client ID (ending in <code>.apps.googleusercontent.com</code>) below. No client secret is needed.</li></ol></details>
+<label style="margin:18px 0">Google OAuth client ID<input id="client-id" placeholder="…apps.googleusercontent.com" autocomplete="off" spellcheck="false"></label>
+<div class="row"><button id="connect" type="button">Connect Google</button><button id="refresh" type="button" disabled>Refresh totals</button><button class="secondary" id="disconnect" type="button" disabled>Disconnect</button></div>
+<p id="auto-status" role="status">Not connected. Complete the one-time setup, then connect Google.</p>
+<div class="cards"><div class="card">Today<strong id="auto-today">—</strong><small>AdSense account timezone</small></div><div class="card">Previous 7 days<strong id="auto-week">—</strong><small>Excludes today</small></div><div class="card">This month<strong id="auto-month">—</strong><small>Includes today</small></div></div>
+<h2>Daily impressions · previous 30 days</h2><div class="table"><table><thead><tr><th>Date</th><th>Impressions</th></tr></thead><tbody id="auto-history"><tr><td colspan="2">Connect Google to load reports.</td></tr></tbody></table></div>
+<p class="note">Read-only access. Your access token stays in memory and is never saved to this site or browser storage. Reloading this page or an expired session requires reconnecting. Your client ID is saved in this browser. Other visitors cannot see your reports. Zero or empty reports may occur before ads are approved and serving.</p></section>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(()=>{
+'use strict';
+const el=id=>document.getElementById(id),base='https://adsense.googleapis.com/v2/',account='accounts/pub-3739385001345239',scope='https://www.googleapis.com/auth/adsense.readonly';
+let token='',expires=0,busy=false,generation=0;
+try{el('client-id').value=localStorage.getItem('daft-adsense-client-id')||''}catch{}
+el('setup').open=!el('client-id').value;
+function status(s){el('auto-status').textContent=s}
+function clearData(){for(const id of ['auto-today','auto-week','auto-month'])el(id).textContent='—';el('auto-history').replaceChildren()}
+function stop(message){generation++;token='';expires=0;el('refresh').disabled=true;el('disconnect').disabled=true;clearData();status(message)}
+async function report(range,daily=false){
+const q=new URLSearchParams({dateRange:range,metrics:'IMPRESSIONS',filters:'OWNED_SITE_DOMAIN_NAME==lesliedaft.github.io',reportingTimeZone:'ACCOUNT_TIME_ZONE'});
+if(daily){q.set('dimensions','DATE');q.set('orderBy','-DATE')}
+const response=await fetch(base+account+'/reports:generate?'+q,{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+const data=await response.json();
+if(!response.ok){if(response.status===401)throw new Error('Your Google session expired. Click Connect Google again.');throw new Error(data.error?.message||'Google report request failed ('+response.status+').')}
+return data;
+}
+function total(r){const v=r.totals?.cells?.[0]?.value;if(v!==undefined&&Number.isFinite(Number(v)))return Number(v).toLocaleString();return r.rows?.length?'Unavailable':'0'}
+async function refresh(){
+if(busy||!token)return;
+if(Date.now()>=expires){stop('Google session expired. Click Connect Google to resume automatic updates.');return}
+busy=true;el('refresh').disabled=true;const current=generation;status('Fetching Google AdSense reports…');
+try{
+const [today,week,month,history]=await Promise.all([report('TODAY'),report('LAST_7_DAYS'),report('MONTH_TO_DATE'),report('LAST_30_DAYS',true)]);
+if(current!==generation)return;
+el('auto-today').textContent=total(today);el('auto-week').textContent=total(week);el('auto-month').textContent=total(month);el('auto-history').replaceChildren();
+for(const row of history.rows||[]){const tr=document.createElement('tr');for(const cell of row.cells||[]){const td=document.createElement('td');td.textContent=cell.value;tr.append(td)}el('auto-history').append(tr)}
+if(!history.rows?.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=2;td.textContent='Google returned no impression rows for this period.';tr.append(td);el('auto-history').append(tr)}
+const warnings=[today,week,month,history].flatMap(r=>r.warnings||[]);
+status('Updated '+new Date().toLocaleTimeString()+'. Refreshes every 5 minutes while open. Dates without report rows are omitted.'+(warnings.length?' Google notice: '+[...new Set(warnings)].join(' '):''));
+}catch(error){if(current===generation){clearData();status(error.message+' Check API setup, account access, and site approval; then reconnect or refresh.')}}finally{busy=false;el('refresh').disabled=!token}
+}
+el('connect').onclick=()=>{
+const id=el('client-id').value.trim();
+if(!/^[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(id)){el('setup').open=true;status('Paste your Google OAuth web client ID first. This is different from your AdSense publisher ID.');return}
+if(!window.google?.accounts?.oauth2){status('Google sign-in has not loaded. Check your connection or browser blockers and try again.');return}
+try{localStorage.setItem('daft-adsense-client-id',id)}catch{}
+const client=google.accounts.oauth2.initTokenClient({client_id:id,scope,include_granted_scopes:false,callback:response=>{
+if(response.error){stop('Google connection was not completed: '+response.error);return}
+generation++;clearData();token=response.access_token;expires=Date.now()+Number(response.expires_in||3600)*1000-30000;el('disconnect').disabled=false;el('refresh').disabled=false;refresh();
+},error_callback:()=>status('Google sign-in was closed or blocked. Click Connect Google to try again.')});
+client.requestAccessToken({prompt:'select_account'});
+};
+el('refresh').onclick=refresh;
+el('disconnect').onclick=()=>{const previous=token;stop('Disconnected. Reports have been cleared from this page.');if(previous)google.accounts.oauth2.revoke(previous,()=>{})};
+setInterval(()=>{if(!document.hidden)refresh()},300000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+})();
+</script><details><summary style="margin-top:24px">Previous manual notebook (optional)</summary><h1>Your ad notebook.</h1><p>Keep your daily AdSense impression totals in one place.</p>
 <p><b>Manual tracker — not connected to Google.</b> Open AdSense → Reports, select this site and a single date, then copy its Impressions total below. Entries stay in this browser; they are not uploaded or shared with other visitors.</p>
 <div class="cards"><div class="card">Today<strong id="today">—</strong><small id="todayNote">No entry yet</small></div><div class="card">Last 7 days<strong id="week">—</strong><small id="coverage">No recorded days</small></div><div class="card">All recorded days<strong id="all">—</strong><small>Impressions you entered</small></div></div>
 <form id="form"><label>Date<input id="date" type="date" required></label><label>AdSense impressions<input id="count" type="number" min="0" max="9007199254740991" step="1" required placeholder="e.g. 120"></label><button>Save day</button></form>
@@ -33,4 +91,4 @@ $('form').onsubmit=e=>{e.preventDefault();const d=$('date').value,n=Number($('co
 $('export').onclick=()=>{const csv='Date,Impressions\r\n'+Object.keys(entries).sort().map(d=>d+','+entries[d]).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})),a=document.createElement('a');a.href=url;a.download='daft-ad-impressions-'+today+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 render();
 })();
-</script></html>
+</script></details></html>
