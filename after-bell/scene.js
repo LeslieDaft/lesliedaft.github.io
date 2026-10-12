@@ -7,7 +7,7 @@ const PALETTE = { wood: 0x8c6549, legs: 0x404a52, brass: 0xc59c43, teal: 0x557f8
 
 /** A compact, completely local school. Static furniture is batched by material. */
 export function buildSchool(scene) {
-  const interactables = [], hideSpots = [], colliders = [], lamps = [], students = [];
+  const interactables = [], hideSpots = [], colliders = [], sightBlockers = [], lamps = [], students = [];
   const mats = new Map(), batches = new Map(), boxGeo = new THREE.BoxGeometry(1, 1, 1);
   const material = (color, options = {}) => {
     const key = `${color}:${JSON.stringify(options)}`;
@@ -222,6 +222,16 @@ export function buildSchool(scene) {
   const det = ROOMS.detention;
   desk(-3.25, det.center.z - 1.1, 1.8, 0.85); chair(-3.25, det.center.z - 0.12, Math.PI);
   desk(3.1, det.center.z - 1.1, 1.8, 0.85); chair(3.1, det.center.z - 0.12, Math.PI);
+  // Tall cabinets make genuine cover, with a clear aisle around both sides.
+  for (const x of [-3, 3]) {
+    const z = det.center.z + 0.75;
+    box(x, 0.925, z, 0.9, 1.85, 0.65, 0x59685c); collider(x, z, 0.9, 0.65);
+    for (const y of [0.29, 0.73, 1.17, 1.61]) {
+      box(x, y, z + 0.335, 0.76, 0.38, 0.035, 0x647460);
+      box(x, y + 0.05, z + 0.37, 0.26, 0.04, 0.045, 0xb9b7a0);
+    }
+    sightBlockers.push({ minX: x - 0.45, maxX: x + 0.45, minZ: z - 0.325, maxZ: z + 0.325, height: 1.85 });
+  }
   pickup('detKey', 'detKey', 'Take detention key', -3.25, det.center.z - 1.1, 0.98, 'detention');
   pickup('detFuse', 'detFuse', 'Take replacement fuse', 3.1, det.center.z - 1.1, 0.98, 'detention');
   const detentionDoor = new THREE.Group(); detentionDoor.position.set(det.door.x, 0, det.door.z);
@@ -242,22 +252,29 @@ export function buildSchool(scene) {
 
   // Facial proportions, clothing, and hair match the corresponding jumpscare artwork.
   function makeHuman(kind, student = false) {
-    const root = new THREE.Group(), skin = student ? 0xbe9680 : kind === 'band' ? 0xc7bcae : 0xc1b6a5;
-    const coat = student ? 0x556c86 : kind === 'band' ? PALETTE.maroon : 0x477b76;
+    const friend = kind === 'jamie';
+    const root = new THREE.Group(), skin = friend ? 0xc69c7e : student ? 0xbe9680 : kind === 'band' ? 0xc7bcae : 0xc1b6a5;
+    const coat = friend ? 0xd2ad4f : student ? 0x556c86 : kind === 'band' ? PALETTE.maroon : 0x477b76;
     const trouser = student ? 0x334b56 : 0x252f37;
     const sphere = (parent, radius, color, x, y, z, sx = 1, sy = 1, sz = 1) => {
       const m = new THREE.Mesh(new THREE.SphereGeometry(radius, 14, 10), material(color)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); parent.add(m); return m;
     };
     meshBox(root, 0.62, 0.67, 0.33, coat, 0, 1.42);
-    meshBox(root, 0.26, 0.52, 0.06, student ? 0xa9bbba : 0xd4d1be, 0, 1.47, 0.185);
+    meshBox(root, 0.26, 0.52, 0.06, friend ? 0xd2ad4f : student ? 0xa9bbba : 0xd4d1be, 0, 1.47, 0.185);
+    if (friend) {
+      // Jamie has a warm yellow hoodie, a front pocket, and a distinctly normal face.
+      meshBox(root, 0.39, 0.19, 0.07, 0xb98c37, 0, 1.24, 0.20);
+      for (const dx of [-0.085, 0.085]) meshBox(root, 0.018, 0.17, 0.02, 0xf0dfb7, dx, 1.68, 0.205);
+      sphere(root, 0.23, coat, 0, 1.82, -0.09, 1.2, 0.65, 0.9);
+    }
     if (kind === 'band' && !student) meshBox(root, 0.07, 0.43, 0.05, 0x20272f, 0, 1.44, 0.225);
     meshBox(root, 0.45, 0.21, 0.3, trouser, 0, 1.0);
     sphere(root, 0.105, skin, 0, 1.88, 0, 0.8, 1.4, 0.8);
-    const head = new THREE.Group(); head.position.set(0, 2.13, 0.01); head.rotation.z = kind === 'band' ? -0.025 : 0.055; root.add(head);
+    const head = new THREE.Group(); head.position.set(0, 2.13, 0.01); head.rotation.z = friend ? 0 : kind === 'band' ? -0.025 : 0.055; root.add(head);
     sphere(head, 0.26, skin, 0, 0, 0, 0.93, 1.23, 0.88);
     const hair = student ? 0x4c392d : kind === 'band' ? 0x24262b : 0xb0b1a7;
     sphere(head, 0.268, hair, 0, 0.15, -0.045, 1.02, 0.76, 0.95);
-    if (kind !== 'band') {
+    if (kind !== 'band' && !friend) {
       sphere(head, 0.20, hair, -0.205, -0.045, -0.065, 0.42, 1.05, 0.95);
       sphere(head, 0.20, hair, 0.205, -0.045, -0.065, 0.42, 1.05, 0.95);
     } else sphere(head, 0.14, hair, -0.1, 0.20, 0.12, 1.05, 0.65, 0.52);
@@ -273,7 +290,7 @@ export function buildSchool(scene) {
       }
     }
     if (kind === 'band' && !student) meshBox(head, 0.05, 0.013, 0.025, 0x263039, 0, 0.06, 0.252);
-    const smile = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.076, -0.11, 0.202), new THREE.Vector3(0, -0.135, 0.23), new THREE.Vector3(0.078, -0.095, 0.20)]);
+    const smile = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.076, -0.11, 0.202), new THREE.Vector3(0, friend ? -0.119 : -0.135, 0.23), new THREE.Vector3(0.078, friend ? -0.109 : -0.095, 0.20)]);
     head.add(new THREE.Mesh(new THREE.TubeGeometry(smile, 8, 0.008, 5, false), material(0x614845)));
     const arms = [], legs = [], lowerArms = [], lowerLegs = [];
     for (const side of [-1, 1]) {
@@ -301,6 +318,8 @@ export function buildSchool(scene) {
     pupil.position.set(ROOMS.homeroom.center.x + (i % 2 ? 2.6 : -2.6), 0, ROOMS.homeroom.center.z + (i < 2 ? -1.6 : 1.6));
     pupil.rotation.y = Math.PI / 2; scene.add(pupil); students.push(pupil);
   }
+  const friend = makeHuman('jamie', true);
+  friend.name = 'Jamie'; friend.visible = false; scene.add(friend);
 
   const guardian = new THREE.Group(); guardian.position.set(SPAWN.x, 1.6, SPAWN.z - 9);
   const shield = new THREE.Shape(); shield.moveTo(0, 0.88); shield.lineTo(-0.70, 0.52); shield.lineTo(-0.58, -0.35); shield.lineTo(0, -0.84); shield.lineTo(0.58, -0.35); shield.lineTo(0.70, 0.52); shield.closePath();
@@ -353,5 +372,5 @@ export function buildSchool(scene) {
   }
   setMood(true, 0);
   scene.userData.school = { floorCells: floorCells.length, exposedWallFaces: faces.length, staticBatches: batches.size };
-  return { lamps, interactables, hideSpots, exitDoor, detentionDoor, colliders, teachers, guardian, students, setMood };
+  return { lamps, interactables, hideSpots, exitDoor, detentionDoor, colliders, sightBlockers, teachers, guardian, students, friend, setMood };
 }

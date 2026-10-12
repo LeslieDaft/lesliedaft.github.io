@@ -1,7 +1,8 @@
 import * as THREE from './vendor/three.module.js';
 import { MAP, WIDTH, HEIGHT, CELL_SIZE, ROOMS, SPAWN, EXIT, DETENTION_SPAWN, PATROL_POINTS, DAYS,
   ORIGIN_X, ORIGIN_Z, gridToWorld, worldToGrid, cellKey, isWalkable, findPath, lineOfSight, isWeekend, captureDestination } from './engine.js';
-import { buildSchool } from './scene.js';
+import { buildSchool } from './scene.js?v=2';
+import { createDareCutscene } from './cutscene.js?v=2';
 
 const $ = id => document.getElementById(id);
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
@@ -29,10 +30,10 @@ function saveSettings(){
 }
 for(const field of ['difficulty','quality','reduced','sound']) $(field).addEventListener('change',saveSettings);
 
-let renderer, scene, camera, world, flashlight, flashTarget, hand;
+let renderer, scene, camera, world, flashlight, flashTarget, hand, dareCutscene;
 let state = null, mode='menu', paused=false, frameTime=performance.now(), hudTime=0, mapOpen=false;
 let transitionTime=0, noticeTime=0, walkingTime=0, nearby=null, noiseEvent=null, noiseTime=0;
-let captureTime=0, captureEnemy='guardian', detLampTime=0;
+let captureTime=0, captureEnemy='guardian', detLampTime=0, detentionGuard=null;
 const player={...SPAWN,yaw:0,pitch:0,height:1.65,hidden:null,bob:0,moving:false,sprinting:false,crouching:false};
 const blocked=new Set([cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z)]);
 const furnitureNav=new Set();
@@ -95,6 +96,7 @@ try{
   resize();
   world.setMood(false,0);
   createEnemies();
+  dareCutscene=createDareCutscene({world,player,camera,onComplete:()=>startGame(null,true)});
   positionCamera(0);
 }catch(error){showError(error)}
 
@@ -135,37 +137,53 @@ function newState(save=null){
   if(save)Object.assign(s,save,{phase:'day',lightOn:false,classes:[],trouble:0});return s;
 }
 function acceptDare(){
-  saveSettings();resize();$('menu').hidden=true;$('intro').hidden=false;mode='intro';startAudio();
+  if(!renderer||!world||!dareCutscene)return;
+  saveSettings();resize();state=null;mode='intro';paused=false;mapOpen=false;keyDown.clear();
+  for(const id of ['menu','hud','pause','ending','mapPanel','scare','blackout','transition'])$(id).hidden=true;
+  dareCutscene.start();startAudio();requestLook();
 }
 $('start').onclick=acceptDare;
-$('begin').onclick=()=>startGame();
+$('begin').onclick=()=>dareCutscene?.finish();
 $('resume').onclick=()=>{const save=validSave();if(!save)return;settings.difficulty=save.difficulty;$('difficulty').value=save.difficulty;startGame(save)};
-function startGame(save=null){
+function startGame(save=null,fromCutscene=false){
   if(!renderer||!world)return;
+  dareCutscene?.cancel();keyDown.clear();detentionGuard=null;
   state=newState(save);mode='playing';paused=false;mapOpen=false;
   for(const id of ['menu','intro','pause','ending','mapPanel','scare','blackout'])$(id).hidden=true;
-  $('hud').hidden=false;startAudio();startDay(false);requestLook();
+  $('hud').hidden=false;startAudio();startDay(false);
+  if(fromCutscene&&!save){
+    Object.assign(player,dareCutscene.endPosition);state.classes=['homeroom'];
+    showTransition('MONDAY · LEAVING HOMEROOM','The dare is on.','Band class is next. Hide before the last bell.',2.8);updateHud();
+  }
+  requestLook();
 }
 function toMenu(){
+  dareCutscene?.cancel();detentionGuard=null;
   mode='menu';paused=false;state=null;keyDown.clear();document.exitPointerLock?.();
   for(const id of ['hud','pause','ending','intro','scare','blackout','mapPanel','transition'])$(id).hidden=true;
   $('menu').hidden=false;player.x=SPAWN.x;player.z=SPAWN.z;player.yaw=0;player.pitch=0;player.hidden=null;
   resetInteractionMeshes();world.setMood(false,0);for(const e of enemies)e.model.visible=true;updateResume();
 }
 $('mainMenu').onclick=toMenu;$('endingMenu').onclick=toMenu;
-$('restartPause').onclick=()=>startGame();$('playAgain').onclick=()=>startGame();
+$('restartPause').onclick=acceptDare;$('playAgain').onclick=acceptDare;
 function requestLook(){
-  if(mode!=='playing'||paused)return;
+  if(!['playing','intro'].includes(mode)||paused)return;
   try{const p=$('view').requestPointerLock?.();if(p?.catch)p.catch(()=>{})}catch{}
 }
 $('view').addEventListener('click',requestLook);
 function setPaused(value){
+  if(mode==='intro'&&dareCutscene?.active){
+    paused=value;$('pause').hidden=!value;keyDown.clear();
+    if(value)document.exitPointerLock?.();else{startAudio();requestLook();}
+    return;
+  }
   if(mode!=='playing'||!state||['capture','blackout'].includes(state.phase))return;
   paused=value;$('pause').hidden=!value;keyDown.clear();
   if(value){document.exitPointerLock?.();$('mapPanel').hidden=true;mapOpen=false;}else{startAudio();requestLook();}
 }
 $('pauseBtn').onclick=()=>setPaused(true);$('unpause').onclick=()=>setPaused(false);
 document.addEventListener('pointerlockchange',()=>{
+  if(document.pointerLockElement!==$('view')&&mode==='intro'&&dareCutscene?.active&&!paused)setPaused(true);
   if(document.pointerLockElement!==$('view')&&mode==='playing'&&!paused&&state&&['day','night','detention','finale'].includes(state.phase))setPaused(true);
 });
 addEventListener('blur',()=>setPaused(true));
@@ -177,6 +195,7 @@ function resetInteractionMeshes(){
   if(world.detentionDoor)world.detentionDoor.visible=true;
 }
 function startDay(advance=true){
+  detentionGuard=null;world.friend.visible=false;
   if(advance)state.day++;
   player.hidden=null;player.x=SPAWN.x;player.z=SPAWN.z;player.yaw=0;player.pitch=0;state.lightOn=false;state.classes=[];state.trouble=0;
   state.detOpen=false;blocked.add(cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z));
@@ -272,16 +291,16 @@ function interact(){
       if(!state.proofs.includes(state.day))state.proofs.push(state.day);o.available=false;emitNoise(4);tone(780,.12);tone(1040,.16,'sine',.1,.1);
       say(`Night ${state.day+1} proof secured. Now hide until morning.`,4);break;
     case 'class':state.classes.push(o.room);emitNoise(2);tone(520,.1);say(`${ROOMS[o.room].label}: present. ${state.classes.length}/2 classes done.`,3);break;
-    case 'detKey':state.detKey=true;say('Detention key. One lock down.',3);tone(760,.1);break;
-    case 'detFuse':state.detFuse=true;say('A spare fuse. Put it in the panel beside the door.',4);break;
+    case 'detKey':state.detKey=true;emitNoise(2);say('Detention key. One lock down.',3);tone(760,.1);break;
+    case 'detFuse':state.detFuse=true;emitNoise(2);say('A spare fuse. Put it in the panel beside the door.',4);break;
     case 'detPanel':
       if(state.detPower){say('The door has power. Use the key on the detention door.',3);break;}
       if(!state.detFuse){say('The panel needs a fuse. Search the supply shelf.',3);break;}
-      state.detFuse=false;state.detPower=true;tone(80,.7,'sawtooth',.1,0,160);say('Power restored. Unlock the door with the detention key.',3);break;
+      state.detFuse=false;state.detPower=true;emitNoise(6);tone(80,.7,'sawtooth',.1,0,160);say('Power restored. The teacher heard that. Get behind cover.',3);break;
     case 'detDoor':
       if(!state.detKey){say('Locked. Search the teacher’s desk for the key.',3);break;}
       if(!state.detPower){say('The electric lock has no power. Fix the fuse panel first.',3);break;}
-      state.detOpen=true;blocked.delete(cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z));if(world.detentionDoor)world.detentionDoor.visible=false;
+      state.detOpen=true;emitNoise(4);blocked.delete(cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z));if(world.detentionDoor)world.detentionDoor.visible=false;
       say('Unlocked. Step through the door and return to the halls.',4);tone(180,.2);break;
     case 'exit':if(state.proofs.length>=7)finish(true);else say('Seven nights of proof are required.',3);break;
   }
@@ -289,6 +308,9 @@ function interact(){
 }
 
 addEventListener('keydown',event=>{
+  if(mode==='intro'&&!paused&&['Space','Enter'].includes(event.code)){
+    event.preventDefault();dareCutscene?.finish();return;
+  }
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Tab'].includes(event.code)&&mode==='playing')event.preventDefault();
   if(event.repeat){keyDown.add(event.code);return;}
   if(event.code==='Escape'){setPaused(true);return;}
@@ -329,7 +351,7 @@ function movePlayer(dt){
   walkingTime+=dt;player.bob+=dt*(player.sprinting?13:8);
   if(walkingTime>(player.sprinting?.3:player.crouching?.75:.48)){
     walkingTime=0;noiseSound(.045,player.sprinting?.12:player.crouching?.018:.04);
-    if(state.phase==='night')emitNoise(player.sprinting?10:player.crouching?1:3);
+    if(state.phase==='night'||state.phase==='detention')emitNoise(player.sprinting?10:player.crouching?1:3);
   }
   if(player.sprinting&&state.phase==='night')state.trouble=clamp(state.trouble+dt*.8,0,100);
 }
@@ -428,7 +450,8 @@ function animateTeacher(e,t,dt){
   const head=e.model.userData.head;if(head){head.rotation.z=Math.sin(t*.45+e.id.length)*.04;head.rotation.y=e.alert>0?.08:Math.sin(t*.5)*.1;}
 }
 function capture(enemy){
-  if(state.phase!=='night')return;
+  if(!['night','detention'].includes(state.phase))return;
+  if(state.phase==='detention')state.detRecatches=(state.detRecatches||0)+1;
   state.phase='capture';captureTime=0;captureEnemy=enemy;state.lightOn=false;state.captures++;player.hidden=null;
   $('hiddenBanner').hidden=true;$('scare').hidden=false;$('blackout').hidden=true;$('mapPanel').hidden=true;mapOpen=false;$('transition').hidden=true;
   const image=$('scareImage');image.src=`./assets/${enemy}.webp`;image.alt=enemy==='band'?'Mr. Reed, the uncanny band teacher':enemy==='teacher'?'Ms. Vale, the uncanny teacher':'The watchful GoGuardian eye';
@@ -458,17 +481,81 @@ function updateCapture(dt){
 }
 function enterDetention(){
   state.phase='detention';state.detKey=false;state.detFuse=false;state.detPower=false;state.detOpen=false;state.phaseTime=0;detLampTime=0;
+  state.detSuspicion=0;noiseEvent=null;noiseTime=0;keyDown.clear();
   blocked.add(cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z));world.detentionDoor.visible=true;
   player.x=DETENTION_SPAWN.x;player.z=DETENTION_SPAWN.z;player.yaw=Math.PI;player.pitch=0;state.lightOn=false;
   state.battery=Math.max(35,state.battery);world.setMood(false,0);
   for(const e of enemies)e.model.visible=false;
-  // The teacher is present at the front desk, looking at papers rather than pursuing.
+  // The same teacher supervises this escape and can send you back to your seat.
   const teacher=enemies.find(e=>e.id===captureEnemy&&e.id!=='guardian')||enemies.find(e=>e.id==='teacher');
-  if(teacher.id!=='guardian'){teacher.model.visible=true;teacher.model.position.set(ROOMS.detention.center.x+2.7,0,ROOMS.detention.center.z-1.1);teacher.model.rotation.y=-.3;}
-  updateItems();showTransition('DISCIPLINARY RECORD UPDATED','Detention.','Find the key, replace the fuse, unlock the door.',3);say('Industrial lights hum overhead. You are still inside the school.',5);
+  detentionGuard=teacher;
+  Object.assign(teacher,{x:ROOMS.detention.center.x,z:ROOMS.detention.bounds.minZ+.75,yaw:Math.PI,path:[],pathIndex:0,patrolIndex:0,think:0,alert:0,seen:0,blinded:0,lastSeen:null,inspect:false,detWait:0});
+  teacher.model.visible=true;teacher.model.position.set(teacher.x,0,teacher.z);teacher.model.rotation.y=teacher.yaw;
+  updateItems();showTransition('DISCIPLINARY RECORD UPDATED',state.detRecatches?'Back in detention.':'Detention.','The teacher is watching. Find cover, stay quiet, and unlock the door.',3);
+  say('The teacher checks the room. Crouch behind the filing cabinets. Running gives you away.',6);
   requestLook();updateHud();
 }
+
+// Walls and the tall filing cabinets block the teacher's view. Desks stay low.
+function detentionSight(from,to){
+  if(!lineOfSight(from,to,blocked))return false;
+  for(const c of world.sightBlockers||[]){
+    let lo=0,hi=1;
+    for(const axis of ['x','z']){
+      const delta=to[axis]-from[axis],minimum=c[axis==='x'?'minX':'minZ'],maximum=c[axis==='x'?'maxX':'maxZ'];
+      if(Math.abs(delta)<1e-8){if(from[axis]<minimum||from[axis]>maximum){lo=2;break;}}
+      else{const a=(minimum-from[axis])/delta,b=(maximum-from[axis])/delta;lo=Math.max(lo,Math.min(a,b));hi=Math.min(hi,Math.max(a,b));}
+    }
+    if(lo<=hi&&hi>0&&lo<1)return false;
+  }
+  return true;
+}
+
+function updateDetentionGuard(dt){
+  const e=detentionGuard;if(!e||state.phase!=='detention')return;
+  if(state.phaseTime<3.2){if(e.model.userData.head)e.model.userData.head.rotation.x=.26;return;}
+  const difficulty=DIFFICULTY[state.difficulty],d=distance(e,player),los=detentionSight(e,player);
+  const facing={x:Math.sin(e.yaw),z:Math.cos(e.yaw)},dot=d>.01?((player.x-e.x)*facing.x+(player.z-e.z)*facing.z)/d:1;
+  const range=(player.crouching?4.4:6.8)*difficulty.sight*(state.lightOn?1.25:1),sees=los&&d<range&&(dot>.58||d<1.35);
+  if(noiseEvent&&noiseTime>0&&!noiseEvent.decoy&&distance(e,noiseEvent)<noiseEvent.strength*(e.id==='band'?1.05:.78)*difficulty.noise){
+    e.lastSeen={x:noiseEvent.x,z:noiseEvent.z};e.alert=Math.max(e.alert,4);e.think=Math.min(e.think,.15);
+  }
+  if(sees){
+    e.seen=Math.min(1.5,e.seen+dt*(player.crouching?.85:1.4));e.lastSeen={x:player.x,z:player.z};e.alert=4;e.think=Math.min(e.think,.18);
+    if(e.seen<=dt*1.5){say(`${e.name}: “Back to your seat!” Break line of sight.`,3);tone(220,.22,'triangle',.10);}
+  }else e.seen=Math.max(0,e.seen-dt*.65);
+  state.detSuspicion=clamp(Math.max(e.seen/1.5,e.alert>0?.35:0),0,1);
+  $('threat').style.boxShadow=state.detSuspicion>.02?`inset 0 0 100px rgba(183,48,47,${state.detSuspicion*.32})`:'none';
+  if(sees&&d<1.25&&e.seen>.18){capture(e.id);return;}
+  e.alert=Math.max(0,e.alert-dt);e.think-=dt;e.detWait=Math.max(0,e.detWait-dt);
+  const patrol=[gridToWorld(16,1),gridToWorld(16,3),gridToWorld(15,4),gridToWorld(17,4)],chasing=e.alert>0&&e.lastSeen;
+  if(e.think<=0){
+    const destination=chasing?e.lastSeen:patrol[e.patrolIndex%patrol.length],nav=navBlocks(),goal=navTarget(destination,nav);
+    e.path=goal?findPath(e,goal,nav):[];e.pathIndex=e.path.length>1?1:0;e.think=.55;
+  }
+  let moving=false;
+  if(e.detWait<=0||chasing){
+    const target=e.path[e.pathIndex];
+    if(target){
+      const length=distance(e,target);
+      if(length<.09){e.pathIndex++;if(!chasing&&e.pathIndex>=e.path.length){e.patrolIndex++;e.detWait=1;e.think=0;}}
+      else{
+        const step=Math.min(length,dt*(chasing?2.55:1.5)*difficulty.speed),nx=e.x+(target.x-e.x)/length*step,nz=e.z+(target.z-e.z)/length*step;
+        if(canOccupy(nx,nz)){e.x=nx;e.z=nz;moving=true;}else{e.path=[];e.think=0;}
+        e.yaw=angleLerp(e.yaw,Math.atan2(target.x-e.x,target.z-e.z),Math.min(1,dt*5));
+      }
+    }
+  }
+  if(sees)e.yaw=angleLerp(e.yaw,Math.atan2(player.x-e.x,player.z-e.z),Math.min(1,dt*6));
+  e.model.position.set(e.x,0,e.z);e.model.rotation.y=e.yaw;
+  if(moving)animateTeacher(e,state.elapsed,dt);
+  else if(e.model.userData.limbs){for(const limb of ['leftLeg','rightLeg','leftArm','rightArm'])e.model.userData.limbs[limb].rotation.x*=Math.exp(-dt*8);}
+  if(e.model.userData.head)e.model.userData.head.rotation.x=.03;
+  if(droneGain&&audioContext)droneGain.gain.setTargetAtTime(.01+state.detSuspicion*.035,audioContext.currentTime,.3);
+}
+
 function escapeDetention(){
+  detentionGuard=null;$('threat').style.boxShadow='none';noiseEvent=null;noiseTime=0;
   state.phase='night';state.trouble=Math.min(45,state.trouble);state.grace=10;player.hidden=null;state.detOpen=false;
   blocked.add(cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z));world.detentionDoor.visible=true;world.setMood(false,0);resetEnemies();updateItems();
   showTransition('BACK IN THE HALLS','Not over yet.','Your proof is safe. Find a locker before patrols return.',3);say('Escaped detention. Ten seconds of cover.',4);updateHud();
@@ -509,7 +596,7 @@ function updateHud(){
       state.day>0&&!state.hasKey?'First find the staff key in the Office. M shows the route.':`Collect ${NIGHT_PROOFS[state.day]}. Look for the gold glow.`;
   }else if(state.phase==='detention'){
     $('objectiveKicker').textContent='ESCAPE DETENTION';$('objectiveText').textContent=!state.detKey?'Search the teacher’s desk for a key.':!state.detPower?'Find a fuse and repair the door panel.':!state.detOpen?'Unlock the detention door.':'Walk out into the hall.';
-    $('objectiveHint').textContent='Your night timer pauses here. E interacts. Your proof stays safe.';
+    $('objectiveHint').textContent='Stay quiet and use cabinets as cover. The teacher can catch you again. Your proof stays safe.';
   }else if(state.phase==='finale'){$('objectiveKicker').textContent='SEVEN NIGHTS COMPLETE';$('objectiveText').textContent='Get to the front doors.';$('objectiveHint').textContent='Press E at the glowing exit. Jamie is waiting outside.';}
   $('weekDots').innerHTML=DAYS.map((d,i)=>`<div class="${i<state.day?'done ':''}${i===state.day?'current ':''}${isWeekend(i)?'weekend':''}">${i<state.day?'✓':d.slice(0,1)}</div>`).join('');
   $('batteryText').textContent=`${Math.ceil(state.battery)}%${state.lightOn?' ON':''}`;$('batteryBar').style.width=`${state.battery}%`;
@@ -550,7 +637,8 @@ function activeTick(dt){
     if(now!==prior&&now<=3){world.setMood(false,now);tone(70,.16,'sawtooth',.1);noiseSound(.08,.08);}
     if(detLampTime<.65)world.setMood(false,0);
     if(state.detOpen&&player.z>ROOMS.detention.bounds.maxZ+CELL_SIZE+.30){escapeDetention();}
-    if(state.phaseTime>30&&Math.floor(state.phaseTime)%12===0&&noticeTime<=0)say('Key: teacher’s desk. Fuse: supply shelf. Panel: beside the door.',5);
+    else updateDetentionGuard(dt);
+    if(state.phase==='detention'&&state.phaseTime>30&&Math.floor(state.phaseTime)%12===0&&noticeTime<=0)say('Watch the teacher’s patrol. Use the cabinets for cover, then reach the key and fuse.',5);
   }
   if(state.phase!=='detention')updateEnemies(dt);
   nearby=candidateInteraction();$('interact').hidden=!nearby;if(nearby)$('interact').querySelector('span').textContent=nearby.label||interactionLabel(nearby);
@@ -572,7 +660,9 @@ function frame(now){
     for(const model of Object.values(world.teachers))model.visible=false;
     for(const student of world.students)student.visible=false;
   }
-  positionCamera(dt);renderer.render(scene,camera);
+  positionCamera(dt);
+  if(mode==='intro'&&!paused)dareCutscene?.update(dt);
+  renderer.render(scene,camera);
 }
 requestAnimationFrame(frame);
 
