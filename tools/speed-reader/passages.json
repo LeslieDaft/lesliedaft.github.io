@@ -1,0 +1,247 @@
+[
+  {
+    "id": "50",
+    "words": 50,
+    "title": "The Missing Lunch",
+    "text": "Maya left her lunch on the kitchen table. At school, she opened her backpack and found only a library book. Her friend Leo offered half of his sandwich. After class, Maya thanked him. The next morning, she packed two sandwiches, one for herself and one for her thoughtful friend Leo.",
+    "questions": [
+      {
+        "prompt": "Where did Maya leave her lunch?",
+        "options": [
+          "Kitchen table",
+          "School bus",
+          "Library"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Who shared a sandwich?",
+        "options": [
+          "Her teacher",
+          "Leo",
+          "Her brother"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "What did Maya pack the next morning?",
+        "options": [
+          "Two sandwiches",
+          "A pizza",
+          "Only a book"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "100",
+    "words": 100,
+    "title": "A Garden on the Roof",
+    "text": "The school roof was once an empty space. Then a science teacher suggested planting a small garden there. Students carried pots upstairs and filled them with soil. They planted lettuce, tomatoes, and bright yellow flowers. A rain barrel collected water for dry days. Every Friday, a different class checked the plants. By summer, bees visited the flowers and ripe tomatoes hung from green stems. The cafeteria used the vegetables in salads. Students discovered that even a crowded neighborhood had room to grow something useful. Their favorite part was eating food they had helped raise. Now everyone wanted to plant again.",
+    "questions": [
+      {
+        "prompt": "Where was the garden?",
+        "options": [
+          "On the roof",
+          "In a forest",
+          "Beside a river"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What collected water?",
+        "options": [
+          "A swimming pool",
+          "A rain barrel",
+          "A bucket truck"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Where were the vegetables used?",
+        "options": [
+          "The cafeteria",
+          "A pet shop",
+          "The library"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "200",
+    "words": 200,
+    "title": "The Last Play",
+    "text": "With one minute left, the Falcons needed a touchdown. Their quarterback, Jordan, gathered the team near the sideline. Everyone expected him to throw a long pass, but the coach noticed that the defenders were standing far back. A short pass might work better. Jordan called a play for his friend Amir. Amir would run toward the middle, turn, and catch the ball. Two other receivers would run farther down the field, pulling defenders away from him. The team had practiced this play many times, even on rainy afternoons when nobody wanted to stay outside. At the snap, Jordan took three steps back. He almost threw immediately, but remembered to wait for Amir to turn. The ball traveled just above a defender's hand. Amir caught it, tucked it against his side, and ran toward the end zone. A defender reached for his flag near the goal line. Amir changed direction and crossed safely. The crowd cheered. Jordan ran over to celebrate, but Amir pointed toward the other receivers. Their routes had created the opening. After the game, the coach praised everyone. The winning play had worked because each player had done a small job well. Teamwork had made the difference today.",
+    "questions": [
+      {
+        "prompt": "What did the Falcons need?",
+        "options": [
+          "A touchdown",
+          "A timeout only",
+          "A new uniform"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Who caught the pass?",
+        "options": [
+          "Jordan",
+          "Amir",
+          "The coach"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Why did the other receivers run farther?",
+        "options": [
+          "To leave the game",
+          "To pull defenders away",
+          "To get water"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "500",
+    "words": 500,
+    "title": "The Repair Club",
+    "text": "When the library announced a repair afternoon, Nora expected a room full of grownups fixing chairs. Instead, she found three folding tables covered with lamps, toys, clocks, and small kitchen tools. A sign by the door said that visitors could bring broken objects and learn how to repair them. Nobody promised that every object would work again, but everyone promised to try. Nora had brought a blue toy car that belonged to her younger brother. Its wheels turned, but its motor no longer made it move. Her brother had wanted to throw it away. Nora remembered how much he liked racing it across the hallway, so she decided to give the car one more chance. At the first table, a volunteer named Ben asked what had happened before it stopped. Nora said the car had slowed down over several days. Ben suggested checking the simplest explanation first. They opened the battery cover and found two old batteries. One had a crusty patch near its end. Ben handled the damaged battery carefully and explained that it should be taken to an appropriate collection point. With the power removed, they inspected the contacts. Ben showed Nora how a contact connected the battery to the rest of the toy. A dirty contact could interrupt that connection. After cleaning it safely, they installed fresh batteries and closed the cover. The car moved forward immediately. Nora laughed because she had imagined a complicated repair involving tiny gears. Nearby, a woman was working on a backpack with a broken zipper pull. Another visitor had brought a wooden stool with a loose leg. A teenager helped someone replace a missing button on a jacket. The room was quiet enough for people to explain their work, but busy enough that Nora could always see something new. Before leaving, she asked Ben why the club did not simply repair everything for visitors. He said that fixing the object was only half the purpose. Learning a method meant that people might solve a similar problem at home. Asking questions, inspecting carefully, and checking simple causes were useful habits far beyond repairing toys. Nora offered to help at the next meeting. Ben suggested making labels for the tables and welcoming visitors. She could also write down what each person had learned, so the club would have a record of successful repairs. Nora liked the idea of collecting stories about objects that had almost been thrown away. At home, her brother watched the blue car cross the hallway. He asked whether she had installed a faster motor. Nora said she had only replaced the batteries and helped clean a connection. Then she showed him how to switch the car off when he was finished playing. The following week, Nora made a small repair box with a screwdriver, a notebook, and a few spare buttons. She wrote a rule on the lid: ask for help before working on anything dangerous. She did not become an expert overnight. But she was ready to learn.",
+    "questions": [
+      {
+        "prompt": "What did Nora bring?",
+        "options": [
+          "A blue toy car",
+          "A television",
+          "A bicycle"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What helped the car work again?",
+        "options": [
+          "New paint",
+          "Fresh batteries and a clean connection",
+          "Bigger wheels"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Why did the club teach visitors?",
+        "options": [
+          "So they could learn to solve problems",
+          "To sell toys",
+          "To avoid answering questions"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "750",
+    "words": 750,
+    "title": "The Night the Lights Went Out",
+    "text": "The power failed just as Eli was about to beat his sister at a racing game. The screen went black, the refrigerator stopped humming, and the house suddenly seemed much larger. Outside, rain tapped against the windows. Eli waited for everything to turn on again, but the room stayed dark. His father found a flashlight in the kitchen drawer. His mother checked the utility company's outage message on her phone and learned that a storm had damaged equipment nearby. Crews were working on it, but there was no exact time for service to return. She asked everyone to keep the refrigerator closed and save their phone batteries. Eli's sister, June, suggested continuing the race on paper. She drew a winding track in a notebook, and they moved small buttons along it using a die. Landing on a bridge meant rolling again. Landing in a puddle meant missing a turn. Eli complained that the rules were unfair until June let him add a shortcut with a risky jump. After several races, their father suggested looking outside. The rain had stopped. They stepped onto the covered porch and saw that most houses on their street were dark. A few neighbors stood near their own doors, holding flashlights. Without the usual porch lights, the street felt unfamiliar, although every house was exactly where it had been before. Their neighbor, Mrs. Ortiz, called from her front steps. She had a battery lantern and wondered whether anyone wanted to sit together while waiting. Eli's family brought folding chairs onto the porch. Another family arrived with a deck of cards. Someone brought a bowl of apples, and everyone checked that the older neighbors had what they needed. Mrs. Ortiz told them about a winter storm from years earlier. Her family had cooked on a camping stove outside and slept under extra blankets. She explained that fuel burning equipment belonged outdoors, away from windows and doors. Eli was surprised that a story about a power outage could include both funny memories and useful lessons. June asked why the stars looked brighter. Their father explained that nearby lights normally made the sky harder to see. Clouds still covered part of it, but through one clear patch they could make out several stars. Eli had looked at that same sky hundreds of times without noticing how much the streetlights changed his view. One neighbor had a small telescope and carried it over after the clouds moved. He aimed it toward the moon, which was low above the houses. Everyone took a turn. Through the eyepiece, Eli saw rough edges and shadows where the surface had looked smooth to his eyes. The telescope did not need the house electricity, so it worked perfectly during the outage. For a while, nobody mentioned the missing television or internet connection. The children compared their paper racing rules. The adults talked about the neighborhood. A dog settled under a chair and fell asleep. Eli noticed sounds he usually missed, including water dripping from the gutters and crickets calling from the wet grass. Later, their mother checked the outage update again. Repairs were taking longer than expected, but the crews had identified the damaged part. The families decided to head home before everyone got too tired. They thanked Mrs. Ortiz, carried away their chairs, and agreed to return the lantern the next morning. Inside, Eli placed his flashlight on a shelf so it could light the room without shining into anyone's eyes. June drew another paper track, this time based on their street. Mrs. Ortiz's porch became the starting line. The telescope became a bonus square. They added a space where players had to help a neighbor before moving forward. The lights returned during their second race. The refrigerator hummed, and the television showed its startup screen. Eli reached for the controller, then looked at the unfinished paper track. June was only three spaces from the finish. He decided that they should complete the race first. The next day, the family checked their emergency supplies. They replaced old flashlight batteries and chose an easy place to store the lantern. Eli added a pencil and a small notebook to the box. His father asked why those belonged with the supplies. Eli said that useful things were not always electronic. That evening, Mrs. Ortiz returned to her porch. Eli waved and asked whether the neighborhood could have another gathering when the weather was clear. This time, they would not need to wait for a storm. They smiled.",
+    "questions": [
+      {
+        "prompt": "What caused the outage?",
+        "options": [
+          "A storm",
+          "A racing game",
+          "A telescope"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Who invited neighbors to gather?",
+        "options": [
+          "Mrs. Ortiz",
+          "Eli’s teacher",
+          "A delivery driver"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did the children use for their paper race?",
+        "options": [
+          "Buttons and a die",
+          "Batteries",
+          "A telescope"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "1000",
+    "words": 1000,
+    "title": "The Bridge at Willow Creek",
+    "text": "Every spring, Willow Creek rose high enough to cover the stepping stones near the park. People who normally crossed there had to walk to the road bridge, adding fifteen minutes to their trip. For adults, it was an inconvenience. For students walking to the recreation center, it sometimes meant arriving after an activity had started. Sam first noticed the problem while helping his grandfather carry a bag of garden supplies. His grandfather moved slowly and needed to rest before reaching the road bridge. Sam wondered why there was no small footbridge by the stepping stones. His grandfather said that people had discussed it before, but a useful idea still needed planning, money, and permission. At school, Sam mentioned the creek during a community project lesson. His teacher, Ms. Patel, asked him to learn more before suggesting a solution. She explained that a good project began with understanding the people affected. Sam and his friend Riley made a short survey asking where people crossed, when the water rose, and whether they would use a footbridge. They collected answers from families, recreation center staff, and park visitors. Some people wanted a bridge for walking. Others needed it to be wide enough for a stroller or mobility aid. A few worried that a new crossing would damage plants along the creek. Sam had expected everyone to agree immediately, but the answers showed that the same project could affect people differently. The students brought their survey to the parks office. A staff member named Dana thanked them and explained that children could not simply build a bridge across a public creek. The town would need to examine flood conditions, land ownership, accessibility, and other requirements. A qualified engineer would have to design the structure. Sam felt disappointed until Dana said that the survey was still a useful first step. Dana arranged a meeting with a local engineer who volunteered at community events. The engineer, Ms. Chen, brought photographs of several kinds of footbridges. Some used wooden beams. Others had steel frames. She explained that choosing materials was not just about appearance. A bridge had to support expected loads, resist weather, and remain safe when the creek flooded. Riley asked whether they could test bridge shapes at school. Ms. Chen suggested a classroom activity with paper, books, and small weights. The students could compare designs without pretending that a paper experiment was enough to approve a real structure. Sam liked the clear difference between learning about a problem and being qualified to solve every part of it. During the next lesson, each group made a paper bridge between two stacks of books. A flat sheet sagged under a few coins. Folding the paper into an accordion shape made it stiffer. Another group formed a curved arch. The class recorded results instead of guessing which design would win. When a bridge failed, they described what happened and changed one feature for the next test. Sam's group discovered that careful supports mattered as much as the folded paper. If the ends slid off the books, the strongest middle section was useless. Riley wrote that observation in their notebook. It reminded them that a community project also needed support at both ends, from the people requesting it and the people responsible for maintaining it. The parks office later held a public meeting. Sam and Riley presented their survey using a simple map and three charts. They did not claim to know the final design. Instead, they explained who would use the crossing and why the existing route was difficult. Sam's grandfather attended and described the long walk in his own words. A resident asked who would pay for repairs after construction. Another wanted to know whether bicycles would be allowed. Dana recorded the questions and explained which could be answered immediately and which required more research. Sam noticed that a meeting could be successful even when it did not finish with every detail settled. Over the following months, the town studied possible locations. One spot had firmer ground but required a longer path. Another was close to the stepping stones but would disturb more streamside plants. The planners selected a location that balanced access with environmental concerns. They adjusted the path so visitors could reach the bridge without walking through a muddy patch. Money came from a town improvement fund and a community donation campaign. Sam's class helped by making posters that explained the project. They held a used book sale with permission from the school. Nobody expected the children to pay for an entire bridge, but their work helped neighbors understand why it mattered. Construction began after the necessary approvals were complete. The work area stayed closed, and Sam watched from beyond the safety barriers. Trucks brought materials. Workers prepared the supports and installed the bridge sections. The process looked slower than the building videos he had seen online, because much of the work involved measuring, checking, and preparing rather than dramatic assembly. When the bridge opened, Sam and his grandfather crossed together. The surface was steady under their feet, and the railings felt solid. On the other side, a new path connected to the recreation center. His grandfather did not need to stop and rest. Sam suddenly understood the survey answers as something more than numbers on a chart. Riley took a photograph for their classroom display. Under it, the students listed the people who had contributed, including residents, planners, engineers, donors, and construction workers. They wanted visitors to see that the bridge was the result of many different jobs. The idea had started with a question, but the finished crossing belonged to the whole community. That spring, the creek rose again. The stepping stones disappeared under brown water, but the new bridge remained open after the town checked conditions. Students arrived at the recreation center on time. Sam continued noticing small problems around town, though he now knew that solving them required listening as well as enthusiasm. His notebook had room for many more questions.",
+    "questions": [
+      {
+        "prompt": "Why was crossing difficult in spring?",
+        "options": [
+          "Water covered the stepping stones",
+          "The park closed forever",
+          "The road disappeared"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Who helped explain bridge design?",
+        "options": [
+          "Ms. Chen, an engineer",
+          "A racing driver",
+          "A musician"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did Sam and Riley do first?",
+        "options": [
+          "Survey people",
+          "Build the full bridge",
+          "Buy a truck"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "1500",
+    "words": 1500,
+    "title": "The Observatory After School",
+    "text": "Lena discovered the observatory because she missed the bus. She was waiting beside the school office when a teacher walked past carrying a box of cables. He asked whether she could hold the door while he took the box upstairs. At the top of the staircase, Lena saw a narrow door she had never noticed before. Beyond it was a room with a curved ceiling and a large telescope. The teacher introduced himself as Mr. Alvarez, who ran the astronomy club. The room had once been used regularly, but the club had become smaller over the years. Dust covered the shelves, and several posters had faded near the windows. Still, the telescope stood carefully covered in the middle of the room. Lena asked whether students were allowed to look through it. Mr. Alvarez said yes, when the equipment was ready and the weather cooperated. That evening, Lena told her friend Marcus about the room. Marcus liked building things but knew almost nothing about astronomy. He assumed that using a telescope meant finding distant planets immediately. Lena admitted that she had imagined the same thing. They decided to attend the next club meeting and see what was actually involved. Neither expected that their first task would be sorting old notebooks rather than looking at stars. At the meeting, Mr. Alvarez explained that the club needed to check its equipment before inviting visitors. Several students cleaned tables and organized maps. Lena and Marcus examined notebooks left by earlier club members. Each page contained a date, a time, a description of the sky, and a drawing or observation. Some entries recorded exciting discoveries. Others simply said that clouds had blocked the view. Lena liked that even unsuccessful evenings had been written down. One notebook belonged to a student named Ruth, who had graduated many years earlier. Ruth had drawn the moon repeatedly over several weeks. At first, Lena thought the drawings were nearly identical. Then she noticed that the shadows changed from page to page. Mr. Alvarez explained that sunlight reached the moon from different angles as it moved around Earth. Features near the boundary between light and dark could become easier to see. The club chose the moon as its first observing target. It was easy to locate and offered plenty to examine. Mr. Alvarez reviewed the telescope's controls and explained how to move it gently. Nobody was allowed to aim it toward the sun. For daytime practice, they used a distant building instead. Marcus discovered that even a small adjustment could move the view much more than he expected. He learned to make slow movements and wait before adjusting again. On their first evening outside, the students arrived before sunset to set up. They carried chairs, notebooks, and a table for visitors. The moon was visible above the gym, but clouds were approaching from the west. Lena worried that the entire event would fail. Mr. Alvarez reminded her that observing depended on conditions nobody could control. Preparing well did not mean being able to order clear skies whenever they were convenient. For twenty minutes, they had a clear view. Lena saw craters near the moon's edge and a bright area surrounded by darker ground. Marcus sketched what he could see rather than copying a picture from a book. Then a cloud crossed the moon and the telescope view became pale and blurry. The students waited, talked, and compared their drawings. When the moon appeared again, they continued from where they had stopped. A younger visitor asked whether the moon made its own light. Lena explained that it reflected sunlight. She used a flashlight and a ball to demonstrate the idea, keeping the flashlight away from people's eyes. The visitor moved around the table and watched the bright part of the ball change. Lena realized that explaining something simply required her to understand it clearly herself. She wrote the question in her notebook for later practice. The club began meeting every Thursday. Some evenings were cloudy, so they studied maps indoors or discussed their observations. Other evenings allowed them to compare bright stars and learn familiar constellations. Mr. Alvarez encouraged students to distinguish what they had seen from what they assumed. If a light moved across the sky, they noted its direction and appearance before deciding whether it might be an airplane or satellite. Marcus became interested in photographing the sky. He tried taking pictures through the telescope with his phone, but most were shaky. Instead of buying expensive equipment immediately, he built a simple holder with help from the school's workshop teacher. It kept the phone in a more consistent position. His first useful moon photograph was still imperfect, but he could identify the same features they had drawn. The improvement came from solving one small problem at a time. Lena preferred written observations. She recorded how long it took her eyes to adjust to the dark and which objects she could see without the telescope. She noticed that the bright parking lot lights made faint stars difficult to find. The club used dim red lights around its notebooks to reduce the disruption from bright white light. They also chose an observing position that kept the strongest nearby lights behind them whenever possible. One afternoon, the principal asked whether the club wanted to host an open evening for families. Lena was excited until she considered how many people might attend. A long line at one telescope could become frustrating. Marcus suggested having several activities, including moon drawings, a model of the solar system, and a station for learning how to use a star map. Visitors could do something interesting while waiting for their turn. The students divided the work. Lena prepared short explanations and checked them with Mr. Alvarez. Marcus tested the phone holder and organized a screen showing earlier photographs. Two other students made a scale activity using measured distances along the hallway. Another group created cards with common questions. The club avoided promising a particular view, because clouds or equipment problems could still change the evening's plans. Their posters mentioned an indoor program if the sky was covered. The day before the event, weather forecasts suggested thick clouds. Lena felt the same disappointment she had experienced at the first observing session. This time, however, the club already had another plan. They moved their tables into the science hallway and prepared a room for a short presentation. Mr. Alvarez said that astronomy included asking questions and interpreting evidence, not just placing an eye against a telescope. There was still plenty they could share indoors. Families arrived carrying umbrellas. Some children looked disappointed when they learned that live observing was unavailable. Marcus showed them the telescope and explained its parts. Lena helped visitors compare drawings of the moon from different dates. At the scale station, students discovered that putting planets at realistic distances required far more hallway than expected. The crowded room became noisy, but the visitors stayed curious and asked more questions than the club could answer immediately. A woman stopped at the old notebooks and recognized Ruth's handwriting. She was Ruth's younger sister and remembered hearing about the observatory when they were children. She took a photograph of the notebook with permission and promised to tell Ruth that the club was active again. Lena liked the thought that a drawing made years earlier could connect two groups of students who had never met. She decided that their own notebooks should be stored just as carefully. Near the end of the evening, the clouds broke apart. A student standing by the window spotted the moon and called Mr. Alvarez. The club opened a short outdoor session for visitors who could stay. They kept the line orderly and explained what each person might see. Some families had already left, but those remaining enjoyed a few clear minutes. Lena understood that the indoor event had been worthwhile even before that final opportunity appeared. The following Thursday, the students reviewed what had worked. Their signs needed larger lettering, and the question station needed more space. The telescope line had moved smoothly, but they wanted another trained helper for future events. They also listed questions they had not been able to answer. Mr. Alvarez helped them find reliable sources and distinguish established explanations from topics scientists were still investigating. Admitting uncertainty had made their answers more trustworthy. Months later, Lena found her first notebook entry about missing the bus. Under it, she had written only that the telescope room was surprising. Now the notebook held sketches, measurements, questions, and plans. Marcus had improved his photographs and started teaching newer students how to use the holder. The observatory was still small, and cloudy evenings still happened. What had changed was the number of people willing to show up, look carefully, and learn together. For the final meeting of the school year, the club returned Ruth's notebooks to a clean shelf beside its own records. Their own notebooks waited nearby, ready for another year of discoveries.",
+    "questions": [
+      {
+        "prompt": "What object did the club observe first?",
+        "options": [
+          "The moon",
+          "Mars",
+          "A comet"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Why did they prepare indoor activities?",
+        "options": [
+          "Clouds could block the sky",
+          "The school had no telescope",
+          "Nobody liked astronomy"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did Lena like to keep?",
+        "options": [
+          "Written observations",
+          "Race scores",
+          "Cooking recipes"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+]
