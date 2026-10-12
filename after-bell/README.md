@@ -6,7 +6,9 @@ The opening is a 21.5-second in-world cutscene: you leave homeroom while Jamie w
 
 Each school day lasts 25 seconds outside of tests. Take a five-question math/science paper with Ms. Vale in the Lab and a music theory paper with Mr. Reed in the Band Room. The bell pauses while answering and reviewing a test. Each teacher allows one attempt per day, with rotating questions from a 60-question collection.
 
-Nights end automatically at dawn, even outside a locker or during weekday detention or rescue. Missing that night's proof earns a morning message from Jamie and an additional day inside school. Calendar days continue through later weeks, including repeated lethal weekends. Seven valid nightly proofs are required to leave, after at least seven nights. The map shows the night's objective and hiding spots.
+Nights end automatically at dawn, even outside a locker or during weekday detention or rescue. Missing that night's proof earns a morning message from Jamie and an additional day inside school. Calendar days continue through later weeks, including repeated lethal weekends. Seven valid nightly proofs are required to leave, after at least seven nights.
+
+A persistent objective shows the exact next step, destination, and control during play, tests, cutscenes, captures, and escape puzzles. A direction arrow follows walkable routes, distance shows how far away the target is, and the map marks the same current target. After both tests, guidance switches to the flashlight, staff key, and hiding spot. Detention and the principal's office each show five separate escape steps, including installing a fuse already in your inventory and walking fully through the unlocked door.
 
 An A (at least 90%; 5/5 on a five-question paper) earns that teacher's protection for the current night. Direct catches use the teacher's friendly portrait, a gentle fade, and release. If another watcher catches the student within 10 meters of a visible, reachable A-grade teacher, a nine-second third-person conversation shows the teacher intervene and release the student. Protection can be used repeatedly that night and expires at dawn.
 

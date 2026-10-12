@@ -34,7 +34,7 @@ for(const field of ['difficulty','quality','reduced','sound']) $(field).addEvent
 
 let renderer, scene, camera, world, flashlight, flashTarget, hand, dareCutscene, rescueScene, examUI;
 let state = null, mode='menu', paused=false, frameTime=performance.now(), hudTime=0, mapOpen=false;
-let transitionTime=0, noticeTime=0, walkingTime=0, nearby=null, noiseEvent=null, noiseTime=0;
+let transitionTime=0, noticeTime=0, walkingTime=0, nearby=null, noiseEvent=null, noiseTime=0, objectiveTime=0;
 let captureTime=0, captureEnemy='guardian', detLampTime=0, detentionGuard=null, principalGuard=null, captureKind='detention', friendlyTime=0;
 const player={...SPAWN,yaw:0,pitch:0,height:1.65,hidden:null,bob:0,moving:false,sprinting:false,crouching:false};
 const blocked=new Set([cellKey(ROOMS.detention.doorCell.x,ROOMS.detention.doorCell.z)]);
@@ -682,6 +682,82 @@ function finish(won){
   try{localStorage.removeItem(SAVE_KEY)}catch{}updateResume();if(won){bell();tone(440,.7,'sine',.1,.7);tone(660,1,'sine',.1,1)}
 }
 
+function getObjective(){
+  const item=id=>world?.interactables.find(o=>o.id===id),closest=list=>[...list].sort((a,b)=>distance(player,a)-distance(player,b))[0];
+  const goal=(title,hint,target=null,action='E',kicker='NEXT STEP')=>({title,hint,target,action,kicker});
+  let next;
+  if(mode==='intro')next=goal('Listen to Jamie’s dare.','Watch the scene, or press Space to skip.',null,'WAIT','THE DARE');
+  else if(!state)return goal('Accept Jamie’s dare.','Click Accept the dare to begin.',null,'CLICK','START HERE');
+  else if(state.phase==='won')next=goal('Dare complete.','Click Try another week to play again.',null,'CLICK','YOU ESCAPED');
+  else if(state.phase==='dead')next=goal('Your run ended.','Click Try another week to start a new run.',null,'CLICK','GAME OVER');
+  else if(examUI?.active){
+    const button=$('examNext').textContent||'Next question',review=/return|principal|finish|continue/i.test(button)&&! /question/i.test(button);
+    next=goal(review?'Review your grade.':`Complete ${$('examSubject').textContent||'the test'}.`,review?`Read the results, then click “${button}”.`:`Choose one answer, then click “${button}”. The school bell is paused.`,null,'CLICK','TEST IN PROGRESS');
+  }else if(['capture','blackout'].includes(state.phase)){
+    next=state.fatalCapture?goal('Your run has ended.','Wait for the game-over screen, then click Try another week.',null,'WAIT','WEEKEND CAPTURE'):
+      goal(captureKind==='principal'?'Return to the principal’s office.':'You were caught.','Wait for the lights to return. Then follow the key-and-fuse escape steps.',null,'WAIT','CAUGHT');
+  }else if(state.phase==='forgiven')next=goal('Your teacher is letting you go.','Wait a moment. Your A grade protects you; then continue tonight’s search.',null,'WAIT','A-GRADE PROTECTION');
+  else if(state.phase==='rescue')next=goal('Wait for your teacher to release you.','Watch your teacher speak to the watcher. You will regain control after the conversation.',null,'WAIT','YOUR A EARNED THIS');
+  else if(['detention','principal'].includes(state.phase)){
+    const place=state.phase==='principal'?'PRINCIPAL’S OFFICE':'DETENTION';
+    if(!state.detKey)next=goal('Take the key from the desk.','Go to the gold key and press E. Use the cabinets as cover.',item('detKey'),'E',place+' · STEP 1/5');
+    else if(!state.detPower&&!state.detFuse)next=goal('Collect the replacement fuse.','Go to the fuse on the other desk and press E. Watch the supervisor.',item('detFuse'),'E',place+' · STEP 2/5');
+    else if(!state.detPower)next=goal('Install the fuse in the door panel.','Press E at the panel beside the door. The repair makes noise—be ready to move.',item('detPanel'),'E',place+' · STEP 3/5');
+    else if(!state.detOpen)next=goal('Unlock the door with your key.','Face the door and press E to unlock it.',item('detDoor'),'E',place+' · STEP 4/5');
+    else next=goal('Walk through the door into the hall.','Keep walking until you are fully outside. Avoid the supervisor.',{id:'discipline-exit',x:ROOMS.detention.door.x,z:ROOMS.detention.bounds.maxZ+CELL_SIZE+.4},'WASD',place+' · STEP 5/5');
+  }else if(state.phase==='finale')next=goal('Open the front doors and leave.','All seven proofs are secured. Press E at the front doors.',item('exit'),'E','FINAL OBJECTIVE');
+  else if(state.phase==='day'){
+    const remaining=['teacher','band'].find(id=>!state.testResults[id]);
+    if(!isWeekend(state.day)&&remaining){
+      const teacher=remaining==='band'?'Mr. Reed':'Ms. Vale',room=remaining==='band'?'Band Room':'Science Lab';
+      next=goal(`Go to the ${room} for ${teacher}’s test.`,`Press E at the test spot. Answer five questions. ${state.blockedPerkDays.includes(state.day)?'Protection is blocked today; grades still count.':'5/5 earns protection tonight.'}`,item('exam-'+remaining),'E','SCHOOL DAY · TEST '+(Object.keys(state.testResults).length+1)+'/2');
+    }else if(!state.hasLight)next=goal('Pick up the flashlight in Homeroom.','Press E at the flashlight on a desk. You’ll need it when the lights go out.',item('flashlight'),'E','PREPARE FOR TONIGHT');
+    else if(!state.hasKey)next=goal('Get the staff key from the Office.','Press E at the gold key on the office desk. It unlocks proof cabinets.',item('staffKey'),'E','PREPARE FOR TONIGHT');
+    else if(player.hidden)next=goal('Stay hidden until the lights go out.','No input needed. Tonight’s proof objective appears after the bell.',null,'WAIT','READY FOR TONIGHT');
+    else next=goal('Hide in a hallway locker before lights out.','Follow the marker, then press E at the locker. F turns your flashlight off.',closest(world.hideSpots),'E','PREPARE FOR TONIGHT');
+  }else if(state.phase==='night'){
+    const secured=state.proofs.includes(state.day),seconds=Math.ceil(state.nightRemaining);
+    if(secured&&player.hidden)next=goal('Stay hidden until dawn.','Proof is safe. No input needed. The next day starts automatically in '+seconds+' seconds.',null,'WAIT','PROOF SECURED');
+    else if(secured)next=goal('Hide in a hallway locker until dawn.','Press E at the marked locker. You have tonight’s proof; survive '+seconds+' more seconds.',closest(world.hideSpots),'E','PROOF SECURED');
+    else if(!state.hasLight)next=goal('Get the flashlight from Homeroom.','Go to the marked desk and press E. Then find tonight’s proof.',item('flashlight'),'E','NIGHT · FIND YOUR TOOLS');
+    else if(state.battery<=0&&world.interactables.some(o=>o.type==='battery'&&!o.taken))next=goal('Pick up a replacement battery.','Press E at the marked battery, then press F to turn on your flashlight.',closest(world.interactables.filter(o=>o.type==='battery'&&!o.taken)),'E','FLASHLIGHT EMPTY');
+    else if(state.day>0&&!state.hasKey)next=goal('Get the staff key from the Office.','Press E at the gold key on the office desk. Then unlock tonight’s proof cabinet.',item('staffKey'),'E','NIGHT · UNLOCK THE PROOF');
+    else{
+      const room=NIGHT_ROOMS[state.day%7];next=goal(`Collect tonight’s proof in the ${ROOMS[room].label}.`,`Press E at the gold-glowing evidence. Dawn is in ${seconds}s; missing proof adds another day.`,item('proof-'+room),'E','NIGHT · '+state.proofs.length+'/7 PROOFS');
+    }
+  }else next=goal('Follow the next step.','Wait for the current scene to finish.',null,'WAIT');
+  if(player.hidden&&next.target)next.hint='Press E to leave your locker. '+next.hint;
+  if(paused)next={...next,kicker:'PAUSED · NEXT OBJECTIVE',hint:'Click Resume to continue. '+next.hint};
+  return next;
+}
+
+function objectiveCompass(target){
+  const dx=target.x-player.x,dz=target.z-player.z,desired=Math.atan2(-dx,-dz);
+  let angle=player.yaw-desired;angle=Math.atan2(Math.sin(angle),Math.cos(angle));
+  const degrees=angle*180/Math.PI,label=Math.abs(degrees)<25?'Ahead':Math.abs(degrees)>145?'Turn around':degrees>0?'Turn right':'Turn left';
+  return {angle:degrees,label};
+}
+
+function renderObjective(){
+  const panel=$('objectivePanel');panel.hidden=mode==='menu'||!world||!camera;
+  if(document.body)document.body.dataset.objectiveMode=paused||mode==='ending'?'overlay':examUI?.active?'exam':'play';
+  if(panel.hidden)return;
+  const objective=getObjective(),write=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value;};
+  write('objectiveKicker',objective.kicker);write('objectiveText',objective.title);write('objectiveHint',objective.hint);
+  write('objectiveProgress',state?`${state.proofs.length}/7 nightly proofs · Day ${state.day+1}${state.missedProofs?' · '+state.missedProofs+' missed proofs':''}`:'Seven nights of proof. Missing proof adds another day.');
+  $('objectiveNav').hidden=paused||!objective.target;
+  if(paused||!objective.target)return;
+  const target=objective.target,metres=Math.round(distance(player,target));
+  const candidate=state&&!examUI.active?candidateInteraction():null;
+  if(candidate&&(candidate.id===target.id||candidate.type==='hide'&&target.id===candidate.id)){
+    $('objectiveArrow').style.transform='none';write('objectiveArrow','E');write('objectiveDirection','Press E now · '+(candidate.label||interactionLabel(candidate)));return;
+  }
+  const nav=navBlocks(),goal=navTarget(target,nav),path=goal?findPath(player,goal,nav):[];
+  const waypoint=path.find(p=>distance(player,p)>.85)||target,direction=objectiveCompass(waypoint);
+  write('objectiveArrow','↑');$('objectiveArrow').style.transform=`rotate(${direction.angle}deg)`;
+  write('objectiveDirection',`${direction.label} · ${metres}m to objective · M map`);
+}
+
 function updateHud(){
   if(!state)return;
   $('dayLabel').textContent=`${dayName(state.day).toUpperCase()} · DAY ${state.day+1}${state.day>=7?' · EXTENDED STAY':''}`;
@@ -690,24 +766,7 @@ function updateHud(){
     const progress=1-state.phaseTime/(isWeekend(state.day)?10:25),minutes=Math.floor(480+progress*420);
     $('clock').textContent=`${String(Math.floor(minutes/60)%12||12).padStart(2,'0')}:${String(minutes%60).padStart(2,'0')} ${minutes>=720?'PM':'AM'}`;
   }else $('clock').textContent=state.nightActive?`DAWN IN ${Math.max(0,Math.ceil(state.nightRemaining))}s`:state.phase==='finale'?'7:30 AM':'SCHOOL DAY · DISCIPLINE';
-  if(state.phase==='day'){
-    $('objectiveKicker').textContent=isWeekend(state.day)?'THE EMPTY SCHOOL':'TODAY’S TESTS';
-    if(isWeekend(state.day)){$('objectiveText').textContent='No teachers. No tests. No second chance.';$('objectiveHint').textContent='Dawn comes automatically. Missing proof means one more day.';}
-    else{
-      const remaining=['teacher','band'].filter(id=>!state.testResults[id]);
-      $('objectiveText').textContent=remaining.length?`Tests: ${remaining.map(id=>id==='band'?'Music theory':'Math and science').join(' → ')}`:'Tests done. Prepare for tonight.';
-      $('objectiveHint').textContent=state.blockedPerkDays.includes(state.day)?'Principal’s penalty: no A protection today. Tests still receive grades.':'E in the Lab or Band Room. A = teacher protection tonight. Below 70% = principal and no protection next school day.';
-    }
-  }else if(state.phase==='night'){
-    const secured=state.proofs.includes(state.day);$('objectiveKicker').textContent=isWeekend(state.day)?'NO TEACHERS · NO SECOND CHANCE':`NIGHT ${state.day+1} · ${state.proofs.length}/7 PROOFS`;
-    $('objectiveText').textContent=secured?'Proof secured. Survive until dawn.':`Find proof in the ${ROOMS[NIGHT_ROOMS[state.day%7]].label}.`;
-    $('objectiveHint').textContent=secured?'Dawn starts the next day automatically. A-grade teachers can spare or rescue you.':state.day>0&&!state.hasKey?'First find the staff key in the Office. Missing proof adds another day.':`Collect ${NIGHT_PROOFS[state.day%7]}. Dawn won’t wait for proof.`;
-  }else if(['detention','principal'].includes(state.phase)){
-    $('objectiveKicker').textContent=state.phase==='principal'?'ESCAPE THE PRINCIPAL’S OFFICE':'ESCAPE DETENTION';
-    $('objectiveText').textContent=!state.detKey?'Search the desk for a key.':!state.detPower?'Find a fuse and repair the door panel.':!state.detOpen?'Unlock the door.':'Walk out into the hall.';
-    $('objectiveHint').textContent=state.phase==='principal'?'A bad test grade blocks protection next school day. The principal can catch you.':'Stay quiet and use cabinets as cover. The teacher can catch you again. Dawn’s clock keeps running.';
-  }else if(state.phase==='finale'){$('objectiveKicker').textContent='SEVEN NIGHTS OF PROOF';$('objectiveText').textContent='Get to the front doors.';$('objectiveHint').textContent='Press E at the exit. Jamie is waiting outside.';}
-  else if(state.phase==='rescue'){$('objectiveText').textContent='Your teacher is speaking up for you.';$('objectiveHint').textContent='Your A grade earned their trust.';}
+  renderObjective();
   const first=Math.floor(state.day/7)*7;
   $('weekDots').innerHTML=Array.from({length:7},(_,i)=>{const d=first+i;return `<div class="${d<state.day?'done ':''}${d===state.day?'current ':''}${isWeekend(d)?'weekend':''}">${d<state.day?'✓':dayName(d).slice(0,1)}</div>`}).join('');
   $('batteryText').textContent=`${Math.ceil(state.battery)}%${state.lightOn?' ON':''}`;$('batteryBar').style.width=`${state.battery}%`;
@@ -729,8 +788,8 @@ function drawMap(){
   ctx.textAlign='center';ctx.font='12px system-ui';ctx.fillStyle='#bed6dd';
   for(const room of Object.values(ROOMS)){const c=worldToGrid(room.center);ctx.fillText(room.label,ox+(c.x+.5)*s,oz+(c.z+.5)*s-6);}
   for(const locker of world.hideSpots){const c=worldToGrid(locker);ctx.fillStyle='#7ba9df';ctx.fillRect(ox+(c.x+.2)*s,oz+(c.z+.2)*s,s*.5,s*.5);}
-  const target=state.phase==='night'?ROOMS[NIGHT_ROOMS[state.day%7]]:state.phase==='day'&&!isWeekend(state.day)?ROOMS[['teacher','band'].find(id=>!state.testResults[id])==='band'?'band':'lab']:state.phase==='finale'?{center:EXIT}:null;
-  if(target&&!(state.phase==='night'&&state.proofs.includes(state.day))){const c=worldToGrid(target.center);ctx.strokeStyle='#f6cb7a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ox+(c.x+.5)*s,oz+(c.z+.5)*s,s*.65,0,Math.PI*2);ctx.stroke();}
+  const target=getObjective().target;
+  if(target){const c=worldToGrid(target);ctx.strokeStyle='#ffd683';ctx.lineWidth=3;ctx.beginPath();ctx.arc(ox+(c.x+.5)*s,oz+(c.z+.5)*s,s*.65,0,Math.PI*2);ctx.stroke();}
   const p=worldToGrid(player);ctx.fillStyle='#a4f5cc';ctx.beginPath();ctx.arc(ox+(p.x+.5)*s,oz+(p.z+.5)*s,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a4f5cc';ctx.beginPath();ctx.moveTo(ox+(p.x+.5)*s,oz+(p.z+.5)*s);ctx.lineTo(ox+(p.x+.5)*s-Math.sin(player.yaw)*13,oz+(p.z+.5)*s-Math.cos(player.yaw)*13);ctx.stroke();
 }
 function activeTick(dt){
@@ -778,6 +837,7 @@ function frame(now){
     for(const model of Object.values(world.teachers))model.visible=false;
     for(const student of world.students)student.visible=false;
   }
+  objectiveTime-=dt;if(objectiveTime<=0){renderObjective();objectiveTime=.15;}
   positionCamera(dt);
   if(mode==='intro'&&!paused)dareCutscene?.update(dt);
   if(mode==='playing'&&!paused&&state?.phase==='rescue')rescueScene?.update(dt);
@@ -787,4 +847,4 @@ requestAnimationFrame(frame);
 
 // Read-only state supports deployment verification without changing gameplay.
 window.afterBellInfo=()=>state?({day:dayName(state.day),dayIndex:state.day,phase:state.phase,proofs:state.proofs.length,paused,
-  nightRemaining:state.nightRemaining,enemyIds:enemies.map(e=>e.id),weekend:isWeekend(state.day),aTeachers:[...state.aTeachers],missedProofs:state.missedProofs,perkBlocked:state.blockedPerkDays.includes(state.day)}):({phase:mode});
+  nightRemaining:state.nightRemaining,enemyIds:enemies.map(e=>e.id),weekend:isWeekend(state.day),aTeachers:[...state.aTeachers],missedProofs:state.missedProofs,perkBlocked:state.blockedPerkDays.includes(state.day),objective:getObjective().title}):({phase:mode});
