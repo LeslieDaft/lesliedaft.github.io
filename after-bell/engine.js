@@ -12,7 +12,9 @@ export const PHASES = Object.freeze({
   INTRO: 'intro', DAY: 'day', NIGHT: 'night', CAPTURE: 'capture',
   BLACKOUT: 'blackout', DETENTION: 'detention', DEAD: 'dead', WON: 'won', PAUSED: 'paused'
 });
-export const isWeekend = dayIndex => dayIndex === 5 || dayIndex === 6;
+export const dayName = dayIndex => DAYS[((dayIndex % 7) + 7) % 7];
+export const isWeekend = dayIndex => dayIndex % 7 === 5 || dayIndex % 7 === 6;
+export function nextSchoolDay(dayIndex) { let next=dayIndex+1; while(isWeekend(next))next++; return next; }
 export const captureDestination = dayIndex => isWeekend(dayIndex) ? 'dead' : 'detention';
 export const cellKey = (x, z) => `${x},${z}`;
 

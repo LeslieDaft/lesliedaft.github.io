@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0a111b"><title>After Bell — Seven Nights at School</title>
-  <link rel="stylesheet" href="./style.css?v=2">
+  <link rel="stylesheet" href="./style.css?v=3">
 </head>
 <body>
   <canvas id="view" aria-label="3D school game"></canvas>
@@ -15,13 +15,13 @@
       <p class="tagline">The school is empty.<br>That doesn't mean you're alone.</p>
       <div class="menu-actions"><button id="start" class="primary">Accept the dare <span>→</span></button><button id="resume" hidden>Continue week</button></div>
       <div class="settings"><label>Difficulty<select id="difficulty"><option value="easy">Easy — more time to hide</option><option value="normal" selected>Normal — stay quiet</option><option value="hard">Hard — they hear everything</option></select></label><label>Graphics<select id="quality"><option value="school" selected>School laptop</option><option value="high">High quality</option></select></label><label class="check"><input id="reduced" type="checkbox"> Reduce shake &amp; brightness</label><label class="check"><input id="sound" type="checkbox" checked> Sound</label></div>
-      <p class="menu-note">Cartoony 3D stealth horror · Unsettling faces &amp; jumpscares<br>Monday → next Monday · About 12–15 minutes</p>
+      <p class="menu-note">Cartoony 3D stealth horror · Tests, teacher favors &amp; jumpscares<br>Seven nights of proof · Missing proof adds another day</p>
       <p class="fiction">A fictional nightmare about a watchful school system.</p>
     </div>
     <div class="menu-right"><div class="stamp">STUDENT FILE<br><b>UNACCOUNTED FOR</b></div><div class="rule"><small>AFTER-HOURS RULE 01</small><p>If the lights go out,<br><em>find somewhere to hide.</em></p></div></div>
   </main>
   <section id="intro" class="screen cinematic" aria-label="The opening dare" hidden>
-    <div class="cinema-bar cinema-top"><p class="eyebrow">MONDAY · LEAVING HOMEROOM</p><button id="begin" aria-label="Skip the opening cutscene">Skip · Space <span>→</span></button></div>
+    <div class="cinema-bar cinema-top"><p id="cinemaHeading" class="eyebrow">MONDAY · LEAVING HOMEROOM</p><button id="begin" aria-label="Skip the opening cutscene">Skip · Space <span>→</span></button></div>
     <div id="chat" class="cinema-caption" aria-live="polite"><b id="cutsceneSpeaker">JAMIE</b><p id="cutsceneText">Hey—wait up.</p></div>
     <div class="cinema-bar cinema-bottom"><span id="cutsceneBeat">A dare. Seven nights.</span><span>MONDAY → NEXT MONDAY</span></div>
   </section>
@@ -30,15 +30,27 @@
     <aside class="objective"><small id="objectiveKicker">THE DARE</small><h3 id="objectiveText">Attend class, then find a hiding spot.</h3><p id="objectiveHint"></p></aside>
     <div id="crosshair">+</div><div id="interact" hidden><kbd>E</kbd><span></span></div>
     <div id="statusMessage" role="status"></div>
-    <div class="hud-bottom"><div class="meters"><div class="meter"><span>FLASHLIGHT <b id="batteryText">100%</b></span><div><i id="batteryBar"></i></div></div><div class="meter trouble"><span>TROUBLE <b id="troubleText">0%</b></span><div><i id="troubleBar"></i></div></div><div id="noise"><i></i><span>Quiet</span></div></div><div id="inventory"></div><div class="control-hint"><kbd>F</kbd> Light <kbd>E</kbd> Use <kbd>M</kbd> Map<br><kbd>Shift</kbd> Run <kbd>Ctrl / C</kbd> Crouch <kbd>Q / R</kbd> / arrows look</div></div>
+    <div class="hud-bottom"><div class="meters"><div class="meter"><span>FLASHLIGHT <b id="batteryText">100%</b></span><div><i id="batteryBar"></i></div></div><div class="meter trouble"><span>TROUBLE <b id="troubleText">0%</b></span><div><i id="troubleBar"></i></div></div><div id="noise"><i></i><span>Quiet</span></div></div><div class="inventory-area"><div id="inventory"></div><div id="gradeStatus" aria-live="polite"></div></div><div class="control-hint"><kbd>F</kbd> Light <kbd>E</kbd> Use <kbd>M</kbd> Map<br><kbd>Shift</kbd> Run <kbd>Ctrl / C</kbd> Crouch <kbd>Q / R</kbd> / arrows look</div></div>
     <div id="hiddenBanner" hidden><b>HIDING</b><span>Stay still. Listen.</span><small>E to leave · Flashlight off</small></div><div id="threat"></div>
   </div>
   <section id="mapPanel" hidden><div class="map-head"><h2>North Hollow School</h2><button id="closeMap">×</button></div><canvas id="mapCanvas" width="660" height="500"></canvas><p><span class="map-dot player"></span> You <span class="map-dot target"></span> Objective <span class="map-dot locker"></span> Hiding spot</p><small>M to close · The map does not stop time.</small></section>
+  <section id="examPanel" class="screen modal-screen" role="dialog" aria-modal="true" aria-labelledby="examSubject" hidden>
+    <div class="dialog exam-dialog">
+      <div class="exam-heading"><p class="eyebrow" id="examTeacher">Ms. Vale</p><span id="examProgress">QUESTION 1 / 5</span></div>
+      <h2 id="examSubject">Math &amp; science</h2>
+      <p id="examPerkNotice" class="exam-perk">A: teacher protection tonight · D/F: principal and no protection on your next school day.</p>
+      <h3 id="examQuestion"></h3>
+      <div id="examOptions" aria-label="Answer choices"></div>
+      <p id="examStatus" role="status">Choose one answer.</p>
+      <button id="examNext" class="primary" type="button" disabled>Confirm &amp; next →</button>
+      <p class="hint exam-footer">One attempt per teacher today · The school bell waits while you take your test · Esc pauses</p>
+    </div>
+  </section>
   <section id="pause" class="screen modal-screen" hidden><div class="dialog small"><p class="eyebrow">TAKE A BREATH</p><h2>Paused.</h2><p>Mouse freed. Click resume to return.</p><button id="unpause" class="primary">Resume</button><button id="restartPause">Restart the week</button><button id="mainMenu">Main menu</button><p class="hint">WASD move · Mouse / arrows look · E interact<br>Q turns left · R turns right · Shift run · Ctrl / C crouch<br>F flashlight · G wind-up decoy · M map · Esc pause</p><p class="hint">Progress saves at each morning. Quitting mid-night resumes that morning.</p></div></section>
-  <div id="scare" hidden><img id="scareImage" alt="An uncanny school guardian"><div id="scareFallback"><div class="fallback-eye">◉</div></div><div id="scareWhite"></div></div><div id="blackout" hidden></div>
+  <div id="scare" hidden><img id="scareImage" alt="An uncanny school guardian"><div id="scareFallback"><div class="fallback-eye">◉</div></div><div id="scareWhite"></div><div id="friendlyMessage" hidden>Good work in class. You can go.</div></div><div id="blackout" hidden></div>
   <section id="transition" hidden><p id="transitionSmall"></p><h2 id="transitionTitle"></h2><p id="transitionNote"></p></section>
   <section id="ending" class="screen modal-screen" hidden><div class="dialog"><p id="endingEyebrow" class="eyebrow"></p><h2 id="endingTitle"></h2><p id="endingBody"></p><div id="endingStats"></div><button id="playAgain" class="primary">Try another week</button><button id="endingMenu">Main menu</button></div></section>
   <div id="error" class="screen modal-screen" hidden><div class="dialog"><h2>The school couldn't load.</h2><p id="errorText">This game needs WebGL. Try a current browser with hardware acceleration enabled.</p><button onclick="location.reload()">Try again</button></div></div>
-  <script type="module" src="./game.js?v=2"></script>
+  <script type="module" src="./game.js?v=3"></script>
 </body>
 </html>

@@ -238,7 +238,9 @@ export function buildSchool(scene) {
   meshBox(detentionDoor, 1.33, 3.13, 0.17, 0x686f61, 0, 1.565);
   meshBox(detentionDoor, 0.89, 0.49, 0.035, 0x273e39, 0, 2.34, 0.10);
   meshBox(detentionDoor, 0.12, 0.065, 0.09, PALETTE.brass, 0.46, 1.2, 0.13); scene.add(detentionDoor);
-  panel('DETENTION', 0, 3.4, det.door.z + 0.15, 0, 2.5, 0.45, '#483c31', '#d9cfa8');
+  const detentionSign = panel('DETENTION', 0, 3.4, det.door.z + 0.15, 0, 2.5, 0.45, '#483c31', '#d9cfa8');
+  const principalSign = panel('PRINCIPAL', 0, 3.4, det.door.z + 0.15, 0, 2.5, 0.45, '#483c31', '#d9cfa8');
+  principalSign.visible = false;
   panel('STAY IN YOUR SEAT', 0, 2.45, det.bounds.minZ + 0.10, 0, 3.8, 0.8, '#424137', '#e1d6b1');
   const detPanel = new THREE.Group(); detPanel.position.set(2.8, 1.25, det.bounds.maxZ - 0.15);
   meshBox(detPanel, 0.6, 0.9, 0.15, 0x46594e); meshBox(detPanel, 0.18, 0.12, 0.06, 0x9eb276, 0, 0.14, -0.105); scene.add(detPanel);
@@ -253,38 +255,52 @@ export function buildSchool(scene) {
   // Facial proportions, clothing, and hair match the corresponding jumpscare artwork.
   function makeHuman(kind, student = false) {
     const friend = kind === 'jamie';
-    const root = new THREE.Group(), skin = friend ? 0xc69c7e : student ? 0xbe9680 : kind === 'band' ? 0xc7bcae : 0xc1b6a5;
-    const coat = friend ? 0xd2ad4f : student ? 0x556c86 : kind === 'band' ? PALETTE.maroon : 0x477b76;
+    const principal = kind === 'principal', avatar = kind === 'player';
+    const root = new THREE.Group(), skin = friend ? 0xc69c7e : student ? 0xbe9680 : principal ? 0xb8a78f : kind === 'band' ? 0xc7bcae : 0xc1b6a5;
+    const coat = friend ? 0xd2ad4f : avatar ? 0x35584c : student ? 0x556c86 : principal ? 0x655f56 : kind === 'band' ? PALETTE.maroon : 0x477b76;
     const trouser = student ? 0x334b56 : 0x252f37;
     const sphere = (parent, radius, color, x, y, z, sx = 1, sy = 1, sz = 1) => {
       const m = new THREE.Mesh(new THREE.SphereGeometry(radius, 14, 10), material(color)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); parent.add(m); return m;
     };
     meshBox(root, 0.62, 0.67, 0.33, coat, 0, 1.42);
-    meshBox(root, 0.26, 0.52, 0.06, friend ? 0xd2ad4f : student ? 0xa9bbba : 0xd4d1be, 0, 1.47, 0.185);
-    if (friend) {
+    meshBox(root, 0.26, 0.52, 0.06, friend || avatar ? coat : student ? 0xa9bbba : principal ? 0xe7e4d9 : 0xd4d1be, 0, 1.47, 0.185);
+    if (friend || avatar) {
       // Jamie has a warm yellow hoodie, a front pocket, and a distinctly normal face.
-      meshBox(root, 0.39, 0.19, 0.07, 0xb98c37, 0, 1.24, 0.20);
+      meshBox(root, 0.39, 0.19, 0.07, avatar ? 0x294337 : 0xb98c37, 0, 1.24, 0.20);
       for (const dx of [-0.085, 0.085]) meshBox(root, 0.018, 0.17, 0.02, 0xf0dfb7, dx, 1.68, 0.205);
       sphere(root, 0.23, coat, 0, 1.82, -0.09, 1.2, 0.65, 0.9);
     }
     if (kind === 'band' && !student) meshBox(root, 0.07, 0.43, 0.05, 0x20272f, 0, 1.44, 0.225);
+    if (principal) {
+      meshBox(root, 0.085, 0.43, 0.05, 0x783943, 0, 1.45, 0.225);
+      // Suit lapels and a staff badge distinguish the administrator from either teacher.
+      const leftLapel = meshBox(root, 0.13, 0.40, 0.045, 0x827b6f, -0.19, 1.53, 0.205); leftLapel.rotation.z = -0.20;
+      const rightLapel = meshBox(root, 0.13, 0.40, 0.045, 0x827b6f, 0.19, 1.53, 0.205); rightLapel.rotation.z = 0.20;
+      meshBox(root, 0.11, 0.08, 0.03, 0xb8ab80, -0.235, 1.52, 0.24);
+    }
     meshBox(root, 0.45, 0.21, 0.3, trouser, 0, 1.0);
     sphere(root, 0.105, skin, 0, 1.88, 0, 0.8, 1.4, 0.8);
     const head = new THREE.Group(); head.position.set(0, 2.13, 0.01); head.rotation.z = friend ? 0 : kind === 'band' ? -0.025 : 0.055; root.add(head);
     sphere(head, 0.26, skin, 0, 0, 0, 0.93, 1.23, 0.88);
-    const hair = student ? 0x4c392d : kind === 'band' ? 0x24262b : 0xb0b1a7;
+    const hair = student ? 0x4c392d : principal ? 0x78756e : kind === 'band' ? 0x24262b : 0xb0b1a7;
     sphere(head, 0.268, hair, 0, 0.15, -0.045, 1.02, 0.76, 0.95);
-    if (kind !== 'band' && !friend) {
+    if (kind !== 'band' && !friend && !principal && !avatar) {
       sphere(head, 0.20, hair, -0.205, -0.045, -0.065, 0.42, 1.05, 0.95);
       sphere(head, 0.20, hair, 0.205, -0.045, -0.065, 0.42, 1.05, 0.95);
     } else sphere(head, 0.14, hair, -0.1, 0.20, 0.12, 1.05, 0.65, 0.52);
+    if (principal) {
+      sphere(head, 0.09, 0xb6b1a3, -0.23, 0.09, -0.03, 0.33, 0.92, 0.85);
+      sphere(head, 0.09, 0xb6b1a3, 0.23, 0.09, -0.03, 0.33, 0.92, 0.85);
+      sphere(head, 0.12, 0x504d46, 0.12, 0.21, 0.10, 1.1, 0.6, 0.48);
+    }
     sphere(head, 0.043, skin, -0.25, -0.04, 0, 0.55, 1.5, 1); sphere(head, 0.043, skin, 0.25, -0.04, 0, 0.55, 1.5, 1);
     sphere(head, 0.035, skin, 0, -0.014, 0.223, 0.85, 1.15, 1.2);
     const eyes = [];
     for (const dx of [-0.093, 0.093]) {
       sphere(head, 0.041, 0xe7e0c9, dx, 0.053, 0.205, 1.3, 0.82, 0.6);
-      const pupil = sphere(head, 0.018, 0x1b2328, dx + 0.004, 0.055, 0.231, 0.83, 1.04, 0.52); eyes.push(pupil);
-      meshBox(head, 0.105, 0.018, 0.024, hair, dx, 0.117, 0.205);
+      const pupil = sphere(head, 0.018, principal ? 0x3e2d21 : 0x1b2328, dx + 0.004, 0.055, 0.231, 0.83, 1.04, 0.52); eyes.push(pupil);
+      const brow = meshBox(head, 0.105, 0.018, 0.024, hair, dx, principal ? 0.105 : 0.117, 0.205);
+      if (principal) brow.rotation.z = dx < 0 ? -0.09 : 0.025;
       if (kind === 'band' && !student) {
         const glasses = new THREE.Mesh(new THREE.TorusGeometry(0.068, 0.009, 5, 16), material(0x263039)); glasses.position.set(dx, 0.053, 0.252); head.add(glasses);
       }
@@ -304,9 +320,10 @@ export function buildSchool(scene) {
       meshBox(lowerLeg, 0.19, 0.43, 0.21, trouser, 0, -0.22); meshBox(lowerLeg, 0.22, 0.13, 0.39, 0x242b2d, 0, -0.47, 0.07);
     }
     if (student) meshBox(root, 0.43, 0.49, 0.2, 0x9a794e, 0, 1.42, -0.26);
-    root.scale.setScalar(student ? 0.68 : kind === 'band' ? 0.85 : 0.79);
+    root.scale.setScalar(student ? 0.68 : principal ? 0.87 : kind === 'band' ? 0.85 : 0.79);
     root.userData.limbs = { arms, legs, lowerArms, lowerLegs, leftArm: arms[0], rightArm: arms[1], leftLeg: legs[0], rightLeg: legs[1] };
     root.userData.head = head; root.userData.eyes = eyes; root.userData.kind = kind;
+    root.name = { band: 'Mr. Reed', teacher: 'Ms. Vale', principal: 'Mr. Mercer', jamie: 'Jamie', player: 'You' }[kind] || kind;
     return root;
   }
   const teachers = { band: makeHuman('band'), teacher: makeHuman('teacher') };
@@ -320,6 +337,11 @@ export function buildSchool(scene) {
   }
   const friend = makeHuman('jamie', true);
   friend.name = 'Jamie'; friend.visible = false; scene.add(friend);
+  const principal = makeHuman('principal');
+  principal.position.set(office.center.x + 2.2, 0, office.center.z); principal.rotation.y = -Math.PI / 2;
+  principal.visible = false; scene.add(principal);
+  const playerAvatar = makeHuman('player', true);
+  playerAvatar.visible = false; scene.add(playerAvatar);
 
   const guardian = new THREE.Group(); guardian.position.set(SPAWN.x, 1.6, SPAWN.z - 9);
   const shield = new THREE.Shape(); shield.moveTo(0, 0.88); shield.lineTo(-0.70, 0.52); shield.lineTo(-0.58, -0.35); shield.lineTo(0, -0.84); shield.lineTo(0.58, -0.35); shield.lineTo(0.70, 0.52); shield.closePath();
@@ -372,5 +394,7 @@ export function buildSchool(scene) {
   }
   setMood(true, 0);
   scene.userData.school = { floorCells: floorCells.length, exposedWallFaces: faces.length, staticBatches: batches.size };
-  return { lamps, interactables, hideSpots, exitDoor, detentionDoor, colliders, sightBlockers, teachers, guardian, students, friend, setMood };
+  const setDetentionKind = kind => { principalSign.visible = kind === 'principal'; detentionSign.visible = kind !== 'principal'; };
+  return { lamps, interactables, hideSpots, exitDoor, detentionDoor, colliders, sightBlockers, teachers, principal, playerAvatar,
+    guardian, students, friend, setMood, setDetentionKind };
 }

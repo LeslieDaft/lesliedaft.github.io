@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 const source = await readFile(new URL('./engine.js', import.meta.url), 'utf8');
 const engine = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const { MAP, WIDTH, HEIGHT, CELL_SIZE, ROOMS, SPAWN, EXIT, gridToWorld, worldToGrid,
-  isWalkable, cellWalkable, cellKey, findPath, lineOfSight, DAYS, captureDestination, isWeekend } = engine;
+  isWalkable, cellWalkable, cellKey, findPath, lineOfSight, DAYS, captureDestination, isWeekend, dayName, nextSchoolDay } = engine;
 
 assert.equal(MAP.length, HEIGHT);
 for (const row of MAP) assert.equal(row.length, WIDTH);
@@ -15,6 +15,14 @@ for (let day = 0; day < 8; day++) {
   assert.equal(isWeekend(day), day === 5 || day === 6);
   assert.equal(captureDestination(day), day === 5 || day === 6 ? 'dead' : 'detention');
 }
+for (const [day, name, weekend] of [[7,'Monday',false],[11,'Friday',false],[12,'Saturday',true],[13,'Sunday',true],[14,'Monday',false],[30,'Wednesday',false]]) {
+  assert.equal(dayName(day),name);
+  assert.equal(isWeekend(day),weekend);
+  assert.equal(captureDestination(day),weekend?'dead':'detention');
+}
+assert.equal(nextSchoolDay(4),7,'Friday failure blocks the following Monday');
+assert.equal(nextSchoolDay(11),14,'Principal consequences survive an extended-week weekend');
+assert.equal(nextSchoolDay(0),1);
 
 for (let z = 0; z < HEIGHT; z++) for (let x = 0; x < WIDTH; x++) {
   assert.deepEqual(worldToGrid(gridToWorld(x, z)), { x, z });
