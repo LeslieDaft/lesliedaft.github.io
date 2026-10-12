@@ -35,6 +35,111 @@
     ]
   },
   {
+    "id": "50-02",
+    "words": 50,
+    "title": "The Cookie Robot",
+    "text": "Maya built a tiny robot to deliver cookies. It reached the porch steps and stopped. Instead of lifting it, Maya placed a wooden ramp beside the stairs. The robot rolled up safely. Grandpa opened the door, took one cookie, and asked whether the machine could bring milk next time too.",
+    "questions": [
+      {
+        "prompt": "What did the robot deliver?",
+        "options": [
+          "Books",
+          "Cookies",
+          "Flowers"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "How did Maya help the robot reach the porch?",
+        "options": [
+          "She added a ramp",
+          "She carried it",
+          "She removed the stairs"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did Grandpa want next time?",
+        "options": [
+          "Juice",
+          "Tea",
+          "Milk"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "50-03",
+    "words": 50,
+    "title": "A Squeak Between Shelves",
+    "text": "Eli heard squeaking in the library. He checked beneath a chair, behind a shelf, and inside his backpack. Finally, the librarian lifted a picture book. A rubber mouse sat underneath it. Her little nephew had left the toy there. Eli squeezed it once, then returned to reading about real animals.",
+    "questions": [
+      {
+        "prompt": "Where did Eli hear the squeaking?",
+        "options": [
+          "The gym",
+          "The park",
+          "The library"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What made the sound?",
+        "options": [
+          "A rubber mouse",
+          "A real bird",
+          "A loose wheel"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Who had left the toy?",
+        "options": [
+          "Eli's teacher",
+          "The librarian's nephew",
+          "Eli's sister"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "50-04",
+    "words": 50,
+    "title": "The Ribbon Forecast",
+    "text": "Nora tied a blue ribbon to the fence before flying her kite. At first, it hung still. Then it pointed toward the apple tree. She stepped into the open field and raised her kite. A breeze lifted it high. Her brother called the ribbon their smallest weather station ever made.",
+    "questions": [
+      {
+        "prompt": "What color was the ribbon?",
+        "options": [
+          "Blue",
+          "Red",
+          "Yellow"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did Nora fly?",
+        "options": [
+          "A paper plane",
+          "A balloon",
+          "A kite"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "Where did Nora stand to fly it?",
+        "options": [
+          "In the garage",
+          "In the open field",
+          "On the porch"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
     "id": "100",
     "words": 100,
     "title": "A Garden on the Roof",
@@ -64,6 +169,111 @@
           "The cafeteria",
           "A pet shop",
           "The library"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "100-02",
+    "words": 100,
+    "title": "Not Quite a Dinosaur",
+    "text": "During a creek walk, Sam spotted a shape in a flat gray stone. It looked like a tiny dinosaur foot. He wrapped the stone in his spare shirt and carried it to the nature center. A guide studied the mark through a magnifying glass. It was a leaf print, she explained, not a footprint. Sam felt disappointed until she showed him the leaf's fine veins. Something delicate had left a lasting mark. Back at home, he drew the print in his notebook. Under the drawing, he wrote, 'First fossil discovery.' He decided a prehistoric leaf still deserved its own page.",
+    "questions": [
+      {
+        "prompt": "Where did Sam find the stone?",
+        "options": [
+          "At a creek",
+          "In a classroom",
+          "At a beach"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What was the mark actually from?",
+        "options": [
+          "A dinosaur foot",
+          "A bird wing",
+          "A leaf"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What did Sam do at home?",
+        "options": [
+          "Painted the stone blue",
+          "Drew the print",
+          "Threw the stone away"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "100-03",
+    "words": 100,
+    "title": "Four Beats of Courage",
+    "text": "At the school concert, Lena's drumsticks slipped from her hands just before her solo. One rolled beneath her chair. The other landed near the trumpet section. For a moment, she froze. Then Omar passed her his spare pair. Lena counted four beats and joined the music exactly on time. Her solo sounded stronger than it had during practice. After the concert, she thanked Omar and returned his sticks. He grinned and pointed at his bag, where another spare pair waited. The next morning, Lena packed extra sticks too. She also promised to lend them whenever another drummer needed quick help.",
+    "questions": [
+      {
+        "prompt": "What did Lena drop?",
+        "options": [
+          "Her sheet music",
+          "Her drumsticks",
+          "Her water bottle"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Who lent her a spare pair?",
+        "options": [
+          "Omar",
+          "The principal",
+          "Her sister"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did Lena pack the next morning?",
+        "options": [
+          "Extra shoes",
+          "A trumpet",
+          "Extra sticks"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "100-04",
+    "words": 100,
+    "title": "Chalk Roads",
+    "text": "Tessa wanted her little cousin Ben to learn the bike paths near their house. A paper map seemed confusing, so she drew the neighborhood on the driveway with chalk. Blue lines showed paths. Green circles showed parks. A red square marked home. Ben pushed his toy bicycle along each route while Tessa named the turns. Then they rode the real route together, stopping at the duck pond. Ben recognized every turn. Rain washed away the chalk that evening, but he remembered the way home. Tessa saved a photo of their map and started planning a bigger one for Saturday morning.",
+    "questions": [
+      {
+        "prompt": "What did Tessa use to draw the map?",
+        "options": [
+          "Paint",
+          "Markers",
+          "Chalk"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What did the green circles show?",
+        "options": [
+          "Stores",
+          "Parks",
+          "Schools"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Where did Tessa and Ben stop on their ride?",
+        "options": [
+          "The duck pond",
+          "The library",
+          "The pool"
         ],
         "answer": 0
       }
@@ -105,6 +315,111 @@
     ]
   },
   {
+    "id": "200-02",
+    "words": 200,
+    "title": "Lights Below the Dock",
+    "text": "For the science fair, Priya and Mateo built an underwater camera using a waterproof box and a long cable. They wanted to film fish beneath the town dock. Their first video showed cloudy water and the toes of Mateo's boots. Priya suggested waiting until morning, when fewer people would stir the mud.\n\nThey returned early with their teacher. This time, the camera revealed a wooden post covered in tiny shells. A silver fish darted past. Then two bright spots appeared in the dark water. Mateo whispered that they had discovered a sea monster. Their teacher reminded him that the dock stood beside a freshwater lake.\n\nPriya turned the camera. The bright spots moved with it. She checked their equipment and laughed. They were reflections from the camera's own lights.\n\nAt the fair, the pair displayed their best fish footage beside the strange reflections. They explained how they had tested their first guess instead of believing it. Several visitors liked the supposed monster more than the fish.\n\nMateo put a sign beside the video: 'Lake creature identified: our camera.' Priya added a second line: 'Next mission: remember to check the lights.' Their teacher called it a discovery worth sharing with everyone.",
+    "questions": [
+      {
+        "prompt": "Where did Priya and Mateo use their camera?",
+        "options": [
+          "Under a town dock",
+          "Inside a cave",
+          "In a swimming pool"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What caused the two bright spots?",
+        "options": [
+          "A sea monster",
+          "Reflections from the camera lights",
+          "Two flashlights on shore"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Where did they show their video?",
+        "options": [
+          "At a football game",
+          "At a birthday party",
+          "At the science fair"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "200-03",
+    "words": 200,
+    "title": "The Paper Boat Rescue",
+    "text": "After a rain, a stream ran along the edge of Willow Street. The neighborhood children folded paper boats and gathered for a race. Ava decorated hers with orange stars. Miles drew a shark on his. Everyone agreed that the drain near the corner would be the finish line. An adult stood beside it to collect the boats before they reached the grate.\n\nAt the signal, the children released their boats. Miles's shark took the lead. Ava's boat bumped a leaf and spun in a circle. She crouched beside the stream, cheering as it turned straight again.\n\nHalfway down the street, a twig trapped three boats together. Miles grabbed a branch and tried to free them. He missed twice. Ava suggested approaching from the other side, where the water was calmer. Together, they lifted the twig. All three boats sailed onward.\n\nMiles's boat reached the finish first, but nobody cared much about the result. They wanted another race with a new rule: everyone would help any boat that became stuck.\n\nBefore going inside, the children collected every soggy boat and scrap of paper. Ava kept her orange stars on the kitchen windowsill. The little boat had earned a second voyage tomorrow.",
+    "questions": [
+      {
+        "prompt": "How did Ava decorate her boat?",
+        "options": [
+          "With blue stripes",
+          "With orange stars",
+          "With a shark"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "What trapped three boats?",
+        "options": [
+          "A stone",
+          "A shoe",
+          "A twig"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "Who won the first race?",
+        "options": [
+          "Miles",
+          "Ava",
+          "The adult"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "200-04",
+    "words": 200,
+    "title": "The Clock That Cheated",
+    "text": "Noah loved the museum's puzzle room. Each visitor received a card with three clues and had to find a hidden wooden key. The first clue mentioned something that counted without speaking. Noah headed toward a clock on the wall. Its hands pointed to ten past four.\n\nThe second clue said to follow the smaller hand. Across from the number four stood a cabinet filled with model ships. Noah inspected each shelf but found no key. His friend Zoe noticed a label beneath the clock: 'Display only. Hands may be moved.'\n\nThey realized another visitor could have changed the hands. Instead of guessing, they asked the museum helper. She checked a photograph and set the clock back to its intended position, three o'clock.\n\nFollowing the short hand now led them to a painting of a red fox. Beneath the painting sat a box with three drawers. Their final clue named the drawer nearest the floor. Zoe opened it and found the wooden key.\n\nThe helper gave them paper badges. She also added a cover over the clock face. Noah smiled at the badges, but Zoe preferred their other reward: they had fixed the puzzle for every visitor who came after them.",
+    "questions": [
+      {
+        "prompt": "What were visitors trying to find?",
+        "options": [
+          "A silver coin",
+          "A lost map",
+          "A wooden key"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What was wrong with the clock?",
+        "options": [
+          "Someone had moved its hands",
+          "Its face was missing",
+          "It was upside down"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Which drawer held the key?",
+        "options": [
+          "The top drawer",
+          "The drawer nearest the floor",
+          "The middle drawer"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
     "id": "500",
     "words": 500,
     "title": "The Repair Club",
@@ -134,6 +449,111 @@
           "So they could learn to solve problems",
           "To sell toys",
           "To avoid answering questions"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "500-02",
+    "words": 500,
+    "title": "The Call Nobody Expected",
+    "text": "The Hawks had one minute left, and the scoreboard showed that they were losing by six points. Their quarterback, Jay, wiped rain from his face mask. A touchdown would tie the game. The extra point could win it. Unfortunately, the other team had stopped their favorite passing play three times.\n\nCoach Rivera called everyone close. She pointed at a diagram showing two receivers running toward the right sideline. Jay knew that play. He also knew the defense would probably expect it. Across the field, the opposing captain was waving his teammates into the same formation they had used earlier.\n\nJay raised a hand. “What about the screen to Mina?” he asked. Mina usually blocked near the line instead of catching passes. She was quick, though, and she had practiced that screen every Thursday. Coach Rivera looked across the field, then nodded. “Only if their linebacker follows you,” she said.\n\nThe first snap nearly ruined everything. Jay dropped back, slipped on the wet grass, and caught his balance in time. The linebacker charged toward him. Mina waited behind the line, pretending to watch the trouble. Jay tossed the ball over the defender's outstretched hands. Mina caught it and ran.\n\nShe gained eighteen yards before a defender pulled her flag. The crowd cheered, but Jay signaled for everyone to hurry. The clock kept moving. On the next play, their runner gained only two yards. Then a pass sailed too high. With nine seconds remaining, the Hawks stood twelve yards from the end zone.\n\nDuring the timeout, Mina said something surprising. “Their corner keeps watching my feet,” she said. “When I step outside, he turns before I do.” Jay pictured the defender's movement. Coach Rivera drew a short route in the mud with the toe of her shoe. Outside first, then sharply inside.\n\nJay walked back to the line and took a breath. Noise rolled down from the stands, but he focused on Mina. At the snap, she stepped toward the sideline. The corner turned his shoulders. Mina planted her foot, cut inside, and crossed into the open space behind him. Jay threw.\n\nThe ball struck Mina's hands at chest height. She pulled it close, took three strides, and crossed the goal line. A whistle sounded. Touchdown. The scoreboard changed, but the Hawks still needed the extra point. Coach Rivera chose a running play, sending their smallest player, Owen, behind the center.\n\nOwen squeezed through a narrow gap and lifted the ball when he reached the end zone. The game was over. The Hawks had won by one point. As the team celebrated, Jay found Mina near the bench. He thanked her for noticing the corner's habit. She laughed and tapped her muddy shoes.\n\n“Sometimes the best clue is right under your feet,” she said. On Monday, Coach Rivera printed a photograph of the winning catch. Underneath it, she wrote a lesson: a good team listens to every player. Mina's name appeared beside Jay's, and neither of them wanted it any other way.",
+    "questions": [
+      {
+        "prompt": "Who caught the pass on the screen play?",
+        "options": [
+          "Owen",
+          "Mina",
+          "Coach Rivera"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "What did Mina notice about the corner?",
+        "options": [
+          "He watched her feet",
+          "He always slipped",
+          "He ignored the sideline"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "How much did the Hawks win by?",
+        "options": [
+          "Six points",
+          "Three points",
+          "One point"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "500-03",
+    "words": 500,
+    "title": "The Blue Envelope",
+    "text": "On Tuesday morning, Elena found a blue envelope inside a library book about birds. There was no address on the front, only a drawing of a tree. Inside, a card said, “Find the room where winter stays after spring arrives.” Elena read it, then showed it to her friend Sam.\n\nSam suggested the cafeteria freezer. Elena doubted that anyone would hide a clue beside frozen peas. The school had a science classroom with a snowflake poster, and the poster stayed up all year. They asked their teacher for permission to investigate during lunch. She agreed, provided they walked.\n\nBeside the snowflake poster, they found another blue envelope tucked behind a stack of plant pots. This card said, “My hands move, but I never hold anything. Look below me.” Sam smiled. He pointed toward the classroom clock. Under it, taped to the wall, was a folded sheet of paper.\n\nThe paper showed a map of the school grounds. A dotted line led from the science room to the outdoor basketball court. Elena noticed that the line stopped at the smallest bench. Someone had drawn a star beside it. They had ten minutes left before lunch ended, so they hurried outside.\n\nAt the bench, Sam looked underneath while Elena checked the back. They found nothing. Then a gust of wind lifted a corner of loose paper near the bench leg. It was a drawing of a basketball, with three words written beneath it: “Count the doors.” Elena looked toward the building.\n\nThere were four doors facing the court. Three had small windows, but the fourth had a large round window. Sam counted from left to right. A blue triangle was stuck to the fourth door. Elena pushed it open and found the art teacher, Mr. Bell, carrying a tray of paint.\n\n“Are you looking for something?” he asked. Elena held up the map. Mr. Bell smiled and pointed toward a table covered with newspaper. On it stood a cardboard tree with twenty paper leaves. Each leaf carried the name of a student. Elena found hers near the top, beside Sam's.\n\nA final envelope waited at the tree's base. Its message explained the mystery. The library and art classes were starting a school reading garden. Students would paint wooden signs, choose books about nature, and read outside when the weather was warm. The clues were invitations for the first group of volunteers.\n\nElena was delighted, but Sam frowned at the tree. “How did you know we would find the first envelope together?” he asked. Mr. Bell admitted that he had not known. There were several envelopes hidden in different library books. Each trail led to the same art room. Any student could join.\n\nBy Friday, twenty students had volunteered. They painted signs with flowers, clouds, and imaginary birds. Elena chose a robin for hers, remembering the book that started everything. Sam painted a clock with leafy hands. Their signs went beside the garden entrance, where readers could discover a quieter kind of adventure.",
+    "questions": [
+      {
+        "prompt": "Where did Elena find the first envelope?",
+        "options": [
+          "Inside a library book",
+          "Under a bench",
+          "In the cafeteria"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What had a large round window?",
+        "options": [
+          "The classroom clock",
+          "The first door",
+          "The fourth door"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What were the clues inviting students to help with?",
+        "options": [
+          "A basketball contest",
+          "A school reading garden",
+          "A winter concert"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "500-04",
+    "words": 500,
+    "title": "A Lighthouse in the Game",
+    "text": "Nico's favorite game let players explore an island without a map. Most people raced toward the mountain, where a golden trophy waited. Nico tried to finish faster than his friends. One Saturday, however, he noticed a lighthouse on the loading screen. He could not remember seeing it on the island.\n\nHe started a new game and ignored the mountain path. Instead, he followed the beach past boats. Waves rolled against the sand, and gulls circled overhead. He found a tunnel hidden behind a waterfall. A wooden sign outside warned, “Bring something that shines.”\n\nNico checked his inventory. He had a rope, an apple, and three copper coins. None of them glowed. He returned to the village, where a shopkeeper offered a lantern for two coins. Nico decided the mystery was worth it. He bought the lantern and entered the tunnel.\n\nThe passage opened into a cave with five stone buttons. Above each button was a picture: a cloud, a fish, a bird, a shell, or a wave. A message appeared on the wall. “Follow the sea from sky to shore.” Nico pressed cloud, wave, fish, and shell. A hidden door opened.\n\nHe stepped outside onto a smaller island. There stood the lighthouse from the loading screen. Its windows were dark, and the front door was locked. Near the steps, a gardener character was watering a flower. Nico selected the conversation option. The gardener asked him to carry a letter to the keeper upstairs.\n\n“The door is locked,” Nico said, although the character could not hear him. Then he noticed a narrow ladder on the back wall. He climbed to a balcony and found the keeper asleep in a chair. Delivering the letter woke her. She explained that the lighthouse lamp had lost its power.\n\nNico expected a difficult battle or another expensive item. Instead, the keeper asked him to place his lantern inside the lamp's empty frame. When he did, a bright beam swept across the water. Far away, a fishing boat changed direction and headed safely toward the village. A soft bell rang three times.\n\nThere was no trophy. No points appeared on the screen. The keeper simply thanked Nico, then gave him a drawing of the island. It showed paths he had never noticed, including one leading to a tree house. Nico studied it for a moment. This was the map he had wanted since starting the game.\n\nHis friend Tessa called that afternoon and asked for his latest finishing time. Nico admitted that he had not reached the mountain at all. He described the cave and lighthouse instead. Tessa opened her own game. She wanted to find the secret, too, but asked Nico not to reveal every step.\n\nThat evening, Nico returned to the village. The rescued fishing boat had arrived, and its captain waved at him. A new shop sold shells beside the dock. Nico still enjoyed racing, but now he wondered what other stories were waiting just beyond the fastest route to the golden trophy.",
+    "questions": [
+      {
+        "prompt": "What did Nico notice on the loading screen?",
+        "options": [
+          "A golden boat",
+          "A tree house",
+          "A lighthouse"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What was the gardener watering?",
+        "options": [
+          "A tree",
+          "A flower",
+          "A vegetable garden"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "What did the keeper give Nico?",
+        "options": [
+          "A drawing of the island",
+          "A golden trophy",
+          "A fishing boat"
         ],
         "answer": 0
       }
@@ -175,6 +595,111 @@
     ]
   },
   {
+    "id": "750-02",
+    "words": 750,
+    "title": "The Map in the Blue Box",
+    "text": "Nora found the blue metal box beneath a bench in Maple Park. She was helping her brother Eli collect litter before the town picnic, and the box had become trapped between two roots. Inside was a folded map, a pencil, and a note that read, Follow the marks to find what belongs to everyone.\n\nEli immediately suggested buried treasure. Nora doubted that anyone would leave treasure beside a public bench, but she spread the map across the seat. It showed the park pond, the stone bridge, and a row of apple trees. Several paths were different from the ones they knew. Someone had drawn a small star beside the pond.\n\nThey took the box to Mrs. Chen, the park manager. She recognized the drawing style. Years ago, a volunteer named Mr. Bell had designed a walking game for the picnic. He had moved away before finishing it. The park had changed since then, so nobody knew whether the clues still worked.\n\nMrs. Chen gave them permission to investigate along the public paths. She asked them to stay together and return before lunch. Nora put the map inside a clear folder so it would not tear. Eli carried the pencil like an explorer preparing to record an important discovery.\n\nTheir first stop was the star beside the pond. There they found a wooden post with a carved fish. Beneath the fish were four tiny arrows. The note on the map said to follow the arrow that pointed toward the oldest tree. Unfortunately, the area held several large trees, and neither child could tell their ages.\n\nNora noticed something else. The oldest looking tree had a metal label attached near its base. The label identified it as the park's original oak, planted when the park opened. The arrow toward that oak led them back to the main path. Eli marked their location and drew a cheerful fish beside it. Nearby, a squirrel darted along the fence and vanished into a hollow trunk. Eli wanted to follow it, but Nora pointed back to the arrow. A good explorer, she reminded him, finished one mystery first.\n\nAt the oak, a second symbol waited on a low stone. It was a compass with the letter N deeply carved into its northern point. Nora set the map beside the carving and turned the paper until its north arrow matched the stone. Suddenly the strange paths made more sense. They had been holding the map sideways.\n\nThe next clue directed them toward a gate, but no gate stood there anymore. Instead, they reached a broad opening beside a flower bed. Eli thought the game was broken. Nora studied the ground and spotted two square stone bases, one on each side of the opening. Rusty bolts stuck out of both.\n\nThe gate had been removed, she realized, but its location remained. She sketched the missing gate onto their map. The clue beneath its drawing told them to count seven fence posts toward the bridge. They counted carefully, checking together whenever a bush hid a post. At the seventh post, a small arrow pointed down the slope.\n\nThey stayed on the path and walked around to a flat rock below. A sentence was carved across it: Look for the place where neighbors leave something for strangers. Eli pictured a lost property office. Nora remembered a little wooden cupboard near the playground. People placed books inside it and borrowed others without paying.\n\nThe cupboard held picture books, a cookbook, and a thick book about birds. Under its roof was a final envelope, protected by a clear plastic sleeve. Nora opened it with Mrs. Chen beside her, since the manager had come to check their progress. Inside was a photograph of volunteers building the park together.\n\nOn the back, Mr. Bell had written that the real treasure was a place everyone could enjoy. Eli looked disappointed for one second, then studied the photograph. One volunteer was holding a shovel much larger than he was. Another wore an enormous hat. Soon he was laughing and asking Mrs. Chen about their names.\n\nThat afternoon, Nora and Eli helped display the old map and photograph at the picnic. Visitors added stories about the volunteers, and several offered to repair the book cupboard. Nora made a fresh version of the walking game, including the missing gate. Eli insisted that the blue box remain part of it. They placed it beneath the bench again, this time secured safely above the roots, ready for another curious pair.",
+    "questions": [
+      {
+        "prompt": "Where did Nora find the blue box?",
+        "options": [
+          "Inside a school locker",
+          "Under a park bench",
+          "Beside her bed"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "What helped Nora turn the map the right way?",
+        "options": [
+          "A compass carved into a stone",
+          "A weather forecast",
+          "A sign on the bridge"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What was inside the final envelope?",
+        "options": [
+          "Gold coins",
+          "A bicycle key",
+          "A photograph of park volunteers"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "750-03",
+    "words": 750,
+    "title": "The Slowest Race",
+    "text": "When the recreation center announced a cardboard boat race, Owen pictured himself crossing the finish line ahead of everyone. His sister June pictured a boat that stayed dry. Their teammate Malik pictured the rubber duck they had to carry as cargo. He named it Admiral and drew a tiny captain's hat on its head.\n\nThe race would take place in the shallow end of the community pool. Lifeguards would watch every team, and all riders would wear life jackets. Boats could use cardboard, approved tape, and a small amount of waterproof coating. Each team had to carry one rider and its duck across the pool without losing either.\n\nOwen brought a sketch of a long, narrow boat with a pointed nose. He said it looked fast. June placed an empty cereal box on the table and pushed its narrow edge. It fell over. Then she laid it flat and pushed again. It slid without tipping. She wanted a wider base, even if the boat looked less impressive.\n\nMalik listened to both arguments before drawing a third design. Their boat could have a wide, flat middle and a slightly pointed front. Owen would ride, June would measure and cut, and Malik would tape the seams. They agreed to test everything before adding decorations. Admiral watched from the windowsill, looking unusually confident.\n\nTheir first test used a small model in a bathtub. They placed coins inside to represent Owen's weight and added them one at a time. At first the model floated well. Then its sides bent outward, and water slipped over an edge. June removed the coins before the model sank. Owen quietly crossed out the words guaranteed winner on his sketch.\n\nThey looked at the failed model together. The problem was not the shape of the bottom. It was the weak connection between the sides. Malik suggested adding cardboard strips across the inside like the beams beneath a bridge. The strips would help the walls support each other. On their second model, the sides stayed upright much longer.\n\nThe full boat took two afternoons to finish. June checked every measurement twice. Malik pressed tape firmly along each seam. Owen helped attach the cross strips, then built a little cardboard seat for Admiral near the front. They painted blue waves along the outside and named the boat The Patient Duck.\n\nOn race morning, the pool deck filled with colorful boats. One looked like a dragon. Another had cardboard rocket wings. Owen began worrying that their plain blue boat would be forgotten. June pointed out a rocket wing that had already fallen off. Decorations were fun, she said, but the water would judge the parts underneath.\n\nBefore their turn, they were allowed a short floating test with a lifeguard nearby. Owen carefully climbed aboard. The boat leaned slightly, then settled. A thin line of water appeared near his left foot. Malik spotted a tape corner that had lifted during transport. They brought the boat back to the edge and dried that spot.\n\nOwen wanted to rush because their race was next. June asked for two minutes. Malik replaced the loose tape, and they checked the other seams. Their coach moved them to the following heat, giving the repair time to stick properly. Owen felt impatient, but he remembered the model collapsing in the bathtub.\n\nWhen the whistle finally blew, he paddled too hard. The nose swung sideways, and Admiral nearly slipped from its seat. Owen slowed down. He began taking small strokes on alternating sides, keeping his weight near the middle. Their boat moved steadily. He discovered that the boat stayed straighter when each stroke matched the one before it. June and Malik walked along the pool deck, calling calm directions instead of shouting for more speed.\n\nTwo boats finished ahead of them. A third tipped near the middle, and its rider laughed as a lifeguard helped him to the edge. The Patient Duck reached the finish with Owen seated upright and Admiral still wearing its drawn captain's hat. Owen lifted the duck like a trophy, careful to keep his balance.\n\nAt the awards table, the fastest team received a ribbon. Then the coach announced a separate teamwork prize for Owen, June, and Malik. Their careful testing and calm repair had earned it. Owen smiled at his teammates. He still wanted to build a faster boat next year, but he wanted the same crew. On the way home, Admiral rode in the cup holder, where there was no chance of another leak.",
+    "questions": [
+      {
+        "prompt": "What did Malik name the rubber duck?",
+        "options": [
+          "Admiral",
+          "Rocket",
+          "Captain Blue"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did the team add to support the boat's sides?",
+        "options": [
+          "Metal wheels",
+          "Glass windows",
+          "Cardboard strips across the inside"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "Which prize did Owen's team receive?",
+        "options": [
+          "Fastest boat",
+          "Teamwork",
+          "Biggest boat"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "750-04",
+    "words": 750,
+    "title": "The Sound Collector",
+    "text": "Tessa's short film showed a tiny cardboard spaceship traveling across a painted planet. The pictures looked good, but the silent version felt strangely empty. Her friend Ben suggested adding sounds from a free website. Tessa had another idea. She would record ordinary noises around school and turn them into an original soundtrack.\n\nTheir teacher lent them a small recorder and explained how to use it. They had to ask permission before recording in shared spaces, avoid recording private conversations, and return the recorder each afternoon. Tessa made a list of the sounds her film needed: an engine, sliding doors, footsteps, wind, and a mysterious signal.\n\nThe engine came first. In the art room, a small desk fan made a steady hum. With the teacher's permission, Tessa held the recorder nearby while Ben adjusted its speed. The hum changed from a gentle whisper to a deeper buzz. Back in the classroom, they slowed the recording slightly. It sounded surprisingly like a spaceship preparing to leave.\n\nFor the sliding doors, Ben moved an empty metal tray along a cafeteria shelf. The tray made a scraping sound, followed by a sharp clink. Tessa recorded several tries after the lunch workers agreed. One worker suggested putting a folded cloth beneath the tray. That softened the scrape and made the noise smoother.\n\nBy afternoon, Tessa's notebook held more discoveries than her film needed. Ben wrote the source beside every recording so nothing got confused. A zipper sounded like a quick burst of radio noise. Shaking dry rice inside a sealed container made a soft rush. A basketball bounced with a deep beat in the empty gym. She began noticing sounds she usually ignored, from rolling wheels to the click of a classroom latch.\n\nNot every recording worked. The gym recording had a strange repeated bounce after each real one. Tessa thought the recorder was broken. Ben asked the music teacher to listen. She explained that sound could reflect from hard walls and return as an echo. The empty gym made that effect especially noticeable because it had few soft surfaces to absorb the sound.\n\nThey tested her explanation by clapping once in the gym and once in a classroom with rugs and curtains. The gym clap seemed to hang in the air. The classroom clap ended quickly. Tessa decided to use the echo on purpose. When the film's explorer entered a huge cave, a single echoed tap would make the space feel larger.\n\nThe footsteps were trickier. Normal shoes sounded like someone walking through school, which was exactly what they were. Tessa needed the explorer to cross a strange rocky surface. Ben spread clean gravel inside a shallow tray, and they gently pressed a spare shoe into it. The little crunch fit the picture perfectly. They cleaned up every stone afterward.\n\nFor wind, they tried blowing across the recorder, but the result was an unpleasant rumble. Their teacher explained that moving air could strike the microphone directly. Instead, they recorded the soft rustling of tissue paper and blended it with a quiet fan sound. The result suggested wind without overwhelming the other noises.\n\nOnly the mysterious signal remained. Tessa wanted it to sound important without being scary. Ben tapped three notes on a classroom xylophone, leaving a short pause between them. They repeated the pattern several times. Tessa chose the clearest recording and placed it just before the explorer discovered a glowing garden inside the cave.\n\nDuring their first complete viewing, something still felt wrong. The engine covered the footsteps, and the door scrape was much louder than the signal. They had collected interesting sounds, but those sounds were competing. Ben lowered the engine volume. Tessa shortened the door noise and left a moment of silence before the three notes.\n\nThe next viewing felt different. The quiet moment made everyone pay attention to the signal. The soft crunch of footsteps helped the explorer seem careful. When the garden appeared, the engine faded away completely. Tessa realized that choosing when to leave silence could matter as much as choosing which noise to add.\n\nAt the school's film afternoon, Tessa introduced their project as a journey made from cardboard, paint, and everyday sounds. The audience watched quietly, then applauded when the explorer reached the garden. Ben grinned at her from the front row. Afterward, younger students crowded around their display, asking how a tray could become a spaceship door. Tessa showed them her notebook. Its final page was still blank, ready for the next sound she discovered.",
+    "questions": [
+      {
+        "prompt": "What did Tessa record for the spaceship engine?",
+        "options": [
+          "A barking dog",
+          "A running river",
+          "A small desk fan"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "Why did the clap repeat in the empty gym?",
+        "options": [
+          "Sound reflected from the walls",
+          "Ben clapped twice",
+          "The recorder played music"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "How did the audience respond after the film?",
+        "options": [
+          "They left before it ended",
+          "They applauded",
+          "They asked for the sound to be turned off"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
     "id": "1000",
     "words": 1000,
     "title": "The Bridge at Willow Creek",
@@ -210,6 +735,111 @@
     ]
   },
   {
+    "id": "1000-02",
+    "words": 1000,
+    "title": "The Missing Beat",
+    "text": "On Tuesday, the school band discovered that its bass drum had disappeared. The empty stand sat beside the music room window, exactly where the drum should have been. Maya, who played trumpet, stared at the circle of clean floor beneath it. Tomorrow was the town parade. Without that steady boom, their opening song would sound like a conversation with every other sentence missing.\n\nTheir teacher, Mr. Bell, checked the storage closet and called the office. Nobody had borrowed it, and the doors had been locked overnight. \"We will solve this,\" he promised. \"Meanwhile, warm up.\" Maya lifted her trumpet but kept watching the empty stand. Her friend Jordan leaned over from the percussion section. \"A drum that big cannot just vanish,\" he whispered. \"Unless it learned to walk.\"\n\nAfter rehearsal, Maya and Jordan received permission to search the rooms near the music hall. They found a blue ribbon caught on the drum stand. It had tiny silver stars printed along its edge. The ribbon looked familiar, although Maya could not remember why. Jordan also noticed two parallel dusty lines on the floor. Something with wheels had traveled toward the side door.\n\nThe side door opened onto a covered walkway between the school and the community theater. Rain had washed away any tracks outside. At the theater, a volunteer named Rosa was painting scenery for a weekend play. She said nobody had brought a drum through the main entrance. Maya spotted silver stars on a costume rack, but those ribbons were purple. Their blue clue remained a mystery.\n\nRosa suggested checking the theater's loading room. It held ladders, cardboard trees, and a wooden moon taller than Jordan. Behind a painted castle, they heard a low, hollow rumble. Both students froze. Jordan carefully moved the castle panel aside. A small electric fan was blowing against a sheet of loose metal. \"Our mysterious drummer is a fan,\" he said. Maya laughed, feeling slightly disappointed.\n\nBack at school, they stopped at the cafeteria. Workers were setting up tables for a family science night. Maya suddenly remembered where she had seen the ribbon. The science club used blue ribbon with silver stars to label its projects. One table displayed a poster about sound waves. Beside it stood an empty cart with two wheels, the same distance apart as the dusty tracks.\n\nThe club president, Eli, admitted moving the drum. \"Mr. Bell said we could use an old instrument for our sound demonstration,\" he explained. \"I thought that meant the drum by the window.\" He had rolled it to the cafeteria after school, then left to catch his bus. This morning, another group had rearranged the displays. Now the drum was missing from the cafeteria too.\n\nMaya could have blamed Eli, but his worried face stopped her. \"Let's find it before the parade,\" she said. They asked the cafeteria manager about the rearrangement. She remembered a round object under a gray blanket. Thinking it belonged to the theater, two helpers had taken it across the walkway. Rosa had only watched the main entrance. The helpers must have used the loading door instead.\n\nThey returned to the theater with Eli and explained the mistake. Rosa led them behind the stage, where donations were waiting for sorting. Beneath a gray blanket stood the missing bass drum. Its shiny rim caught the work lights. Jordan tapped it gently with his fingertips. The familiar deep sound seemed wonderful. Maya held up the blue ribbon, which matched a piece still tied to the cart handle.\n\nThe drum was safe, but one problem remained. The science club still needed a demonstration for that evening. Eli looked at his sound poster and sighed. Jordan considered the metal sheet and fan in the loading room. \"We could show sound using different objects,\" he suggested. Rosa offered an old baking tray, and Maya found an empty box. Eli began planning a new display before they reached the school.\n\nBefore the visitors arrived, Eli tested every moving part of the replacement project. The rubber band snapped on his first try, so Maya chose a thicker one. Rice spilled from the tray, so Jordan taped a wide paper rim around it. Their first sign was too small to read, and they wrote another. Each small failure helped them improve the display. By opening time, all three knew their jobs, and the table looked ready for curious hands and questions.\n\nThat night, families gathered around the science table. Jordan struck the tray with a wooden spoon, and visitors watched rice grains bounce on its surface. Maya stretched a rubber band across the box and plucked it. Eli explained how vibrating objects made sound. Mr. Bell visited with a broad smile. He liked the demonstration, especially after learning that his parade drum was safely back in the music room.\n\nThe next morning, sunlight reached the school parking lot as the band lined up. Jordan adjusted the bass drum harness. Eli stood on the sidewalk holding a homemade sign that read, \"Good luck, band!\" Maya checked her trumpet valves and took a slow breath. Mr. Bell raised his hands. The first drumbeat rolled through the line, steady and strong. Everyone stepped forward together.\n\nThey marched past the bakery, the library, and the theater. Rosa waved from its front steps. Near the end of the route, Maya noticed Eli showing a younger child how to clap along with the beat. The child missed twice, then found the rhythm. Maya smiled around her trumpet mouthpiece. A missing drum had nearly ruined their morning, but finding it had brought more people into the music.\n\nAfter the parade, Mr. Bell gathered the students for a photograph. He also made a new borrowing rule: every instrument needed a written label naming its destination and return time. Eli volunteered to design the labels. Jordan requested blue ribbons with silver stars, and everyone laughed. Maya watched the bass drum settle onto its stand. This time, a bright card hung from its rim, explaining exactly where it belonged.",
+    "questions": [
+      {
+        "prompt": "What instrument disappeared before the parade?",
+        "options": [
+          "A trumpet",
+          "A bass drum",
+          "A piano"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Why did Eli move the drum?",
+        "options": [
+          "For a science demonstration",
+          "To repair its rim",
+          "To play in the parade"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What new borrowing rule did Mr. Bell make?",
+        "options": [
+          "Only teachers could borrow instruments",
+          "Instruments could never leave the room",
+          "Each instrument needed a written label"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "1000-03",
+    "words": 1000,
+    "title": "A Garden Beyond Earth",
+    "text": "Nia liked the greenhouse more than any other room on the space station. It supplied fresh vegetables for the families living there, and it smelled like a rainy afternoon on Earth. Beyond its wide windows, the stars looked cold and distant. Inside, rows of lettuce, peas, and tomatoes made a warm patchwork of green. Nia spent every Saturday helping the gardener, Captain Chen.\n\nUsually, her job was simple. She checked labels, removed fallen leaves, and wrote plant heights in a notebook. This Saturday, however, Captain Chen met her at the door with a worried expression. Several lettuce plants had drooping leaves. The station's supply ship had been delayed, so the garden's next harvest mattered more than usual. \"We need to understand this before other plants suffer,\" the captain said.\n\nNia knelt beside the lettuce and touched the growing material around its roots. It felt dry. Along the next row, the peas looked healthy, and their roots were damp. The room's temperature display showed its normal setting. The lamps were working too. Captain Chen opened a cabinet containing the watering controls. According to its screen, every row was receiving the right amount of water.\n\n\"The screen says yes, but the roots say no,\" Nia observed. The captain nodded. \"A useful reminder. A report and the thing it describes are not always the same.\" They followed the narrow watering tube from the lettuce row to a clear tank. Water filled the tank, and its pump hummed quietly. Nothing appeared broken. Nia wrote down what they knew before guessing at the cause.\n\nHer older brother, Tomas, arrived carrying a tray of empty seed cups. He wanted to help, although he knew little about gardening. Captain Chen gave him a measuring cup and asked him to collect water from each row's outlet for one minute. The healthy pea row filled almost half the cup. At the lettuce outlet, Tomas collected only a few drops. They had found a real difference.\n\nThe three traced the lettuce tube back to a small filter. When Captain Chen opened its cover, she discovered a thick mineral crust blocking the mesh. The pump had been trying to send water through, but little could pass. Nia felt relieved to have an answer. Then the captain checked the spare parts cabinet. Its shelf held filters for the lamps and air system, but none for watering.\n\nTomas suggested removing the blocked filter completely. The captain explained that loose particles could then enter the narrow tubes and cause another blockage. They needed something that would catch particles while allowing water to pass. Nia studied the damaged mesh. It reminded her of the little basket her mother used to rinse rice. Perhaps an ordinary kitchen item could help until the supply ship arrived.\n\nThey visited the station kitchen and asked the cook, Luis, whether he had a spare fine strainer. Luis brought out three from a drawer. Two were too large, but the smallest had removable mesh. Captain Chen checked its size and inspected the material. She cleaned it carefully, shaped it to fit the filter holder, and secured its edges. Nia watched each step, sketching the finished shape in her notebook.\n\nBack in the greenhouse, the captain fitted the temporary filter and restarted the pump. Water began moving along the lettuce tube. Tomas repeated his measuring test. This time, the cup filled almost as quickly as it had under the peas. They still had to watch for leaks and make sure the roots received enough water. For the next hour, Nia checked the row every ten minutes.\n\nBy afternoon, some leaves had begun to rise. Others remained bent, and Captain Chen warned that the plants might need more time. Nia wanted to keep staring at them until they recovered. Instead, the captain asked her to help inspect every other filter. Two had small deposits beginning to form. They cleaned those before trouble started and added regular filter checks to the garden's task board.\n\nThat evening, Nia told her family about the problem over dinner. Tomas described his measuring cup test as though it were a grand space adventure. Their mother smiled and asked which clue had mattered most. Nia thought about the dry roots, healthy peas, and cheerful control screen. \"Comparing things,\" she answered. \"If we had only looked at the screen, we might have missed the whole problem.\"\n\nOn Sunday, the lettuce looked stronger. Captain Chen let Nia send an update to the supply ship crew. She attached her sketch of the kitchen mesh and a list of the correct replacement parts. A reply arrived later, thanking them for the clear description. The crew promised to bring extra filters. Luis also sent a message, asking whether his borrowed strainer deserved its own greenhouse name tag.\n\nNia made one that read, \"Unexpected Garden Helper.\" She taped it beside the cabinet, where visitors would notice it. Over the next week, people stopped by to learn how the garden had been repaired. Some were surprised that such a small part could affect an entire row of vegetables. Others offered to help with inspections. The task board soon held more volunteer names than it ever had before.\n\nWhen harvest day came, the greenhouse crew picked enough lettuce for a station salad dinner. Nia carried a large bowl to the dining room while Tomas followed with peas. Through the windows, Earth shone blue below them. Luis served the salad with warm bread and placed a clean strainer on the counter like a trophy. Captain Chen thanked the volunteers, then asked Nia to share what she had learned.\n\nNia held up her notebook. \"Check what is really happening, compare it with something that works, and test your idea,\" she said. Those steps sounded simple now, but she remembered how confusing the greenhouse had felt that morning. At her table, she took a bite of lettuce. It tasted crisp and fresh. Tomorrow she would plant a new row of seeds, confident that asking careful questions could help them grow.",
+    "questions": [
+      {
+        "prompt": "What did the greenhouse supply to the station?",
+        "options": [
+          "Rocket fuel",
+          "School uniforms",
+          "Fresh vegetables"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "What was blocking the watering filter?",
+        "options": [
+          "A mineral crust",
+          "A fallen notebook",
+          "A broken lamp"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What meal did the crew make with the harvest?",
+        "options": [
+          "A tomato pizza",
+          "A salad dinner",
+          "A bowl of soup"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "1000-04",
+    "words": 1000,
+    "title": "The Race With No Stopwatch",
+    "text": "Remy expected the park challenge to be a race. She arrived wearing her fastest shoes and stretched beside the registration table. Her cousin Cal carried a water bottle and looked much less serious. A volunteer handed them a paper map and a card with six empty squares. Their task was to find six orange flags around the park and stamp their card at each one.\n\n\"What is the record?\" Remy asked. The volunteer smiled. \"We are not timing you. Today is about exploring.\" Remy found that disappointing. She enjoyed running, especially when she could watch her time improve. Cal, however, seemed pleased. He examined the map as though it were a treasure chart. Small drawings marked the fountain, playground, meadow, and several trails. The flags were numbered, but teams could visit them in any order.\n\nRemy pointed at the nearest flag symbol and started jogging. Cal followed, calling for her to wait at the next turn. Within two minutes, they reached the playground. Children were climbing a rope tower, and a dog barked near the fence. Remy searched every bright object for orange cloth. The flag was nowhere in sight. Cal held up the map. Their symbol showed the garden, not the playground.\n\nShe had mistaken a patch of blue for the fountain and turned too soon. They walked back to the junction, where Cal compared the map with a wooden sign. This time they chose the right path. In the garden, an orange flag hung beside a bed of sunflowers. A small stamp sat beneath it on a cord. Remy pressed a sunflower shape into their first square and felt her excitement return.\n\nThe second flag stood near the fountain. Getting there looked simple, but the map showed two paths. One curved around a grassy hill; the other went straight through a shaded grove. Remy chose the straight route because it was shorter. Soon they reached a rope stretched across the entrance. A sign explained that the trail was closed after heavy rain. Beyond it, deep muddy puddles covered the path.\n\nCal suggested taking the longer route around the hill. Remy checked the map again, annoyed that the shortest line had become useless. Yet the detour turned out to be pleasant. They passed a bench where an artist was drawing the fountain. From that angle, Remy could see its stone lion spraying water into a round pool. The artist showed them his sketch and pointed out the orange flag near the lion's tail.\n\nWith two stamps collected, they rested under a tree and planned the next part. Cal asked Remy to explain the map symbols aloud. She identified a footpath, picnic area, and patch of tall reeds beside the pond. He traced their position with his finger. Working together felt slower than simply running, but Remy noticed that they had stopped making wrong turns. She folded the map so their next destination stayed visible.\n\nAt the pond, the third flag was hidden behind a viewing screen used for watching birds. A volunteer reminded visitors to speak quietly. Remy and Cal stepped into the opening and found a family of ducks near the reeds. One tiny duckling struggled to climb a low bank, then succeeded with a sudden kick. Remy forgot about their card for a moment. She wanted to see where the little group would go.\n\nAfter stamping a duck shape, they headed toward the meadow. Cal stopped beside a crooked signpost. The fourth flag symbol seemed to point toward a narrow path, although the path itself was hard to see. Remy noticed flattened grass between two shrubs. They followed it to a wooden lookout platform. From the top step, orange cloth appeared beyond a cluster of purple flowers. The flag had been visible all along, just from a different angle.\n\nSeveral other teams arrived while they stamped their fourth square. A younger boy asked whether they knew the way to the garden. Remy almost pointed vaguely toward the trees, then remembered her own first mistake. She showed him the exact turn on his map and named the wooden sign he should look for. He thanked her and ran back to his family. Helping him felt surprisingly satisfying.\n\nTheir fifth flag was near the picnic shelter. A birthday party had filled the tables with balloons, and Remy worried that the flag might be hidden among them. Instead, it stood clearly beside a drinking fountain. While Cal refilled their bottle, she studied the last symbol. It was beyond the shelter, beside an old oak. The map also showed a little stream, which would help them recognize the right spot.\n\nThey followed the stream until a wide trunk rose ahead of them. Beneath the old oak hung the sixth orange flag. Cal stamped the final square with a leaf shape, then held the finished card up to the light. Remy checked every square. Sunflower, lion, duck, flower, cup, leaf. Six different pictures recorded their route. She had no idea how long they had taken, and she realized that she did not mind.\n\nAt the registration table, the volunteer examined their card and gave them both a small badge. It showed the park map inside a circle. \"What was your favorite discovery?\" she asked. Cal chose the lookout platform. Remy almost chose the last flag, but then pictured the duckling pushing itself onto the bank. \"The pond,\" she answered. \"I would have missed it if I had been watching a stopwatch.\"\n\nOn their way home, Remy kept the folded map instead of throwing it away. She marked the bench, bird screen, and meadow where they had stopped. There was still an entire corner they had not visited. Next weekend, she told Cal, they could return and explore it together. She would bring her running shoes again, but also a pencil. Some places were worth moving through slowly enough to remember.\n\nCal taped his badge beside his bedroom door. Remy put hers on her backpack, where it reminded her to notice small things.",
+    "questions": [
+      {
+        "prompt": "What color were the six flags?",
+        "options": [
+          "Blue",
+          "Orange",
+          "Purple"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Why was the shaded trail closed?",
+        "options": [
+          "Heavy rain had left it muddy",
+          "A birthday party was using it",
+          "The park was closing"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Where did Remy and Cal find the sixth flag?",
+        "options": [
+          "At the playground",
+          "Inside the picnic shelter",
+          "Beneath the old oak"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
     "id": "1500",
     "words": 1500,
     "title": "The Observatory After School",
@@ -241,6 +871,111 @@
           "Cooking recipes"
         ],
         "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "1500-02",
+    "words": 1500,
+    "title": "The Sound Behind the Door",
+    "text": "Every Friday afternoon, Cedar School broadcast a short radio show through the classroom speakers. It included announcements, jokes, and a story made by students. For the final show before winter break, Lena wanted something different. She proposed a mystery set inside a train station during a storm. Nobody could build a real station in the school, but Lena believed they could make listeners picture one. Her friend Omar volunteered to create the sound effects. He carried a notebook, a tiny recorder, and a backpack full of objects that made his classmates wonder whether he was moving into the building. One pocket also held shells collected during summer vacation.\n\nOmar had always noticed sounds other people ignored. The cafeteria doors squeaked in different notes. A loose wheel on the library cart clicked once with every turn. Even the hallway clock made a faint tapping noise when everything else was quiet. He explained that radio stories needed these little details because listeners could not see the setting. Lena gave him a list: rain, footsteps, a train whistle, a closing gate, and a mysterious tapping behind a wall. The tapping mattered most. In the story, it would guide the main character toward a missing suitcase before the last train departed.\n\nThey began with rain. Omar shook a box of dry rice, but it sounded like breakfast cereal falling onto a table. Lena drummed her fingers against a notebook, but that sounded exactly like fingers against a notebook. Finally, they poured a handful of uncooked beans onto an upside down metal tray. The result was too sharp. Their music teacher, Mrs. Patel, suggested experimenting with distance. From across the room, the same beans sounded softer. With the recorder under a folded towel, they became a steady shower. Lena grinned. A tiny change had turned a kitchen object into bad weather.\n\nFootsteps were easier until they listened carefully. The station floor in Lena's story was stone, while the school studio had carpet. Omar tried tapping pencils, dropping blocks, and knocking two wooden rulers together. Nothing sounded convincing. During lunch, he recorded shoes crossing the tiled entrance hall. A passing student asked what he was doing, then offered to walk again without dragging her heels. Soon four volunteers were marching, creeping, running, and stopping in front of Omar's recorder. He labeled every clip. Lena chose the slowest pair of footsteps for the station guard and the quickest ones for the nervous traveler.\n\nThe train whistle caused a different problem. A toy whistle was too cheerful, and a recording from the internet would require checking whether they could use it. Omar wanted to make their own sound anyway. He blew across the top of an empty glass bottle. The first attempt was mostly breath. After several tries, a low note floated through the room. Lena carefully added water to a second bottle, creating a higher note. They recorded both together, then played the sound at a lower pitch. It was not a perfect train whistle, but it suggested something large approaching through fog.\n\nBy Tuesday, they had enough recordings to assemble the first scene. Lena read the opening lines while Omar operated the laptop. Rain pattered, footsteps crossed the station, and the whistle sounded beyond the windows. Then the mysterious tapping began. Omar had made it by knocking a spoon against a cardboard box. Three short taps, a pause, then two more. It was simple and easy to recognize. The whole scene lasted ninety seconds. When they played it for Mrs. Patel, she closed her eyes. At the end, she said she could imagine the empty platform without seeing a single picture.\n\nOn Wednesday morning, the tapping recording disappeared. The filename remained in their project, but clicking it produced silence. Omar checked the volume and every cable. Other sounds worked normally. He looked through the recording folder, then the trash folder, then a second folder he had made by accident. Lena suggested recording the taps again. Omar agreed, but the spoon and cardboard box were missing too. Someone had cleared the studio table after their rehearsal. The problem was small enough to fix, yet strange enough to feel like part of their mystery had escaped into the real school building.\n\nTheir first suspect was not a person. It was a setting on the laptop. Omar discovered that he had accidentally moved the tapping clip into a folder called Old Versions. He restored it and pressed play. Still silence. Looking at the recording itself, he noticed a nearly flat line where the sound should have been. The file was real, but it contained almost nothing. Lena remembered that they had unplugged the microphone during Tuesday's cleanup. Perhaps their final recording had captured an empty room instead of a spoon. Neither could remember the exact order of events, which made guessing unhelpful.\n\nThey decided to investigate by testing rather than arguing. Omar found another spoon in the cafeteria. Lena brought a different cardboard box from the art room. The new taps sounded deeper because the box was larger. They stuffed it with paper, tested again, and removed some paper when the sound became dull. During these experiments, Lena noticed something surprising. The laptop showed a moving sound level even when neither of them touched the spoon. A faint tapping came from the doorway. Three short taps, a pause, then two more. Omar turned his chair so quickly that one wheel squealed.\n\nMr. Bell, the school caretaker, stood beside the open door. He was tapping a small paintbrush against his tool case while checking a loose hinge. Lena laughed with relief. She had expected something much stranger. Mr. Bell explained that he often tapped the brush to remove dust before painting. Omar asked whether he could record it. The caretaker agreed, then carefully repeated the rhythm. This new recording was clear, sharp, and much better than the missing one. Before leaving, Mr. Bell offered another useful sound: the heavy click of his tool case closing. Lena immediately pictured the station gate.\n\nWith the mystery solved, they returned to their fictional mystery. Lena changed the ending. Instead of finding the suitcase because of a secret code, the traveler would discover a worker tapping dust from a brush. The worker had moved the suitcase away from a leaking roof and was waiting for its owner. Omar liked the change. It made the strange sound understandable while still rewarding careful listening. They recorded the last scene that afternoon. Lena spoke the traveler's lines, Omar played the worker, and Mrs. Patel supplied the station announcement in a voice much grander than anyone expected.\n\nThursday's rehearsal revealed that realistic sounds could still create confusion. The rain was so loud that two lines vanished beneath it. The gate clicked before the worker said he was closing it. A whistle played in the middle of a conversation, making the approaching train seem dangerously close. They adjusted the timing and lowered the background sounds. Omar learned that every noise needed a job. A sound could explain a place, signal an action, or draw attention to a clue. If it did none of those things, it could distract listeners instead of helping them follow the story.\n\nOn Friday, the studio felt smaller than usual. Four students squeezed around two microphones, and the laptop balanced between stacks of books. Lena worried that she would forget a line. Omar worried that he would start the train whistle too early. Mrs. Patel told them that a little nervousness meant they cared about their work. At two o'clock, the announcement light turned green. Lena began. The station appeared through words and sounds: wet windows, quick footsteps, a distant whistle. When the tapping arrived, Omar watched Lena smile without breaking her serious voice. They knew exactly where that sound had come from.\n\nThe final scene ended with the traveler boarding the train, suitcase safely in hand. Omar faded the rain and played one last whistle. For a moment, the studio was quiet. Then the classroom phone rang. A teacher wanted to know whether the tapping had been made with a real tool. Another class asked if the station existed. The questions delighted Lena because they showed that listeners had built the scene in their minds. Nobody needed an actual train, a painted platform, or a storm outside. Their school had traveled somewhere new while everyone remained seated at their own desks.\n\nBefore packing up, Omar saved two copies of every recording and labeled the folders clearly. Lena wrote a thank you note to Mr. Bell and delivered it before the buses arrived. He read it beside the same doorway where he had supplied their best clue. Next term, the radio team planned to make a story about a crowded market. They would need coins, footsteps, paper bags, and voices calling from stalls. Omar opened his notebook to a clean page. Lena asked whether he already had ideas. He shook his backpack gently, heard a promising rattle, and said their next world was waiting inside.",
+    "questions": [
+      {
+        "prompt": "What did Lena want to create for the school radio show?",
+        "options": [
+          "A cooking contest",
+          "A mystery in a train station",
+          "A sports interview"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Who made the tapping sound by the doorway?",
+        "options": [
+          "Mr. Bell, the caretaker",
+          "A traveler",
+          "The principal"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did Omar do with the recordings at the end?",
+        "options": [
+          "Deleted all of them",
+          "Sent them to a train company",
+          "Saved two copies and labeled the folders"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "1500-03",
+    "words": 1500,
+    "title": "Six Bags and a Better Map",
+    "text": "Maya arrived at the town library wearing a bicycle helmet and carrying a basket of elastic straps. She was not there to borrow a book. That Saturday, the library was testing a bicycle delivery service for people who could not easily visit the building. Maya and her older cousin Ben would deliver six bags of books along a route chosen by the librarian, Ms. Reed. Every bag had a number, an address, and a colored tag. The riders would stay together, follow quiet streets, and bring back notes about anything that made the route difficult for future delivery teams.\n\nMaya loved maps almost as much as stories. Before they left, she spread the route sheet across a table and traced every turn with one finger. The first three addresses sat close together near the park. The last three were across town, beyond a small shopping street and a railway crossing. Ben checked both bicycles while Ms. Reed checked the book bags. She explained that the service was about reliability, not speed. Nobody needed to race. If the weather changed or a street was closed, the riders should stop somewhere safe and call her before choosing a different route.\n\nThey packed the bags carefully. Maya carried the first three, and Ben carried the rest. Heavy books went low in their baskets so the bicycles would feel steady. A bright yellow rain cover protected each load. Before leaving, Maya tested her brakes and rang her bell. Ben looked at the clouds, which were drifting slowly across a pale blue sky. The forecast allowed for a brief shower, but nothing serious. Ms. Reed handed them a card with the library's phone number. Maya tucked it inside her jacket pocket, beside a pencil and the small notebook she used for maps.\n\nTheir first stop was a blue house with a wooden bird on the gate. Mrs. Flores opened the door before they could ring. She had requested a book about vegetable gardens and a mystery with a detective who owned a dog. Maya checked the bag number against the address, then handed it over. Mrs. Flores offered advice about the route. The park path was pleasant, but workers had left equipment near its eastern entrance. Ben thanked her and marked the warning on the map. A route could look simple on paper while being rather different when someone actually rode it.\n\nAt the second house, nobody answered. Maya almost left the bag on the doorstep, then remembered Ms. Reed's instruction. Books should only be left when a delivery note specifically allowed it. This bag had no such note. Ben called the library while Maya waited beside the gate. Ms. Reed reached the reader, who was in the backyard and had not heard the bell. A minute later, Mr. Chen appeared with gardening gloves tucked under his arm. His porch smelled faintly of soil. He was delighted that they had called. Maya wrote down the problem: a quiet doorbell might need a phone call before arrival.\n\nThe third delivery took them to a small apartment building beside the park. The entrance had three doors that looked nearly identical. Only one had the correct number, hidden behind a tall flowerpot. Maya walked around the bicycle while Ben stayed with the bags. After finding the number, she called him over. They met a retired teacher who had borrowed a collection of adventure stories. He said he missed walking to the library but still enjoyed talking about books. The conversation lasted several minutes. When they left, Maya realized their service delivered a friendly visit along with every paper bag.\n\nNear the eastern park entrance, the workers' equipment blocked most of the path. A sign asked riders to use the street instead. Maya drew a large cross over that part of the map. Their planned route led toward the shopping street, so the change added only a short distance. Then another problem appeared. A repair crew had closed the bridge over the narrow canal. Orange barriers stood across both ends. Ben stopped before the entrance and put one foot down. Maya had never noticed another crossing nearby. The blue line on her map suddenly looked much wider than the canal itself.\n\nThey parked beside a public bench and called Ms. Reed. She knew a crossing two streets farther north, near the bakery. Ben checked the new route on his phone while Maya marked it in her notebook. Just as they began riding, the wind turned cooler and small drops dotted the pavement. They were close to the bakery when rain arrived in a sudden rush. Ben pointed to its wide awning. The riders stopped beneath it and waited beside their bicycles. Maya checked the yellow covers. The books were dry, though the corner of her paper map had become soft.\n\nThe baker, Mr. Lewis, stepped outside carrying two cups of water. He asked about the baskets, and Maya explained the library project. He thought it was a useful idea. His mother enjoyed reading but lived too far away to walk to the library comfortably. Ben gave him Ms. Reed's number so he could ask about future deliveries. While they waited, Maya redrew the wet corner of her map on a fresh notebook page. She included the bakery awning as a possible shelter. A place that had not mattered at all that morning had become an important part of the route.\n\nAfter fifteen minutes, the shower eased into scattered drops. They thanked the baker, checked their lights, and walked their bicycles until they reached the quiet crossing. The canal water carried leaves beneath the bridge. Maya resisted the urge to lean over for a better look because they still had three deliveries to complete. On the other side, Ben checked every address again. The change in route meant they would reach the last houses in a different order. He suggested delivering the nearest bag first. Maya agreed after checking the names, since nobody had requested a particular delivery time that day.\n\nThe next reader lived above a bicycle shop. A narrow outdoor staircase led to the door, so Ben carried the bag while Maya stayed below with both bicycles. The shop owner noticed their library baskets and asked whether the loads felt balanced. Maya told him they did, except when her last bag slid toward one side. He gave her a short strip of rubber mat to place underneath it. The bag stopped slipping. She thanked him and wrote another note. Sometimes a useful improvement cost almost nothing. It simply required someone to notice a small problem and share an idea.\n\nTheir fifth stop was at a house where two children waited on the porch. They had requested a book about frogs and another about making paper airplanes. Their father explained that the family car was being repaired. The children asked whether the library bicycle could deliver a hundred books at once. Maya laughed and showed them the basket. There was a clear limit to what it could carry safely. Ben said the library could choose smaller bags or more trips if lots of people requested deliveries. The children then demonstrated a paper airplane that landed neatly in a nearby flowerbed.\n\nThe final bag belonged to a reader at the end of Willow Lane. By then, Maya's legs felt tired, but the street was quiet and level. She noticed that tiredness made it easier to miss signs, so they slowed down and checked the house numbers carefully. Their reader, Mr. Grant, had borrowed a large book about birds. He showed them a small notebook where he recorded visitors to his garden feeder. Maya liked the idea of keeping useful observations in one place. She showed him her route notes, and he suggested adding the steep hill behind the shopping street.\n\nBack at the library, Ms. Reed spread their marked map beside the original. The clean printed route had looked efficient, but the riders' version told a fuller story. It showed a blocked path, a closed bridge, a sheltered waiting spot, a hidden house number, and a hill they had wisely avoided. Maya explained each mark while Ben described the basket improvement. All six bags had arrived safely. The trip had taken longer than expected, but Ms. Reed called it a successful test. They had learned details that a person planning from a desk could not easily have discovered alone.\n\nOn Monday, the library displayed a new delivery map with the northern canal crossing included. Maya's bakery shelter note appeared beside a small umbrella symbol. The route instructions also reminded volunteers to check door numbers, call when a reader did not answer, and keep heavy books low in their baskets. Maya borrowed the adventure collection that the retired teacher had recommended. Riding home, she noticed how familiar streets could hide useful details until someone looked closely. She had begun Saturday hoping to follow a perfect map. She ended it knowing that good maps grew better when people shared what they learned.",
+    "questions": [
+      {
+        "prompt": "What were Maya and Ben delivering?",
+        "options": [
+          "Library books",
+          "Vegetables",
+          "Sports equipment"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "Where did the riders shelter from the rain?",
+        "options": [
+          "Inside a railway station",
+          "Under the bakery awning",
+          "In a school gym"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "What did the library display on Monday?",
+        "options": [
+          "A racing trophy",
+          "A new menu",
+          "An improved delivery map"
+        ],
+        "answer": 2
+      }
+    ]
+  },
+  {
+    "id": "1500-04",
+    "words": 1500,
+    "title": "The Game That Needed Everyone",
+    "text": "The school board game club met every Tuesday in a classroom that smelled faintly of dry markers. Most weeks, students brought games from home. This week, their teacher, Mr. Silva, gave them a different challenge: invent a game that four people could play together. Eli immediately drew a mountain trail. His idea was a cooperative adventure in which players had to collect three lost supply packs before rain reached their campsite. Nobody would compete against the others. They would win or lose as a team. His friends Nora, Tessa, and Jay liked the idea, especially the chance to make cardboard tents.\n\nEli covered a sheet of thick paper with trails, trees, a river, and a campsite. Three supply packs waited at different places on the map. He made a separate rain track along the top edge. After every round, a blue token would move one space closer to camp. The team would have eight rounds to recover everything and return. Nora cut out player tokens, Tessa drew the supply cards, and Jay wrote a title in letters. They called their first version Trail Team. It looked impressive enough that two students from another table stopped to admire it.\n\nLooking good and playing well turned out to be different things. During their first test, everyone simply walked toward the nearest pack. After a few rounds, they brought all three back without making any difficult decisions. The rain token remained far from camp. Nora said the game felt like doing errands with tiny cardboard people. Eli wanted to defend it, but he knew she was right. A game needed choices that mattered. They added fallen branches, muddy paths, and a broken footbridge. Each obstacle required a tool card, and players could carry only two tools at a time now.\n\nThe next test swung too far in the opposite direction. Jay reached the muddy trail without boots and could not move. Tessa had a rope, but the fallen branches required a saw. Nora held the boots on the far side of the river. Eli discovered that nobody had a card for repairing the bridge. They searched the deck and found that they had forgotten to make one. The rain reached camp while all three supply packs remained outside. For several seconds, nobody spoke. Then Tessa said their hikers might need to return to the classroom and take a planning lesson.\n\nThey laughed and began again with a clearer plan. Tool cards would be placed face up beside the board, where everyone could see them. At the campsite, players could trade tools before leaving. The team also received one extra round. This made the game possible, but another problem soon appeared. Eli could see a route that would probably work, so he told everyone exactly where to move. They followed his instructions and won. He felt pleased until he noticed that Jay had spent most of the game leaning back in his chair instead of studying the map with the others.\n\nMr. Silva asked what had happened. Jay explained that it felt as though Eli was playing all four characters by himself. Eli had not meant to take over. He was excited and wanted the team to succeed. Still, a cooperative game did not feel cooperative if one person made every decision. Nora suggested giving each player a different skill. Tessa could be a scout who spotted shortcuts. Jay could be a mechanic who cleared equipment problems. Nora could be a medic who restored tired hikers. Eli could be a guide who helped others move along trails more quickly than usual.\n\nThey wrote a short skill card for each role. A player could use a special skill once per round, and only that player could choose when to use it. They also made a rule that everyone should suggest an action before the team settled on a plan. Eli worried that this would slow the game down. During the next test, however, Nora pointed out a route he had completely missed. It crossed a shallow part of the river and avoided the broken bridge. Jay combined that route with his repair skill, creating a plan that saved a whole round.\n\nNow the game had interesting choices. A player could travel alone to recover a nearby pack, but becoming tired would make the return trip slower. Two players traveling together could share tools, though that left fewer people available elsewhere. The scout could reveal a shortcut, but some shortcuts needed equipment. No option was always best. Tessa asked whether they should add dice to make movement exciting. Jay said the map already gave them enough to think about. They agreed to keep the game without dice. The challenge would come from planning together, not from hoping for a lucky roll.\n\nBefore the next meeting, each student tried explaining Trail Team to someone at home. This showed them which rules were unclear. Eli's brother thought the rain moved after every individual turn instead of every full round. Nora's aunt could not tell which cards were tools and which were supply packs. Tessa's father asked whether tired hikers were allowed to help each other. Jay discovered that the word nearby meant different things to different people. At school, they compared notes and rewrote the instructions in short sentences. They added clear card colors and a round marker shaped like a small flag.\n\nTheir first outside testers were four students who had never seen the game. Eli sat nearby with a notebook but promised not to explain every move. He only answered questions about the rules. The testers studied the board, selected roles, and discussed which pack to collect first. For a while, everything went smoothly. Then one student became stranded beyond the river after another carried the rope away. Nobody had noticed that the rope needed to remain available for the return trip. The testers began arguing about whose fault it was. Tessa quietly reminded them that they still shared one goal.\n\nThe team recovered by sending the mechanic back with the rope. That used valuable time, and the rain token moved close to camp. The final round became tense. Two packs were already safe, but the third waited near the highest trail. The scout revealed a shortcut, the medic restored a tired hiker, and the guide helped the mechanic bring the pack downhill. They reached camp on their last available move. All four testers cheered. Eli wrote down the important part: the ending worked because every role contributed. It was exciting to watch, and nobody had needed to control the entire team.\n\nNot every comment was praise. One tester said the tiny text on the skill cards was difficult to read. Another wanted the supply packs to look different from ordinary tools. A third thought eight rounds were better for experienced players, while beginners should have nine. The designers accepted these suggestions. Nora drew large symbols on the cards. Jay made packs with bright orange straps. Tessa added a beginner setting to the instructions. Eli erased a narrow trail and redrew it wider so several tokens could fit. Improving the game meant changing things they had already spent time making and decorating.\n\nThe club announced a small game afternoon for families. Each group would set up a table and teach its creation. Eli wanted to cover their table with green cloth, but they had none. Instead, they placed paper trees along the edges and displayed a large copy of the map behind them. Tessa wrote a sign explaining the goal: recover three lost supply packs and return before the rain. Nora organized the role cards, and Jay checked that every tool was present. This time, nobody would lose because the designers had forgotten to include an essential piece of equipment again.\n\nOn the day of the event, their first players were two parents and two younger students. The parents began suggesting nearly every move. Eli recognized the problem immediately because he had done the same thing. He pointed to the instruction asking everyone to offer an idea. One younger student chose a clever shortcut, and the other noticed that a tired hiker needed the medic. The adults listened. By the final round, all four were leaning over the board and discussing choices together. They lost by one move, then asked to play again. The second game ended with every supply pack safely back at camp.\n\nAfter the families left, Mr. Silva asked the club what they had learned. Eli looked at the map, now crowded with pencil marks from many revisions. He said a good idea became better when other people tried it. Nora said clear rules mattered as much as colorful pictures. Tessa said mistakes could reveal useful changes. Jay simply said he enjoyed having a real job on the team. They packed the pieces into a cardboard box and wrote everyone's name on the lid. Trail Team belonged to all four of them, and its best feature was that it needed all four players.",
+    "questions": [
+      {
+        "prompt": "What was the goal of Trail Team?",
+        "options": [
+          "Build the tallest tent",
+          "Collect three supply packs before rain reached camp",
+          "Race other players to a treasure"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "Why did Jay feel left out during one test?",
+        "options": [
+          "Eli was making all the decisions",
+          "His token was missing",
+          "He could not read the map"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "What did the families ask to do after losing their first game?",
+        "options": [
+          "Change the game to a race",
+          "Take the board home",
+          "Play again"
+        ],
+        "answer": 2
       }
     ]
   }
