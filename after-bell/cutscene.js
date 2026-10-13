@@ -3,14 +3,14 @@ import { findPath, gridToWorld } from './engine.js';
 
 export const DARE_DURATION = 21.5;
 const DIALOGUE = Object.freeze([
-  { at: 0, speaker: 'JAMIE', text: 'Hey—wait up.', beat: 'Homeroom is over.' },
-  { at: 1.6, speaker: 'JAMIE', text: 'I dare you to hide out at school for a whole week.', beat: 'The dare' },
-  { at: 4.6, speaker: 'YOU', text: 'A whole week? Even the weekend?', beat: 'The dare' },
-  { at: 6.8, speaker: 'JAMIE', text: 'Monday to next Monday. Get proof every night. Hide when the lights go off.', beat: 'Seven nights. Seven proofs.' },
-  { at: 10.9, speaker: 'YOU', text: 'What if a teacher catches me?', beat: 'Outside homeroom' },
-  { at: 13.0, speaker: 'JAMIE', text: 'Detention. Find a way out, and keep going.', beat: 'There is a way back.' },
-  { at: 15.9, speaker: 'JAMIE', text: "But on the weekend it's just GoGuardian. No teachers. No one to save you.", beat: 'The weekend changes everything.' },
-  { at: 19.6, speaker: 'YOU', text: "Fine. You're on.", beat: 'MONDAY → NEXT MONDAY' }
+  { at: 0, speaker: 'YOU', text: "GoGuardian logged me here at midnight. I was home.", beat: 'MONDAY · LEAVING HOMEROOM' },
+  { at: 3.0, speaker: 'JAMIE', text: "Alex, that's the third name it's marked after closing.", beat: 'The attendance log is wrong.' },
+  { at: 5.8, speaker: 'YOU', text: "I'm staying tonight. Something's watching the empty classrooms.", beat: 'A suspicion' },
+  { at: 8.7, speaker: 'JAMIE', text: "Get evidence. I'll keep a backup outside the school.", beat: 'Jamie is your ally.' },
+  { at: 11.6, speaker: 'YOU', text: "I'll check a new room each night. Monday to Monday.", beat: 'Seven pieces of evidence.' },
+  { at: 14.2, speaker: 'JAMIE', text: "Earn A's. Some teachers will still help you.", beat: 'Not everyone follows the eye.' },
+  { at: 16.6, speaker: 'JAMIE', text: 'Weekends mean no teachers, no detention. Just GoGuardian.', beat: 'No one to save you.' },
+  { at: 19.6, speaker: 'YOU', text: "Let's find out what it's hiding.", beat: 'INVESTIGATE · COLLECT · SURVIVE' }
 ]);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
@@ -71,7 +71,7 @@ export function createDareCutscene({ world, player, camera, onComplete }) {
       limbs.lowerArms[i].rotation.x = lerp(limbs.lowerArms[i].rotation.x, 0, damping);
     }
     const speaking = DIALOGUE[lineIndex]?.speaker === 'JAMIE';
-    // A wave at the doorway and a small hand gesture make the dare a conversation.
+    // A small hand gesture keeps the whispered hallway exchange human.
     if (!moving && speaking) {
       const gesture = elapsed < 15.9 ? 0.22 : 0.12;
       limbs.arms[1].rotation.z = -gesture;

@@ -218,7 +218,7 @@ export function createRescueScene({ world, player, camera, enemies = [], onCompl
         { at: 0, speaker: saviorId, text: `${name}: Wait. This student earned an A in my class.` },
         { at: 3.9, speaker: saviorId, text: `${name}: I'll handle this. You can let them go.` },
         { at: 5.9, speaker: captorId, text: captorId === 'guardian' ? 'GoGuardian: Grade verified. Student released.' : `${captorName}: Fine. Don't let me catch you again.` },
-        { at: 7.7, speaker: saviorId, text: `${name}: Stay quiet. Off you go.` }
+        { at: 7.2, speaker: saviorId, text: `${name}, whispering: Stay quiet. I can't help you on Saturday.` }
       ];
       world.playerAvatar.position.set(origin.x, 0, origin.z);
       world.playerAvatar.rotation.set(0, Math.atan2(captorPlace.point.x - origin.x, captorPlace.point.z - origin.z), 0);

@@ -7,7 +7,7 @@ const PALETTE = { wood: 0x8c6549, legs: 0x404a52, brass: 0xc59c43, teal: 0x557f8
 
 /** A compact, completely local school. Static furniture is batched by material. */
 export function buildSchool(scene) {
-  const interactables = [], hideSpots = [], colliders = [], sightBlockers = [], lamps = [], students = [];
+  const interactables = [], hideSpots = [], colliders = [], sightBlockers = [], lamps = [], students = [], hallDoors = [];
   const mats = new Map(), batches = new Map(), boxGeo = new THREE.BoxGeometry(1, 1, 1);
   const material = (color, options = {}) => {
     const key = `${color}:${JSON.stringify(options)}`;
@@ -85,6 +85,14 @@ export function buildSchool(scene) {
     box(frameX, 1.52, r.door.z + 0.72, 0.19, 3.05, 0.14, 0x405e5a);
     box(frameX, 3.10, r.door.z, 0.19, 0.2, 1.58, 0x405e5a);
     panel(r.label.toUpperCase(), frameX + (left ? 0.13 : -0.13), 3.35, r.door.z, yaw, 2.1, 0.42);
+    // These shutters occupy the connector cell rather than the room's sign frame.
+    // Gameplay owns the corresponding blocked cells; the scene only draws them.
+    const shutter = new THREE.Group(); shutter.position.set(r.door.x, 0, r.door.z);
+    meshBox(shutter, 0.17, 3.65, CELL_SIZE - 0.05, 0x3b4548, 0, 1.825);
+    for (let i = 0; i < 11; i++) meshBox(shutter, 0.21, 0.045, CELL_SIZE - 0.10, 0x626762, 0, 0.25 + i * 0.31);
+    meshBox(shutter, 0.24, 0.075, 0.28, 0x843b35, 0, 2.55, 0, { emissive: 0xa62e26, emissiveIntensity: 0.3 });
+    shutter.visible = false; shutter.name = `Guardian shutter: ${r.label}`; scene.add(shutter);
+    hallDoors.push({ id: `hall-door-${r.id}`, room: r.id, x: r.door.x, z: r.door.z, cell: { ...r.doorCell }, mesh: shutter });
     // A quiet wall poster and a convincing board give every room a recognizable identity.
     const boardX = left ? r.bounds.minX + 0.12 : r.bounds.maxX - 0.12;
     const boardText = { homeroom: 'MONDAY', band: 'LISTEN FIRST', library: 'KEEP READING', lab: 'OBSERVE', office: 'STAFF ONLY', storage: 'SUPPLIES' }[r.id];
@@ -234,6 +242,20 @@ export function buildSchool(scene) {
   }
   pickup('detKey', 'detKey', 'Take detention key', -3.25, det.center.z - 1.1, 0.98, 'detention');
   pickup('detFuse', 'detFuse', 'Take replacement fuse', 3.1, det.center.z - 1.1, 0.98, 'detention');
+  // Shallow wall shelves keep every randomized pickup over a walkable approach.
+  // Unlike desks and filing cabinets, these shelves do not obstruct feet or sight.
+  const disciplineSpots = [
+    { x: -4.45, z: det.bounds.minZ + 0.40, y: 0.96 },
+    { x: 0, z: det.bounds.minZ + 0.40, y: 0.96 },
+    { x: 4.45, z: det.bounds.minZ + 0.40, y: 0.96 },
+    { x: det.bounds.minX + 0.40, z: det.bounds.maxZ - 1.0, y: 0.96 },
+    { x: det.bounds.maxX - 0.40, z: det.bounds.maxZ - 1.0, y: 0.96 }
+  ];
+  for (let i = 0; i < disciplineSpots.length; i++) {
+    const s = disciplineSpots[i];
+    box(s.x, 0.88, s.z, i < 3 ? 0.62 : 0.35, 0.07, i < 3 ? 0.35 : 0.62, 0x7c7863);
+    box(s.x, 0.78, s.z, 0.035, 0.19, 0.035, 0x45524b);
+  }
   const detentionDoor = new THREE.Group(); detentionDoor.position.set(det.door.x, 0, det.door.z);
   meshBox(detentionDoor, 1.33, 3.13, 0.17, 0x686f61, 0, 1.565);
   meshBox(detentionDoor, 0.89, 0.49, 0.035, 0x273e39, 0, 2.34, 0.10);
@@ -295,9 +317,9 @@ export function buildSchool(scene) {
     }
     sphere(head, 0.043, skin, -0.25, -0.04, 0, 0.55, 1.5, 1); sphere(head, 0.043, skin, 0.25, -0.04, 0, 0.55, 1.5, 1);
     sphere(head, 0.035, skin, 0, -0.014, 0.223, 0.85, 1.15, 1.2);
-    const eyes = [];
+    const eyes = [], whites = [];
     for (const dx of [-0.093, 0.093]) {
-      sphere(head, 0.041, 0xe7e0c9, dx, 0.053, 0.205, 1.3, 0.82, 0.6);
+      whites.push(sphere(head, 0.041, 0xe7e0c9, dx, 0.053, 0.205, 1.3, 0.82, 0.6));
       const pupil = sphere(head, 0.018, principal ? 0x3e2d21 : 0x1b2328, dx + 0.004, 0.055, 0.231, 0.83, 1.04, 0.52); eyes.push(pupil);
       const brow = meshBox(head, 0.105, 0.018, 0.024, hair, dx, principal ? 0.105 : 0.117, 0.205);
       if (principal) brow.rotation.z = dx < 0 ? -0.09 : 0.025;
@@ -308,6 +330,17 @@ export function buildSchool(scene) {
     if (kind === 'band' && !student) meshBox(head, 0.05, 0.013, 0.025, 0x263039, 0, 0.06, 0.252);
     const smile = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.076, -0.11, 0.202), new THREE.Vector3(0, friend ? -0.119 : -0.135, 0.23), new THREE.Vector3(0.078, friend ? -0.109 : -0.095, 0.20)]);
     head.add(new THREE.Mesh(new THREE.TubeGeometry(smile, 8, 0.008, 5, false), material(0x614845)));
+    const nightFace = new THREE.Group(); nightFace.visible = false;
+    if (!student && !friend && !avatar && !principal) {
+      // Still human: a smile held too wide and faint shadows under unblinking eyes.
+      const wrongSmile = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.117, -0.092, 0.191), new THREE.Vector3(-0.061, -0.142, 0.218), new THREE.Vector3(0.024, -0.148, 0.233), new THREE.Vector3(0.128, -0.075, 0.188)]);
+      nightFace.add(new THREE.Mesh(new THREE.TubeGeometry(wrongSmile, 10, 0.009, 5, false), material(0x302a2a)));
+      for (const dx of [-0.093, 0.093]) {
+        const shadow = meshBox(nightFace, 0.108, 0.014, 0.008, 0x6c655d, dx, 0.006, 0.224);
+        shadow.rotation.z = dx < 0 ? -0.08 : 0.08;
+      }
+      head.add(nightFace);
+    }
     const arms = [], legs = [], lowerArms = [], lowerLegs = [];
     for (const side of [-1, 1]) {
       const arm = new THREE.Group(); arm.position.set(side * 0.37, 1.71, 0); root.add(arm); arms.push(arm);
@@ -323,6 +356,7 @@ export function buildSchool(scene) {
     root.scale.setScalar(student ? 0.68 : principal ? 0.87 : kind === 'band' ? 0.85 : 0.79);
     root.userData.limbs = { arms, legs, lowerArms, lowerLegs, leftArm: arms[0], rightArm: arms[1], leftLeg: legs[0], rightLeg: legs[1] };
     root.userData.head = head; root.userData.eyes = eyes; root.userData.kind = kind;
+    root.userData.nightFace = nightFace; root.userData.eyeWhites = whites;
     root.name = { band: 'Mr. Reed', teacher: 'Ms. Vale', principal: 'Mr. Mercer', jamie: 'Jamie', player: 'You' }[kind] || kind;
     return root;
   }
@@ -342,6 +376,31 @@ export function buildSchool(scene) {
   principal.visible = false; scene.add(principal);
   const playerAvatar = makeHuman('player', true);
   playerAvatar.visible = false; scene.add(playerAvatar);
+
+  // One reusable apparition has no collider, AI actor, or interaction target.
+  const apparition = makeHuman('teacher'); apparition.visible = false; apparition.name = 'Hallway apparition';
+  const ghostMats = new Map();
+  apparition.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    const key = mesh.material.uuid;
+    if (!ghostMats.has(key)) {
+      const mat = mesh.material.clone(); mat.color.multiplyScalar(0.28);
+      mat.transparent = true; mat.opacity = 0.88; ghostMats.set(key, mat);
+    }
+    mesh.material = ghostMats.get(key);
+  });
+  apparition.userData.nightFace.visible = true; scene.add(apparition);
+
+  // The eye appears just outside the locker slots during a warned inspection.
+  const lockerEye = new THREE.Group(); lockerEye.visible = false; scene.add(lockerEye);
+  const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.105, 14, 10), material(0xc7c2ab));
+  eyeWhite.scale.set(1, 0.48, 0.35); lockerEye.add(eyeWhite);
+  const eyeIris = new THREE.Mesh(new THREE.SphereGeometry(0.047, 12, 8), material(0x784a38));
+  eyeIris.position.z = 0.035; eyeIris.scale.set(1, 1, 0.42); lockerEye.add(eyeIris);
+  const eyePupil = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 6), material(0x0e1113));
+  eyePupil.position.z = 0.056; eyePupil.scale.z = 0.35; lockerEye.add(eyePupil);
+  const upperLid = meshBox(lockerEye, 0.215, 0.025, 0.045, 0x726859, 0, 0.052, 0.018);
+  upperLid.rotation.z = 0.065;
 
   const guardian = new THREE.Group(); guardian.position.set(SPAWN.x, 1.6, SPAWN.z - 9);
   const shield = new THREE.Shape(); shield.moveTo(0, 0.88); shield.lineTo(-0.70, 0.52); shield.lineTo(-0.58, -0.35); shield.lineTo(0, -0.84); shield.lineTo(0.58, -0.35); shield.lineTo(0.70, 0.52); shield.closePath();
@@ -375,6 +434,7 @@ export function buildSchool(scene) {
     scene.add(group); lamps.push({ mesh: group, light, room: spec.room, pool });
   }
   function setMood(day, detentionLights = 0) {
+    setTeacherNight(!day);
     ambient.color.setHex(day ? 0xd6dcc5 : 0x91a4b2); ambient.intensity = day ? 0.90 : 0.18;
     hemisphere.color.setHex(day ? 0xc6d9d0 : 0x88a9bc); hemisphere.groundColor.setHex(day ? 0x777b62 : 0x17272d); hemisphere.intensity = day ? 0.70 : 0.20;
     scene.background = new THREE.Color(day ? 0x8aaba6 : 0x071118); scene.fog = new THREE.Fog(day ? 0x899f94 : 0x071118, day ? 22 : 8, day ? 58 : 38);
@@ -395,6 +455,41 @@ export function buildSchool(scene) {
   setMood(true, 0);
   scene.userData.school = { floorCells: floorCells.length, exposedWallFaces: faces.length, staticBatches: batches.size };
   const setDetentionKind = kind => { principalSign.visible = kind === 'principal'; detentionSign.visible = kind !== 'principal'; };
+  function setTeacherNight(active) {
+    for (const teacher of Object.values(teachers)) {
+      teacher.userData.nightFace.visible = !!active;
+      for (const pupil of teacher.userData.eyes) pupil.scale.set(active ? 0.59 : 0.83, active ? 0.90 : 1.04, 0.52);
+      for (const white of teacher.userData.eyeWhites) white.scale.y = active ? 0.93 : 0.82;
+    }
+  }
+  function setHallDoor(id, closed) {
+    const door = hallDoors.find(d => d.id === id || d.room === id);
+    if (!door) return false;
+    door.mesh.visible = !!closed; return true;
+  }
+  function randomizeDiscipline(seed = 0) {
+    let hash = 2166136261;
+    for (const char of String(seed)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+    const first = hash % disciplineSpots.length;
+    const second = (first + 1 + ((hash >>> 8) % (disciplineSpots.length - 1))) % disciplineSpots.length;
+    const result = {};
+    for (const [id, spot] of [['detKey', disciplineSpots[first]], ['detFuse', disciplineSpots[second]]]) {
+      const item = interactables.find(i => i.id === id);
+      item.x = spot.x; item.z = spot.z; item.y = spot.y; item.mesh.position.set(spot.x, spot.y, spot.z);
+      result[id] = { ...spot };
+    }
+    return result;
+  }
+  function setLockerInspection(locker, active) {
+    const spot = typeof locker === 'string' ? hideSpots.find(h => h.id === locker) : locker;
+    lockerEye.visible = !!active && !!spot;
+    if (!lockerEye.visible) return;
+    // Hidden cameras face toward the hall; keep this eye inside that field of view.
+    const fx = -Math.sin(spot.angle || 0), fz = -Math.cos(spot.angle || 0);
+    lockerEye.position.set(spot.x + fx * 0.36, 1.68, spot.z + fz * 0.36);
+    lockerEye.rotation.set(0, Math.atan2(-fx, -fz), 0);
+  }
   return { lamps, interactables, hideSpots, exitDoor, detentionDoor, colliders, sightBlockers, teachers, principal, playerAvatar,
-    guardian, students, friend, setMood, setDetentionKind };
+    guardian, students, friend, apparition, lockerEye, hallDoors, disciplineSpots, setMood, setDetentionKind, setTeacherNight,
+    setHallDoor, randomizeDiscipline, setLockerInspection };
 }
