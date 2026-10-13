@@ -21,16 +21,17 @@ const NIGHT_PROOFS = ['the message left on your desk','a recording of the silent
   'the impossible clock in the lab','the after-hours attendance sheet','a recording of the weekend intercom','the final security log'];
 const SCHEDULE = [['homeroom','band'],['library','lab'],['homeroom','lab'],['band','library'],['lab','homeroom']];
 const keyDown = new Set();
-const settings = {difficulty:'normal',quality:'school',reduced:false,sound:true};
+const settings = {difficulty:'normal',reduced:false,sound:true};
 try { Object.assign(settings, JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); } catch {}
-for (const field of ['difficulty','quality']) $(field).value=settings[field];
+delete settings.quality;
+for (const field of ['difficulty']) $(field).value=settings[field];
 $('reduced').checked=!!settings.reduced; $('sound').checked=!!settings.sound;
 function saveSettings(){
-  settings.difficulty=$('difficulty').value;settings.quality=$('quality').value;
+  settings.difficulty=$('difficulty').value;
   settings.reduced=$('reduced').checked;settings.sound=$('sound').checked;
   try{localStorage.setItem(PREF_KEY,JSON.stringify(settings))}catch{}
 }
-for(const field of ['difficulty','quality','reduced','sound']) $(field).addEventListener('change',saveSettings);
+for(const field of ['difficulty','reduced','sound']) $(field).addEventListener('change',saveSettings);
 
 let renderer, scene, camera, world, flashlight, flashTarget, hand, dareCutscene, rescueScene, examUI;
 let state = null, mode='menu', paused=false, frameTime=performance.now(), hudTime=0, mapOpen=false;
@@ -108,11 +109,10 @@ try{
 
 function resize(){
   if(!renderer)return;
-  const ratio=settings.quality==='high'?Math.min(devicePixelRatio,1.6):Math.min(devicePixelRatio,1);
+  const ratio=Math.min(devicePixelRatio,1.6);
   renderer.setPixelRatio(ratio);renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
 }
 addEventListener('resize',resize);
-$('quality').addEventListener('change',resize);
 $('sound').addEventListener('change',()=>{if(masterGain)masterGain.gain.setTargetAtTime(settings.sound?.26:0,audioContext.currentTime,.1)});
 
 function createEnemies(){

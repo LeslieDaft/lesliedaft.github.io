@@ -32,7 +32,7 @@ Saturday and Sunday have no teachers, tests, or detention. A weekend capture end
 | School map | M |
 | Pause | Esc |
 
-School-laptop graphics are the default. The menu includes difficulty, sound, and reduced shake/brightness controls. Checkpoints save locally at each morning; a weekend death clears them.
+High-quality graphics are always enabled; there is no school-laptop graphics setting. The menu includes difficulty, sound, and reduced shake/brightness controls. Checkpoints save locally at each morning; a weekend death clears them.
 
 `index.html` is the arcade page with the existing banner slots. `play.html` runs the game inside its viewport. The renderer, game art, and code are bundled locally. No external game engine CDN is needed.
 
