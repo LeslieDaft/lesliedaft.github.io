@@ -30,7 +30,7 @@
     <header class="hud-top"><div class="badge"><small id="dayLabel">MONDAY</small><strong id="phaseLabel">SCHOOL DAY</strong><span id="clock">08:00 AM</span></div><div class="week" id="weekDots"></div><div class="hud-actions"><button id="journalBtn" aria-label="Open evidence journal"><kbd>J</kbd> Evidence</button><button id="pauseBtn" aria-label="Pause game">Ⅱ</button></div></header>
     <div id="crosshair">+</div><div id="interact" hidden><kbd>E</kbd><span></span></div>
     <div id="statusMessage" role="status"></div>
-    <div class="hud-bottom"><div class="meters"><div class="meter"><span>FLASHLIGHT <b id="batteryText">100%</b></span><div><i id="batteryBar"></i></div></div><div class="meter trouble"><span>TROUBLE <b id="troubleText">0%</b></span><div><i id="troubleBar"></i></div></div><div id="noise"><i></i><span>Quiet</span></div></div><div class="inventory-area"><div id="inventory"></div><div id="gradeStatus" aria-live="polite"></div></div><div class="control-hint"><kbd>F</kbd> Light <kbd>E</kbd> Use <kbd>M</kbd> Map <kbd>J</kbd> Evidence<br><kbd>Shift</kbd> Run <kbd>Ctrl / C</kbd> Crouch <kbd>Q / R</kbd> / arrows look</div></div>
+    <div class="hud-bottom"><div class="meters"><div class="meter"><span>FLASHLIGHT <b id="batteryText">100%</b></span><div><i id="batteryBar"></i></div></div><div class="meter trouble"><span>TROUBLE <b id="troubleText">0%</b></span><div><i id="troubleBar"></i></div></div><div id="noise"><i></i><span>Quiet</span></div></div><div class="inventory-area"><div id="inventory"></div><div id="gradeStatus" aria-live="polite"></div></div><div class="control-hint"><kbd>F</kbd> Light <kbd>E</kbd> Use <kbd>M</kbd> Map <kbd>J</kbd> Evidence<br><kbd>Shift</kbd> Run <kbd>Ctrl / C</kbd> Crouch Mouse look · <kbd>Esc</kbd> release<br><kbd>Q / R</kbd> / arrows look</div></div>
     <div id="hiddenBanner" hidden><b>HIDING</b><span>Stay still. Listen.</span><small>E to leave · Flashlight off</small></div><div id="threat"></div>
   </div>
   <aside id="taskPanel" hidden aria-label="Evidence collection progress"><small>KEEP HOLDING E</small><h3 id="taskLabel">Collect evidence</h3><div class="task-track"><i id="taskProgress"></i></div><p id="taskHint">Stay close. Watch the hall.</p></aside>
@@ -56,6 +56,6 @@
   <section id="ending" class="screen modal-screen" hidden><div class="dialog"><p id="endingEyebrow" class="eyebrow"></p><h2 id="endingTitle"></h2><p id="endingBody"></p><div id="endingStats"></div><button id="playAgain" class="primary">Investigate again</button><button id="endingMenu">Main menu</button></div></section>
   <div id="error" class="screen modal-screen" hidden><div class="dialog"><h2>The school couldn't load.</h2><p id="errorText">This game needs WebGL. Try a current browser with hardware acceleration enabled.</p><button onclick="location.reload()">Try again</button></div></div>
   <script src="../touch/controls.js?v=1"></script>
-  <script type="module" src="./game.js?v=6-touch-1"></script>
+  <script type="module" src="./game.js?v=7-mouse-look"></script>
 </body>
 </html>
