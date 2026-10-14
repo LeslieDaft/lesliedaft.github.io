@@ -202,11 +202,20 @@ function toMenu(){
 }
 $('mainMenu').onclick=toMenu;$('endingMenu').onclick=toMenu;
 $('restartPause').onclick=acceptDare;$('playAgain').onclick=acceptDare;
+// Touch availability must not disable a connected mouse on hybrid laptops.
+let mouseInput=!touchEnabled||matchMedia('(any-pointer: fine)').matches;
+let hadMouseLock=false,mouseDragging=false;
 function requestLook(){
-  if(touchEnabled||!['playing','intro'].includes(mode)||paused)return;
-  try{const p=$('view').requestPointerLock?.();if(p?.catch)p.catch(()=>{})}catch{}
+  if(!mouseInput||!['playing','intro'].includes(mode)||paused||examUI?.active||journalOpen)return;
+  try{const p=$('view').requestPointerLock?.();if(p?.catch)p.catch(()=>{if(mode==='playing')say('Click and drag the view to look. Esc pauses.',4);});}catch{}
 }
-$('view').addEventListener('click',requestLook);
+$('view').addEventListener('pointerdown',event=>{
+  if(event.pointerType==='mouse'&&event.button===0){
+    mouseInput=true;mouseDragging=true;requestLook();
+  }
+});
+addEventListener('pointerup',()=>{mouseDragging=false;});
+$('view').addEventListener('click',event=>{if(!event.sourceCapabilities?.firesTouchEvents)requestLook();});
 function setPaused(value){
   if(value)clearTask();
   if(mode==='intro'&&dareCutscene?.active){
@@ -220,9 +229,11 @@ function setPaused(value){
 }
 $('pauseBtn').onclick=()=>setPaused(true);$('unpause').onclick=()=>setPaused(false);
 document.addEventListener('pointerlockchange',()=>{
-  if(touchEnabled||examUI?.active)return;
-  if(document.pointerLockElement!==$('view')&&mode==='intro'&&dareCutscene?.active&&!paused)setPaused(true);
-  if(document.pointerLockElement!==$('view')&&mode==='playing'&&!paused&&state&&['day','night','detention','principal','finale'].includes(state.phase))setPaused(true);
+  const locked=document.pointerLockElement===$('view'),lost=hadMouseLock&&!locked;
+  hadMouseLock=locked;mouseDragging=false;
+  if(!lost||examUI?.active||journalOpen)return;
+  if(mode==='intro'&&dareCutscene?.active&&!paused)setPaused(true);
+  if(mode==='playing'&&!paused&&state&&['day','night','detention','principal','finale'].includes(state.phase))setPaused(true);
 });
 addEventListener('blur',()=>setPaused(true));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)setPaused(true)});
@@ -552,7 +563,7 @@ addEventListener('keydown',event=>{
 });
 addEventListener('keyup',event=>{keyDown.delete(event.code);if(event.code==='KeyE'&&task)clearTask();});
 addEventListener('mousemove',event=>{
-  if(examUI?.active||document.pointerLockElement!==$('view')||paused||mode!=='playing'||!state||['capture','blackout','forgiven','rescue'].includes(state.phase))return;
+  if(examUI?.active||journalOpen||(document.pointerLockElement!==$('view')&&!mouseDragging)||paused||mode!=='playing'||!state||['capture','blackout','forgiven','rescue'].includes(state.phase))return;
   player.yaw-=event.movementX*.0022;player.pitch=clamp(player.pitch-event.movementY*.0022,-1.25,1.25);
 });
 $('closeMap').onclick=()=>{mapOpen=false;$('mapPanel').hidden=true};
