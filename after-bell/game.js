@@ -23,6 +23,12 @@ const DIFFICULTY = {
 const currentEvidence = () => EVIDENCE[Math.min(state?.proofs.length||0, EVIDENCE.length-1)];
 const SCHEDULE = [['homeroom','band'],['library','lab'],['homeroom','lab'],['band','library'],['lab','homeroom']];
 const keyDown = new Set();
+const touchEnabled=!!window.DaftTouch?.available;
+if(touchEnabled)document.body.classList.add('game-touch');
+function touchText(text){
+  if(!touchEnabled)return text;
+  return String(text).replace(/\bhold E\b/gi,'Hold Use').replace(/\breleasing E\b/gi,'releasing Use').replace(/\brelease E\b/gi,'release Use').replace(/\bpress E\b/gi,'Tap Use').replace(/\bpress J\b/gi,'Tap Journal').replace(/\bpress F\b/gi,'Tap Light').replace(/\bpress G\b/gi,'Tap Decoy').replace(/\bM map\b/g,'Map').replace(/\bClick Resume\b/g,'Tap Resume').replace(/\bmovement keys\b/g,'the movement stick');
+}
 const settings = {difficulty:'normal',reduced:false,sound:true};
 try { Object.assign(settings, JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); } catch {}
 delete settings.quality;
@@ -75,7 +81,7 @@ function noiseSound(duration=.1,volume=.2){
   const data=buffer.getChannelData(0);for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(1-i/length);
   const source=audioContext.createBufferSource(),gain=audioContext.createGain();gain.gain.value=volume;source.buffer=buffer;source.connect(gain);gain.connect(masterGain);source.start();
 }
-function say(text,time=4){$('statusMessage').textContent=text;noticeTime=time;$('statusMessage').style.opacity=1}
+function say(text,time=4){$('statusMessage').textContent=touchText(text);noticeTime=time;$('statusMessage').style.opacity=1}
 function showTransition(small,title,note,time=3){
   $('transitionSmall').textContent=small;$('transitionTitle').textContent=title;$('transitionNote').textContent=note;
   $('transition').hidden=false;transitionTime=time;
@@ -197,7 +203,7 @@ function toMenu(){
 $('mainMenu').onclick=toMenu;$('endingMenu').onclick=toMenu;
 $('restartPause').onclick=acceptDare;$('playAgain').onclick=acceptDare;
 function requestLook(){
-  if(!['playing','intro'].includes(mode)||paused)return;
+  if(touchEnabled||!['playing','intro'].includes(mode)||paused)return;
   try{const p=$('view').requestPointerLock?.();if(p?.catch)p.catch(()=>{})}catch{}
 }
 $('view').addEventListener('click',requestLook);
@@ -214,7 +220,7 @@ function setPaused(value){
 }
 $('pauseBtn').onclick=()=>setPaused(true);$('unpause').onclick=()=>setPaused(false);
 document.addEventListener('pointerlockchange',()=>{
-  if(examUI?.active)return;
+  if(touchEnabled||examUI?.active)return;
   if(document.pointerLockElement!==$('view')&&mode==='intro'&&dareCutscene?.active&&!paused)setPaused(true);
   if(document.pointerLockElement!==$('view')&&mode==='playing'&&!paused&&state&&['day','night','detention','principal','finale'].includes(state.phase))setPaused(true);
 });
@@ -267,7 +273,7 @@ function beginTask(o,kind){
   task={kind,item:o,elapsed:0,duration:kind==='evidence'?evidence.duration:4,phase:state.phase,stage:state.proofs.length,pulse:0};
   $('taskPanel').hidden=false;
   $('taskLabel').textContent=kind==='evidence'?evidence.title:'Repairing the electric lock';
-  $('taskHint').textContent='Hold E and stay still. Release E or move to cancel.';
+  $('taskHint').textContent=touchText('Hold E and stay still. Release E or move to cancel.');
   $('taskProgress').style.width='0%';
   if(kind==='repair'||['print','decode','download'].includes(evidence.method))emitNoise(kind==='repair'?6:evidence.noise,o);
 }
@@ -284,7 +290,7 @@ function updateTask(dt){
     else if(evidence.method!=='photo'){emitNoise(evidence.noise,t.item);if(['print','download'].includes(evidence.method))noiseSound(.1,.06);}
   }
   $('taskProgress').style.width=`${Math.min(100,t.elapsed/t.duration*100)}%`;
-  $('taskHint').textContent=`Hold E · ${Math.max(0,t.duration-t.elapsed).toFixed(1)} seconds left · Stay still`;
+  $('taskHint').textContent=touchText(`Hold E · ${Math.max(0,t.duration-t.elapsed).toFixed(1)} seconds left · Stay still`);
   if(t.elapsed<t.duration)return;
   clearTask();
   if(t.kind==='repair'){
@@ -330,7 +336,7 @@ function updateLockerInspection(e,dt){
     }
     search.time+=dt;$('lockerSearch').hidden=false;
     $('searchTitle').textContent=search.dangerous?'They know this locker.':'An eye moves toward the slots.';
-    $('searchHint').textContent=search.dangerous?`Press E to leave NOW · ${Math.ceil(search.duration-search.time)}s before it opens`:'Stay still. Release movement keys and wait for the footsteps to leave.';
+    $('searchHint').textContent=touchText(search.dangerous?`Press E to leave NOW · ${Math.ceil(search.duration-search.time)}s before it opens`:'Stay still. Release movement keys and wait for the footsteps to leave.');
     $('searchProgress').style.width=`${Math.min(100,search.time/search.duration*100)}%`;
     world.setLockerInspection?.(locker,true);
     if(search.time>=search.duration){
@@ -550,6 +556,37 @@ addEventListener('mousemove',event=>{
   player.yaw-=event.movementX*.0022;player.pitch=clamp(player.pitch-event.movementY*.0022,-1.25,1.25);
 });
 $('closeMap').onclick=()=>{mapOpen=false;$('mapPanel').hidden=true};
+function touchGameplayActive(){
+  return mode==='playing'&&!paused&&!examUI?.active&&!journalOpen&&!mapOpen&&!!state&&['day','night','detention','principal','finale'].includes(state.phase);
+}
+const touchControls=touchEnabled?window.DaftTouch.create({
+  id:'after-bell',title:'Left stick moves · Drag the school view to look',
+  joysticks:[{id:'move',label:'Move',keys:{up:'KeyW',down:'KeyS',left:'KeyA',right:'KeyD'}}],
+  buttons:[
+    {id:'use',label:'Use / Hide',ariaLabel:'Interact, hide or hold to collect evidence and repair',keys:['KeyE']},
+    {id:'sprint',label:'Run',keys:['ShiftLeft']},
+    {id:'crouch',label:'Crouch',keys:['KeyC']},
+    {id:'light',label:'Light',ariaLabel:'Toggle flashlight',keys:['KeyF']},
+    {id:'decoy',label:'Decoy',keys:['KeyG']},
+    {id:'map',label:'Map',keys:['KeyM']},
+    {id:'journal',label:'Journal',ariaLabel:'Open evidence journal',keys:['KeyJ']},
+    {id:'pause',label:'Pause',onPress:()=>setPaused(true)}
+  ],
+  lookElement:$('view'),isActive:touchGameplayActive,
+  onLook(dx,dy){player.yaw-=dx*.004;player.pitch=clamp(player.pitch-dy*.004,-1.25,1.25);}
+}):null;
+if(touchEnabled){
+  $('pause').querySelector('.hint').innerHTML='Left stick moves · Drag the view to look · Use / Hide interacts or leaves a locker<br>Hold Use / Hide and stay still to collect evidence or repair<br>Hold Run to sprint · Hold Crouch to sneak<br>Light toggles the flashlight · Decoy throws a toy · Map shows the school · Journal shows collected evidence';
+  $('pause').querySelector('.dialog>p:not(.eyebrow)').textContent='Tap Resume to return to the school.';
+  $('hiddenBanner').querySelector('small').textContent='Use / Hide to leave · Flashlight off';
+  $('mapPanel').querySelector('small').textContent='Tap × to close · The map does not stop time.';
+  $('journalPanel').querySelector('.journal-footer').textContent='Tap × to close · The investigation pauses while you read.';
+  $('journalBtn').querySelector('kbd').textContent='▤';
+  $('taskPanel').querySelector('small').textContent='KEEP HOLDING USE';
+  $('interact').querySelector('kbd').textContent='USE';
+  $('begin').innerHTML='Skip <span>→</span>';
+}
+
 
 function movePlayer(dt){
   const lookRate=1.7;
@@ -974,7 +1011,7 @@ function renderObjective(){
   const panel=$('objectivePanel');panel.hidden=mode==='menu'||!world||!camera;
   if(document.body)document.body.dataset.objectiveMode=journalOpen?'journal':paused||mode==='ending'?'overlay':examUI?.active?'exam':'play';
   if(panel.hidden)return;
-  const objective=getObjective(),write=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value;};
+  const objective=getObjective(),write=(id,value)=>{value=touchText(value);if($(id).textContent!==value)$(id).textContent=value;};
   write('objectiveKicker',objective.kicker);write('objectiveText',objective.title);write('objectiveHint',objective.hint);
   write('objectiveProgress',state?`${state.proofs.length}/7 evidence files · Day ${state.day+1}${state.missedProofs?' · '+state.missedProofs+' missed collections':''}`:'Seven evidence files. Missing evidence adds another day.');
   $('objectiveNav').hidden=paused||!objective.target;
@@ -982,7 +1019,7 @@ function renderObjective(){
   const target=objective.target,metres=Math.round(distance(player,target));
   const candidate=state&&!examUI.active?candidateInteraction():null;
   if(candidate&&(candidate.id===target.id||candidate.type==='hide'&&target.id===candidate.id)){
-    $('objectiveArrow').style.transform='none';write('objectiveArrow','E');write('objectiveDirection',(objective.action==='HOLD E'?'Hold E · ':'Press E now · ')+(candidate.label||interactionLabel(candidate)).replace(/^Hold E · /,''));return;
+    $('objectiveArrow').style.transform='none';write('objectiveArrow',touchEnabled?'●':'E');write('objectiveDirection',(objective.action==='HOLD E'?'Hold E · ':'Press E now · ')+(candidate.label||interactionLabel(candidate)).replace(/^Hold E · /,''));return;
   }
   const nav=navBlocks(),goal=navTarget(target,nav),path=goal?findPath(player,goal,nav):[];
   const waypoint=path.find(p=>distance(player,p)>.85)||target,direction=objectiveCompass(waypoint);
@@ -1051,7 +1088,7 @@ function activeTick(dt){
     if(state.detOpen&&player.z>ROOMS.detention.bounds.maxZ+CELL_SIZE+.30)escapeDetention();else updateDetentionGuard(dt);
   }
   if(!['detention','principal','capture','blackout','forgiven','rescue'].includes(state.phase))updateEnemies(dt);
-  nearby=candidateInteraction();$('interact').hidden=!nearby;if(nearby)$('interact').querySelector('span').textContent=nearby.label||interactionLabel(nearby);
+  nearby=candidateInteraction();$('interact').hidden=!nearby;if(nearby)$('interact').querySelector('span').textContent=touchText(nearby.label||interactionLabel(nearby));
   hudTime-=dt;if(hudTime<=0){updateHud();if(mapOpen)drawMap();hudTime=.2;}
 }
 

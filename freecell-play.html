@@ -6,10 +6,74 @@
     <meta name="description" content="A gentle retro adventure where FreeCell battles bring the dawn." />
     <link rel="icon" href="./favicon.svg" />
     <title>FreeCell: A New Dawn</title>
+    <script defer src="./touch/controls.js"></script>
     <script type="module" crossorigin src="./assets/github-index-CtUS3mYk.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/github-index-DjjYeDmH.css">
+    <style>
+      /* Keep the valley visible and card columns comfortable to tap on phones. */
+      button,.stack-card,.dialogue-shade{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+      .freecell-touch-hint{display:none}
+      body.daft-touch-enabled .field-scene{top:var(--freecell-field-top,90px);transform:translateX(-50%) scale(var(--freecell-field-scale,.4));transform-origin:top center;touch-action:none}
+      body.daft-touch-enabled .field-header{height:auto;min-height:72px;gap:10px}
+      body.daft-touch-enabled .field-header span{display:block;font-size:11px;margin-top:4px}
+      body.daft-touch-enabled .field-header strong{font-size:18px}
+      body.daft-touch-enabled .dawn-meter{white-space:nowrap;padding:6px;font-size:11px}
+      body.daft-touch-enabled .audio-toggle{top:88px;bottom:auto;right:10px;min-height:44px}
+      body.daft-touch-enabled .card-table{padding:12px 10px 100px;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+      body.daft-touch-enabled .slots-row{transform:none;width:auto;min-width:600px;max-width:1140px;gap:20px}
+      body.daft-touch-enabled .slot{width:64px;height:84px;touch-action:pan-x pan-y}
+      body.daft-touch-enabled .tableau{min-width:600px;gap:9px}
+      body.daft-touch-enabled .stack-card{width:64px;height:84px;touch-action:pan-x pan-y}
+      body.daft-touch-enabled .column{min-height:380px;touch-action:pan-x pan-y}
+      body.daft-touch-enabled .card-face{font-size:23px}
+      body.daft-touch-enabled .battle-controls{padding-bottom:calc(10px + env(safe-area-inset-bottom));justify-content:flex-start}
+      body.daft-touch-enabled .pixel-button{min-height:44px}
+      body.daft-touch-enabled .freecell-touch-hint{display:block;margin:0;padding:10px 14px;background:#21192f;color:#fff0bc;font:13px/1.5 Georgia,serif}
+      body.daft-touch-enabled .dialogue-shade{padding:16px 14px calc(18px + env(safe-area-inset-bottom));touch-action:manipulation}
+      body.daft-touch-enabled .dialogue-box{grid-template-columns:85px 1fr;min-height:150px}
+      body.daft-touch-enabled .dialogue-box>div{padding:14px}
+      body.daft-touch-enabled .dialogue-box p{font-size:16px}
+      body.daft-touch-enabled .dialogue-box h2{font-size:21px}
+      @media(max-width:600px){.title-card,.ending-box{padding:22px}.title-card h1,.ending-box h1{font-size:45px}.story{font-size:17px}.battle-top{height:160px;grid-template-columns:65px 1fr 65px;align-items:center}.battle-goblin b,.battle-hero b{display:none}.battle-goblin .sprite-goblin,.battle-hero .sprite-hero{transform:scale(.55)}.battle-message{font-size:13px;padding:8px}.battle-header{padding:8px 12px}.battle-header strong{font-size:18px}.test-key{font-size:9px;max-width:90px;white-space:normal}}
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <script type="module">
+      const touch = window.DaftTouch;
+      if (touch) {
+        const controls = touch.create({
+          id: 'freecell', title: 'FreeCell adventure',
+          joysticks: [{id:'walk',label:'Walk',keys:{up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'}}],
+          buttons: [{id:'interact',label:'Interact',keys:['KeyE']}],
+          isActive: () => !!document.querySelector('.field-screen') && !document.querySelector('.dialogue-shade')
+        });
+        const syncTouchLayout = () => {
+          const field = document.querySelector('.field-screen');
+          if (field) {
+            const header = field.querySelector('.field-header');
+            const top = (header?.getBoundingClientRect().height || 78) + 14;
+            const landscape = innerWidth > innerHeight;
+            const scale = Math.max(.15, Math.min(1, (innerWidth - 24) / 900, (innerHeight - top - (landscape ? 18 : 145)) / 580));
+            document.documentElement.style.setProperty('--freecell-field-top', top + 'px');
+            document.documentElement.style.setProperty('--freecell-field-scale', String(scale));
+            const help = header?.querySelector('span');
+            const helpText = document.body.classList.contains('daft-touch-enabled') ? 'Use the Walk joystick · Tap Interact near a character' : 'Arrow keys to walk · Press E to interact';
+            if (help && help.textContent !== helpText) help.textContent = helpText;
+          }
+          const table = document.querySelector('.card-table');
+          if (table && !document.querySelector('.freecell-touch-hint')) {
+            const hint = document.createElement('p');
+            hint.className = 'freecell-touch-hint';
+            hint.textContent = 'Tap a card or stack, then tap its destination. Swipe the green table sideways to reach all eight columns.';
+            table.before(hint);
+          }
+        };
+        new MutationObserver(syncTouchLayout).observe(document.getElementById('root'), {childList:true,subtree:true});
+        new MutationObserver(syncTouchLayout).observe(document.body, {attributes:true,attributeFilter:['class']});
+        addEventListener('resize', syncTouchLayout);
+        syncTouchLayout();
+      }
+    </script>
   </body>
 </html>

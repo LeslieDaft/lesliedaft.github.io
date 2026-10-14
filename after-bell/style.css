@@ -16,3 +16,31 @@ body[data-objective-mode="exam"] #taskPanel,body[data-objective-mode="overlay"] 
 @media(max-width:650px){.hud-actions{gap:5px}.hud-top #journalBtn{padding:8px;font-size:0}.hud-top #journalBtn kbd{font-size:11px;margin:0}.hud-top #pauseBtn{padding:8px 12px}.week{margin-left:auto;margin-right:8px}.week div{font-size:8px;padding:4px 3px}#taskPanel{right:14px;bottom:155px;width:min(300px,calc(100vw - 28px));padding:11px 13px}#taskLabel{font-size:13px;margin:5px 0 8px}#taskHint{font-size:10px;margin-top:7px}#watcherWarning{bottom:270px;right:14px;width:min(300px,calc(100vw - 28px));font-size:10px;padding:9px 12px}.search-caption{right:14px;bottom:34%;width:min(280px,calc(100vw - 28px));padding:11px 13px}.search-caption h3{font-size:14px;margin:5px 0}.search-caption p{font-size:11px;margin-bottom:9px}.locker-eye{left:54%;top:35%}.journal-dialog{padding:21px;max-height:calc(100dvh - 24px)}.journal-heading h2{font-size:26px}.journal-heading .eyebrow{font-size:8px;letter-spacing:1.5px}#journalEntries>article,#journalEntries>.journal-entry{padding:13px 15px}#journalEntries h3{font-size:15px}#journalEntries p{font-size:12px}}
 @media(max-height:600px){#taskPanel{bottom:115px;padding:10px 12px;width:290px}#taskLabel{font-size:13px;margin:5px 0 7px}#taskHint{font-size:10px;margin-top:6px}#watcherWarning{top:84px;bottom:auto;padding:8px 12px;font-size:10px}.search-caption{top:auto;bottom:25%;padding:11px 13px}.search-caption h3{font-size:14px;margin:5px 0}.search-caption p{font-size:11px;margin-bottom:9px}.journal-dialog{padding:21px 25px}.journal-heading h2{font-size:26px}body[data-objective-mode="journal"] #journalPanel{padding-top:145px}body[data-objective-mode="journal"] .journal-dialog{max-height:calc(100dvh - 165px)}}
 @media(prefers-reduced-motion:reduce){.task-track i,.search-track i{transition:none}}
+
+/* Keep the school HUD readable above the mobile controls. */
+body.game-touch #view{touch-action:none}
+body.game-touch #menu{overflow-y:auto;overscroll-behavior:contain}
+body.game-touch .hud-bottom{bottom:172px;left:14px;right:14px;gap:12px}
+body.game-touch .control-hint{display:none}
+body.game-touch .meters{width:130px}
+body.game-touch .meter{margin-bottom:8px}
+body.game-touch #inventory span{font-size:9px;padding:5px 7px}
+body.game-touch #gradeStatus{font-size:9px;max-width:230px}
+body.game-touch #interact{top:auto;bottom:182px;padding:8px 11px;font-size:12px;max-width:56vw;white-space:normal}
+body.game-touch #interact kbd{font-size:10px}
+body.game-touch #objectivePanel{width:min(320px,54vw);padding:10px 12px}
+body.game-touch #objectivePanel h3{font-size:14px;margin:5px 0}
+body.game-touch #objectivePanel p{font-size:11px;line-height:1.35}
+body.game-touch #objectiveNav{font-size:10px;margin-top:7px;padding-top:7px}
+body.game-touch[data-objective-mode="exam"] #objectivePanel,body.game-touch[data-objective-mode="overlay"] #objectivePanel{width:min(900px,calc(100vw - 24px))}
+@media(max-height:500px){body.game-touch .hud-top{padding:10px 14px}body.game-touch #objectivePanel{top:76px;max-width:260px}body.game-touch #objectivePanel #objectiveProgress{margin-top:5px;font-size:9px}body.game-touch .hud-bottom{bottom:166px}body.game-touch #gradeStatus{display:none}body.game-touch #inventory{max-width:200px}body.game-touch #statusMessage{top:28%;font-size:12px}body.game-touch #menu{align-items:flex-start;padding-top:16px;padding-bottom:16px}body.game-touch h1{font-size:55px;margin:14px 0}body.game-touch .tagline{margin-bottom:12px}}
+body.game-touch [data-dt-game="after-bell"] .dt-right{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(49vw,270px);gap:5px}
+body.game-touch [data-dt-game="after-bell"] .dt-action{width:100%;min-width:0;max-width:none;overflow-wrap:anywhere}
+
+/* Evidence tasks and warnings remain visible above the touch action cluster. */
+body.game-touch #taskPanel{bottom:185px;right:14px;width:min(290px,48vw);padding:10px 12px}
+body.game-touch #taskLabel{font-size:12px;margin:5px 0 7px}
+body.game-touch #taskHint{font-size:10px;margin-top:7px}
+body.game-touch #watcherWarning{top:96px;bottom:auto;right:14px;width:min(290px,42vw);font-size:10px}
+body.game-touch[data-objective-mode="journal"] #objectivePanel{width:min(900px,calc(100vw - 24px))}
+@media(max-height:500px){body.game-touch #taskPanel{bottom:171px;max-width:240px}body.game-touch #watcherWarning{top:76px;max-width:240px}body.game-touch[data-objective-mode="journal"] #objectivePanel{top:10px;max-width:none}}

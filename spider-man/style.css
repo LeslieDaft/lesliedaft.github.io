@@ -3,3 +3,24 @@
 #bossHud{position:absolute;top:110px;left:50%;transform:translateX(-50%);width:min(430px,42vw);text-align:center;background:#091321dd;padding:14px 20px;border-top:2px solid #f4c968;pointer-events:none}#bossHud small{display:block;letter-spacing:3px;color:#f4c968;font-size:11px}#bossName{display:block;letter-spacing:2px;font-size:23px;margin:6px}.bossTrack{height:7px;background:#452c30}.bossTrack i{display:block;height:100%;background:linear-gradient(90deg,#e94055,#ffbc61);transition:width .15s}#bossStatus{font-size:14px;line-height:1.5;margin:10px 0 0;color:#e3e7ed}@media(max-width:700px){#bossHud{top:80px;left:auto;right:12px;transform:none;width:45vw;padding:10px}#bossName{font-size:17px}#bossStatus{font-size:12px}}
 
 body:not(.game-loaded){background:#101723 url("cover.png") right center/auto 95vh no-repeat}.launchGraphics{display:flex;flex-direction:column;gap:9px;font-size:16px;margin:24px 0}.launchGraphics select{max-width:100%;width:100%;padding:12px}.launchGraphics small{font-size:13px;line-height:1.5;color:#bdcadd}button:disabled{cursor:wait;opacity:.6}.menuFoot #loading{max-width:205px;line-height:1.5}
+
+/* Reserve the lower corners for the mobile movement and action controls. */
+body.game-touch #game>canvas{touch-action:none}
+body.game-touch #hud{pointer-events:none}
+body.game-touch #pauseButton{pointer-events:auto}
+body.game-touch .bottom{bottom:180px;left:14px;right:14px;align-items:center;gap:10px}
+body.game-touch .mapWrap{width:78px;height:78px}
+body.game-touch .telemetry b{font-size:22px}
+body.game-touch .telemetry small{margin-top:3px;font-size:10px}
+body.game-touch .keyhelp{display:none}
+body.game-touch #prompt{bottom:190px;white-space:normal;text-align:center;width:max-content;max-width:55vw;font-size:12px;padding:8px 10px}
+body.game-touch .overlay{overscroll-behavior:contain}
+body.game-touch #objective{max-width:min(290px,48vw);padding:10px 12px}
+body.game-touch #objective h2{font-size:16px;margin:5px 0}
+body.game-touch #objective p{font-size:12px;line-height:1.4}
+body.game-touch #bossHud{width:min(350px,43vw);padding:9px 12px}
+body.game-touch #bossName{font-size:17px}
+body.game-touch #bossStatus{font-size:11px;margin-top:6px}
+@media(max-height:500px){body.game-touch .top{top:12px}body.game-touch #health{top:67px;left:17px}body.game-touch #objective{top:83px;max-width:230px}body.game-touch #bossHud{top:75px;left:auto;right:12px;transform:none}body.game-touch .bottom{bottom:175px}body.game-touch .mapWrap{width:55px;height:55px}body.game-touch .telemetry small{display:none}body.game-touch #toast{top:16%;font-size:12px;padding:10px 14px;max-width:55vw}}
+body.game-touch [data-dt-game="spider-man"] .dt-right{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(49vw,270px);gap:5px}
+body.game-touch [data-dt-game="spider-man"] .dt-action{width:100%;min-width:0;max-width:none;overflow-wrap:anywhere}

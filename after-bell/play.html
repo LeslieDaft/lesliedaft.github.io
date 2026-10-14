@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0a111b"><title>After Bell — The Watchful Eye</title>
-  <link rel="stylesheet" href="./style.css?v=6">
+  <link rel="stylesheet" href="./style.css?v=6-touch-1">
 </head>
 <body>
   <canvas id="view" aria-label="3D school game"></canvas>
@@ -55,6 +55,7 @@
   <section id="transition" hidden><p id="transitionSmall"></p><h2 id="transitionTitle"></h2><p id="transitionNote"></p></section>
   <section id="ending" class="screen modal-screen" hidden><div class="dialog"><p id="endingEyebrow" class="eyebrow"></p><h2 id="endingTitle"></h2><p id="endingBody"></p><div id="endingStats"></div><button id="playAgain" class="primary">Investigate again</button><button id="endingMenu">Main menu</button></div></section>
   <div id="error" class="screen modal-screen" hidden><div class="dialog"><h2>The school couldn't load.</h2><p id="errorText">This game needs WebGL. Try a current browser with hardware acceleration enabled.</p><button onclick="location.reload()">Try again</button></div></div>
-  <script type="module" src="./game.js?v=6"></script>
+  <script src="../touch/controls.js?v=1"></script>
+  <script type="module" src="./game.js?v=6-touch-1"></script>
 </body>
 </html>

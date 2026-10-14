@@ -7,3 +7,18 @@
 @media(max-width:460px){.personality-wrap{padding:12px 15px 18px}.personality-heading{align-items:flex-start;flex-direction:column;gap:5px}.personality-choice{padding:10px 8px}.personality-choice>span{font-size:10px}.personality-choice small{font-size:9px}}
 
 #intel-total,#prestige-earned{font-size:10px;line-height:1.5;color:var(--muted)}#intel-total{margin:0 0 15px}#prestige-earned{margin:7px 0 18px}.generation-panel .intel{margin-bottom:7px}
+
+/* Every action is a native tap target; the page remains freely scrollable. */
+button,select,a{touch-action:manipulation}
+body.daft-touch-enabled button,body.daft-touch-enabled select{min-height:44px}
+body.daft-touch-enabled select{font-size:16px}
+body.daft-touch-enabled .top-actions button:not(:first-child){min-width:44px}
+body.daft-touch-enabled #quantity-control button{min-width:44px;min-height:40px}
+body.daft-touch-enabled .shop-toolbar{flex-wrap:wrap;gap:10px}
+body.daft-touch-enabled .shop-items{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+body.daft-touch-enabled dialog{max-height:calc(100dvh - 30px);overflow-y:auto;overscroll-behavior-y:contain}
+body.daft-touch-enabled dialog .check-row{min-height:44px}
+body.daft-touch-enabled .check-row input{width:22px;height:22px}
+body.daft-touch-enabled .event-banner{bottom:calc(12px + env(safe-area-inset-bottom))}
+body.daft-touch-enabled .generate{-webkit-user-select:none;user-select:none}
+@media(max-width:460px){body.daft-touch-enabled .topbar{flex-wrap:wrap;padding-block:10px}body.daft-touch-enabled .wordmark{flex:1;min-width:120px}body.daft-touch-enabled .top-actions{margin-left:auto}body.daft-touch-enabled .buy{min-width:76px}body.daft-touch-enabled .shop-row{padding-block:12px}body.daft-touch-enabled .event-banner{align-items:center}body.daft-touch-enabled .event-banner button{min-width:80px}}

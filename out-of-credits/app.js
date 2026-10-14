@@ -100,6 +100,8 @@
   $('generate').classList.add('pressed');setTimeout(()=>$('generate').classList.remove('pressed'),90);
   if(Date.now()-lastClickLine>2800){$('model-line').textContent=lines[Math.floor(Math.random()*lines.length)];lastClickLine=Date.now();}render();
  }
+ // This clicker uses its native buttons for every action on touch screens.
+ window.DaftTouch?.create({id:'out-of-credits',title:'Tap controls',buttons:[],joysticks:[]});
  $('generate').addEventListener('click',click);
  document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!$('dialog').open&&!['INPUT','TEXTAREA','SELECT','BUTTON','A'].includes(e.target.tagName)&&!e.target.isContentEditable){e.preventDefault();click();}});
  document.querySelectorAll('[data-tab]').forEach(button=>button.addEventListener('click',()=>{activeTab=button.dataset.tab;document.querySelectorAll('[data-tab]').forEach(b=>{const selected=b===button;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected));});buildShop();}));
