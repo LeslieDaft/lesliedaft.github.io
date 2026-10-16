@@ -105,7 +105,7 @@ levels.push(
   ...flips(57,20,1.55),...flight(94,[180,140,185,225,180,135,190,235,185,140,190,225,180,145,195,175],2.1,74,60),
   tripleSpike(133),tripleSpike(135.5),tripleSpike(138),beam(141.2),tripleSpike(146),doubleSpike(149)
  ],[portal(19,'ship'),portal(52,'ball'),portal(89,'ship'),portal(130,'cube')],[coin(39.4,235),coin(66.3,27),coin(108.7,235)],[{beat:19,text:'SHIP · SMOOTH, SHORT INPUTS',mode:'ship'},{beat:52,text:'BALL · GRAVITY RELAY',mode:'ball'},{beat:89,text:'SHIP · STAY CALM THROUGH THE REDLINE',mode:'ship'},{beat:130,text:'FINAL CUBE · WATCH FOR THE LOW LASER',mode:'cube'}]),
- course('nightclub','Nightclub Nexus',152,224,'EASY DEMON • CLUBSTEP STYLE','#ff697c','#bf97ff','core',[
+ course('nightclub','Nightclub Nexus',145,224,'EASY DEMON • CLUBSTEP STYLE','#ff697c','#bf97ff','core',[
   ...[4.5,6.1,7.7,9.3,10.9,12.5,14.1].map(n=>tripleSpike(n)),beam(17.5),tripleSpike(21.5),tripleSpike(24),
   ...flight(33,[180,145,190,225,180,135,180,225,185,145,190,230,185,140,185,220,180,140,185,225,185,145,190,180],1.4,68,64),
   ...[72.5,74.2,75.9,77.6,79.3,81,82.7,84.4,86.1,87.8].map(n=>tripleSpike(n,'ceiling')),
@@ -218,7 +218,40 @@ class MusicEngine{constructor(){this.ctx=null;this.master=null;this.running=fals
  toggle(value){this.enabled=value;if(this.ctx)this.master.gain.setTargetAtTime(value?.32:0,this.ctx.currentTime,.04);}
  tone(freq,time,duration,volume,type='triangle',slide=0){if(!this.ctx)return;const osc=this.ctx.createOscillator(),gain=this.ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,time);if(slide)osc.frequency.exponentialRampToValueAtTime(slide,time+duration);gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),time+.009);gain.gain.exponentialRampToValueAtTime(.0001,time+duration);osc.connect(gain);gain.connect(this.master);osc.start(time);osc.stop(time+duration+.03);this.voices.push(osc);osc.onended=()=>{const i=this.voices.indexOf(osc);if(i>=0)this.voices.splice(i,1);osc.disconnect();gain.disconnect();};}
  hiss(time,volume,duration,cutoff){if(!this.ctx||!this.noise)return;const source=this.ctx.createBufferSource(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();source.buffer=this.noise;filter.type='highpass';filter.frequency.value=cutoff;gain.gain.setValueAtTime(volume,time);gain.gain.exponentialRampToValueAtTime(.0001,time+duration);source.connect(filter);filter.connect(gain);gain.connect(this.master);source.start(time);source.stop(time+duration);this.voices.push(source);source.onended=()=>{const i=this.voices.indexOf(source);if(i>=0)this.voices.splice(i,1);source.disconnect();filter.disconnect();gain.disconnect();};}
- schedule(){if(!this.ctx||!this.running)return;const sec=60/this.level.bpm,idx=Math.max(0,levels.indexOf(this.level)),song=SONGS[idx%SONGS.length],freq=m=>440*Math.pow(2,(m-69)/12);while(this.origin+this.nextTick*sec/4<this.ctx.currentTime+.11){const n=this.nextTick++,t=this.origin+n*sec/4;if(t<this.ctx.currentTime-.01)continue;const beat=Math.floor(n/4),sub=n%4,bar=Math.floor(beat/4),step=n%16,section=Math.floor(bar/4)%4,root=song[0]+song[2][bar%4];
+ // Nightclub Nexus: user's C2 pedal-bass motif, corrected to four beats.
+ // Six attacks: 1/2, 1, 1/4, 1/4, 1/2, 1 1/2 quarter-note beats.
+ nexusSynth(midi,time,duration,volume,bright=false){
+  const frequency=440*Math.pow(2,(midi-69)/12),filter=this.ctx.createBiquadFilter(),amp=this.ctx.createGain();
+  filter.type='lowpass';filter.Q.value=bright?3.2:5;
+  filter.frequency.setValueAtTime(bright?5200:1800,time);
+  filter.frequency.exponentialRampToValueAtTime(bright?900:150,time+Math.max(.04,duration*.8));
+  amp.gain.setValueAtTime(.0001,time);amp.gain.exponentialRampToValueAtTime(volume,time+.008);amp.gain.exponentialRampToValueAtTime(.0001,time+duration);
+  filter.connect(amp);amp.connect(this.master);
+  let remaining=2;
+  for(const ratio of [.996,1.004]){
+   const osc=this.ctx.createOscillator();osc.type='sawtooth';osc.frequency.setValueAtTime(frequency*ratio,time);osc.connect(filter);osc.start(time);osc.stop(time+duration+.02);this.voices.push(osc);
+   osc.onended=()=>{const i=this.voices.indexOf(osc);if(i>=0)this.voices.splice(i,1);osc.disconnect();if(--remaining===0){filter.disconnect();amp.disconnect();}};
+  }
+ }
+ nexusTick(n,t,sec){
+  const bar=Math.floor(n/16),step=n%16,phrase=bar%8,section=Math.floor(bar/8)%4;
+  const attacks=[0,2,6,7,8,10],lengths=[.5,1,.25,.25,.5,1.5],at=attacks.indexOf(step);
+  if(at>=0){const duration=sec*lengths[at]*.90;this.nexusSynth(36,t,duration,section===2?.14:.23);this.tone(65.406,t,duration,.26,'sine');}
+  // Four-on-the-floor kick, backbeat snare/clap, open hats and phrase fills.
+  if(step%4===0){this.tone(155,t,.23,.9,'sine',38);this.tone(850,t,.018,.08,'triangle',90);}
+  if(step===4||step===12){this.hiss(t,.33,.14,1000);this.tone(190,t,.09,.13,'triangle',90);for(const delay of [0,.013,.027])this.hiss(t+delay,.085,.065,1700);}
+  if(step%2===0)this.hiss(t,step%4===2?.15:.065,step%4===2?.12:.035,6200);
+  if(phrase===7&&step>=13){this.hiss(t,.12+(step-13)*.04,.075,1300);this.tone(160-(step-13)*20,t,.07,.13,'triangle');}
+  const melody=[
+   [72,null,79,75,74,null,70,67], [72,75,79,null,82,79,77,75],
+   [80,null,79,75,77,75,72,null], [74,77,79,82,79,null,74,71],
+   [84,79,82,79,75,null,77,79], [80,84,87,84,82,80,79,75],
+   [77,null,80,79,75,74,72,70], [71,74,79,77,74,71,72,null]
+  ];
+  if(bar>=2&&step%2===0){const note=melody[phrase][step/2];if(note!==null){const octave=section===3?12:0;this.nexusSynth(note+octave,t,sec*(section===2?.65:.38),section===2?.055:.09,true);if(section===3)this.tone(440*Math.pow(2,(note-12-69)/12),t,sec*.35,.045,'triangle');}}
+  if(step===0&&bar>=4){const chord=[[60,63,67],[60,65,68],[60,63,68],[59,62,67]][Math.floor(phrase/2)];for(const note of chord)this.tone(440*Math.pow(2,(note-69)/12),t,sec*3.5,section===2?.055:.035,'triangle');}
+ }
+ schedule(){if(!this.ctx||!this.running)return;const sec=60/this.level.bpm,idx=Math.max(0,levels.indexOf(this.level)),song=SONGS[idx%SONGS.length],freq=m=>440*Math.pow(2,(m-69)/12);while(this.origin+this.nextTick*sec/4<this.ctx.currentTime+.11){const n=this.nextTick++,t=this.origin+n*sec/4;if(t<this.ctx.currentTime-.01)continue;if(this.level.id==='nightclub'){this.nexusTick(n,t,sec);continue;}const beat=Math.floor(n/4),sub=n%4,bar=Math.floor(beat/4),step=n%16,section=Math.floor(bar/4)%4,root=song[0]+song[2][bar%4];
  if(song[4]&(1<<step))this.tone(145,t,.19,.78,'sine',36);
  if(song[5]&(1<<step)){this.hiss(t,.30,.12,1100);this.tone(180,t,.08,.12,'triangle',75);}
  if(n%(idx%3===0?2:1)===0)this.hiss(t,sub===2?.13:.065,.035,6500);
