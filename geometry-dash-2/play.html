@@ -178,7 +178,6 @@ function stepState(state,input,deltaSeconds,levelIndex=0){const level=typeof lev
   if(state.y>FLOOR+100)state.dead=true;
   if(state.onSurface)state.landY=state.y;
   if(state.mode!=='cube')state.landY=FLOOR-HALF;
-  state.cameraY=(state.cameraY||0)+((state.landY??(FLOOR-HALF))-(FLOOR-HALF)-(state.cameraY||0))*Math.min(1,dt*7);
   if(state.mode==='cube'&&!state.onSurface)state.rotation+=state.gravity*7*dt;else if(state.mode==='ball')state.rotation+=state.gravity*9*dt;else if(state.mode==='cube')state.rotation+=((Math.round(state.rotation/(Math.PI/2))*(Math.PI/2))-state.rotation)*Math.min(1,dt*20);
   if(state.invulnerable<=0){for(const h of level.hazards){if(h.x+h.w/2<state.x-20)continue;if(h.x-h.w/2>state.x+20)break;if(collision(state,h)){state.dead=true;state.events.push({type:'death',hazard:h.type});break;}}}
   for(let i=0;i<level.coins.length;i++){const c=level.coins[i];if(!state.coins.includes(i)&&Math.hypot(state.x-c.x,state.y-c.y)<32){state.coins.push(i);state.events.push({type:'coin',id:i});}}
@@ -194,7 +193,16 @@ function autoInput(state,levelIndex=0){const level=typeof levelIndex==='object'?
  // velocity anticipates the bend; all actual acceleration and collisions still apply.
  const gates=level.hazards.filter(h=>h.type==='gate'),margin=2;const upcoming=gates.find(h=>h.x+h.w/2+margin>state.x);let target=upcoming?upcoming.center:180,feedVelocity=0;const previous=gates.filter(h=>h.x+h.w/2+margin<=state.x).pop();if(previous&&upcoming){const from=previous.x+previous.w/2+margin,to=upcoming.x-upcoming.w/2-margin,range=Math.max(1,to-from),u=Math.min(1,Math.max(0,(state.x-from)/range)),f=u*u*(3-2*u);target=previous.center+(upcoming.center-previous.center)*f;feedVelocity=(upcoming.center-previous.center)*6*u*(1-u)/range*PHYSICS.speed;}
  const desired=Math.max(-300,Math.min(300,(target-state.y)*5+feedVelocity*.5));return{held:state.vy>desired};}
-window.GD2_TEST={levels,D,TOP,FLOOR,HALF,DT,physics:PHYSICS,pixelsPerBeat,beatOf,makeState,stepState,snapshot,restore,collision,autoInput};
+// A landing-based dead zone: 60% up the screen means 40% from its top.
+// Small steps do not move the camera. Airborne motion never changes its target.
+function updateLandingCamera(s,seconds,viewport){
+ const height=viewport.h/viewport.scale,upper=height*.40-viewport.offsetY;
+ const landing=s.landY??(FLOOR-HALF),bottom=FLOOR-HALF;
+ const previous=s.cameraTargetY||0;
+ s.cameraTargetY=s.mode==='cube'?Math.max(landing-bottom,Math.min(previous,landing-upper)):0;
+ s.cameraY=(s.cameraY||0)+(s.cameraTargetY-(s.cameraY||0))*(1-Math.exp(-7*seconds));
+}
+window.GD2_TEST={levels,D,TOP,FLOOR,HALF,DT,physics:PHYSICS,pixelsPerBeat,beatOf,makeState,stepState,snapshot,restore,collision,autoInput,updateLandingCamera};
 // === PERSISTENCE: CORRUPT OR DISABLED STORAGE MUST NEVER BREAK PLAY ===
 function loadSave(){try{let parsed=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}');return parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{};}catch(_){return{};}}
 let save=loadSave();save.levels=save.levels&&typeof save.levels==='object'&&!Array.isArray(save.levels)?save.levels:{};save.settings=save.settings&&typeof save.settings==='object'&&!Array.isArray(save.settings)?save.settings:{};
@@ -290,7 +298,7 @@ let lastFrame=0,accumulator=0,hudTimer=0,trailTimer=0;function frame(now){let se
  if(state.x>=ghostAt){runGhost.push([Math.round(state.x),Math.round(state.y*10)/10,Math.round(state.rotation*100)/100,state.mode,state.gravity]);ghostAt=state.x+14;}
  if(practice&&beatOf(state,level)>=autoCheckpointBeat){const close=level.hazards.some(h=>Math.abs(h.x-state.x)<D*1.5);if(!close&&(state.onSurface||state.mode==='ship'&&state.y>60&&state.y<300)){placeCheckpoint(true);autoCheckpointBeat+=8;}else if(beatOf(state,level)>autoCheckpointBeat+4)autoCheckpointBeat+=8;}
  if(state.dead)die();else if(state.complete)finish();}
- trailTimer+=seconds;if(trailTimer>.022){trailTimer=0;trail.push({x:state.x,y:state.y});if(trail.length>15)trail.shift();}music.sync(beatOf(state,level));music.schedule();}
+ updateLandingCamera(state,seconds,view);trailTimer+=seconds;if(trailTimer>.022){trailTimer=0;trail.push({x:state.x,y:state.y});if(trail.length>15)trail.shift();}music.sync(beatOf(state,level));music.schedule();}
  else{accumulator=0;if(phase==='dead'){deathTime+=seconds;if(deathTime>.43)retry();}}
  hudTimer+=seconds;if(hudTimer>.06){hudTimer=0;if(phase!=='menu')updateHUD();}if(!window.GD2_EDITOR?.isOpen())render();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
