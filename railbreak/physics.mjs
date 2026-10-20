@@ -58,8 +58,8 @@ export function stepSkater(s, input = {}, dt = 1 / 60, world = {}) {
     if (input.jumpPressed || !input.grind) leaveGrind(s, events, !!input.jumpPressed);
     else {
       const g = s.grind;
-      let speed = Math.max(2.5, Math.hypot(s.vx, s.vz));
-      speed = Math.max(2.5, speed - dt * .48);
+      // Grinding keeps momentum too; only the brake deliberately scrubs speed.
+      const speed = Math.hypot(s.vx, s.vz) * Math.exp(-(input.brake ? 3.8 : .002) * dt);
       g.t += speed * dt * g.direction / g.length;
       if (g.t < 0 || g.t > 1) {
         g.t = clamp(g.t, 0, 1);
@@ -86,17 +86,28 @@ export function stepSkater(s, input = {}, dt = 1 / 60, world = {}) {
   const fx = Math.sin(s.heading), fz = -Math.cos(s.heading);
   const oldX = s.x, oldZ = s.z;
   if (s.grounded) {
-    // The trucks oppose side-slip while allowing broad carving lines.
+    // Trucks steer the existing momentum rather than repeatedly projecting it away.
+    // Rotating the velocity with the carve preserves speed around a flat corner.
+    const turnDelta = s.heading - oldHeading;
+    const carveCos = Math.cos(turnDelta), carveSin = Math.sin(turnDelta);
+    const previousVx = s.vx;
+    s.vx = previousVx * carveCos - s.vz * carveSin;
+    s.vz = previousVx * carveSin + s.vz * carveCos;
     const forward = s.vx * fx + s.vz * fz;
     const lateralX = s.vx - fx * forward, lateralZ = s.vz - fz * forward;
     const grip = Math.exp(-(input.brake ? 4 : 10) * dt);
     s.vx = fx * forward + lateralX * grip;
     s.vz = fz * forward + lateralZ * grip;
+    const grippedSpeed = Math.hypot(s.vx, s.vz);
+    if (grippedSpeed > 1e-9 && speed > 0) {
+      s.vx *= speed / grippedSpeed; s.vz *= speed / grippedSpeed;
+    }
     if (input.push) {
       const acceleration = Math.max(1.2, 7.5 * (1 - speed / 24));
       s.vx += fx * acceleration * dt; s.vz += fz * acceleration * dt;
     }
-    const drag = input.brake ? Math.exp(-3.8 * dt) : Math.exp(-.075 * dt);
+    // Very light rolling resistance: about 2% momentum loss over ten seconds.
+    const drag = Math.exp(-(input.brake ? 3.8 : .002) * dt);
     s.vx *= drag; s.vz *= drag;
     // Gravity along a local grade gives real downhill speed without artificial acceleration.
     const ahead = groundAt(world, s.x + fx * .65, s.z + fz * .65);

@@ -1,27 +1,31 @@
-# Deep Signal
+# Deep Signal — Inside Nautilus
 
-A standalone Three.js underwater hunting and mining game for Daft Arcade. Imports the site's locally bundled Three r170 from `../after-bell/vendor/three.module.js`; no paid API, accounts or server required.
+A first-person submarine exploration, hunting and mining game. The player is physically inside a detailed pressure cabin, looking through a transparent curved glass dome into the actual 3D ocean. Angular metal machinery, ribbed hulls, plate floors, pipes and consoles replace bubble-style graphics.
 
-## Play
-- **1 / Helm**: WASD or arrows thrust and steer; Q descends, E ascends, Shift boosts. Space can fire the hydro guns.
-- **2 / Hydro guns**: mouse aim and hold left click or Space to fire hydrophobic rounds.
-- **3 / Torpedoes**: mouse aim and click / Space to fire. Buy and mount a tube first.
-- **4 / Drill**: approach a glowing ore seam within 36 world units and hold click / Space. Engineer mines at a slower rate while on another station.
-- AI pilot holds position outside the helm. AI gunner fights nearby creatures; AI torpedo crew engages larger threats when a tube is installed.
-- **B** opens the refit yard near the cyan Anchor Station sonar beacon. Sell mineral cargo, repair, select a mount, buy a compatible component or research the upgrade tree.
-- **H** help, **Esc** pause, **R** emergency recovery after disabling (loses cargo and 15% credits).
-- Touch controls, station buttons, on-canvas aiming and firing are included; toggle touch display in Settings.
+## Direct controls inside the world
+- **Right mouse drag** looks around the cabin. On touch, drag to look and tap to click.
+- **Left click actual physical screens and buttons** to operate them. No interaction key, separate interaction mode or refit overlay is needed.
+- Click **SIT AT HELM** on the front dashboard. Click thrust, turn, ascend, dive, level, boost and hold buttons. WASD / arrows, Q/E and Shift also drive while seated.
+- Click **STAND / WALK** on the helm or station screens. WASD / arrows now walk through the cabin, with floor and table collision. Look around and click another station to sit there.
+- Left console: hydrophobic guns. Right console: torpedoes. Port-side rear console: mining rig. Their direct buttons fire weapons / toggle the drill; seated operators can also aim through the dome and hold click or Space.
+- AI crew cover unoccupied stations. The pilot holds position while the player walks or operates a weapon. Guns track nearby creatures; installed torpedoes attack larger contacts; the engineer mines nearby seams.
+- The small **fabrication table behind the helm on the right** has an actual top-mounted touchscreen. Cycle mounting points, cycle compatible components, BUY & PLACE; cycle technologies and RESEARCH. Purchases and research work **anywhere**. Cargo sale and hull repairs require Anchor Station.
+- **Esc** pauses, **H** opens help. **R** or the recovery button recovers a disabled ship, losing mineral cargo and 15% credits.
 
-## Systems
-- Broad 450 × 1730 world-unit trench with depth regions, faceted terrain, rocky walls, shipwrecks, glowing deposits and roaming creatures. Depth telemetry is four meters per world unit.
-- Detailed multi-part submarine with plate sections, conning tower, windows, searchlights, propellers and visibly fitted components. Angular shark / leviathan models with swimming tails, fins and eyes. No bubble-character models.
-- 15 components, 10 compatible mounting points, 11 prerequisite research nodes across weapons, mining, hull, power and crew.
-- Bars, ribs and armor plates actually increase hull and crush-depth tolerance while adding mass. Reactor, weight, weapon, mining and cargo stats affect play.
-- Crews, hunting bounties, mining cargo, pressure damage, repair, optional emergency recovery, regenerating encounters, sonar and guarded browser-local autosave.
-- Independent render distance, detail distance and resolution settings. Instanced terrain/kelp, near-only coral details, capped particles, shared projectiles, distance culling and time-step caps limit load.
+## Real live exterior feeds
+Three dashboard monitors show actual port, starboard and aft ocean views using `WebGLRenderTarget` textures. Cameras are 256 × 144 and update round-robin at a total of ~9.5 updates/sec (~3.2 fps each), rather than rendering three full scenes per game frame. Cabin geometry and monitor surfaces are hidden during offscreen rendering, then the previous target and visibility are restored, preventing render-target feedback.
+
+## Progression and environment
+- A 450 × 1730 world-unit trench with pressure regions, faceted terrain, rock walls, wrecks, glowing mineral deposits, swimming creatures and leviathans. Depth uses four meters per world unit.
+- 15 physically fitted components, 10 mounting points, 11 prerequisite research nodes across weapons, mining, hull, power and crew.
+- Bars, ribs and plates actually increase maximum hull and crush-depth tolerance while adding mass. Reactor power, engine thrust, gun damage, mining rate, crew skill and cargo capacity affect play.
+- Bounty hunting, mining cargo, pressure damage, repair, emergency recovery, regenerating encounters and guarded browser-local saves. Existing saves remain compatible.
+- Dark water beyond searchlights, deep silhouettes and actual incoming creature attacks produce tension. Quiet procedural cinematic music, muffled machinery, sonar, gunfire, torpedoes and impacts use the shared `../game-audio/cinematic.mjs` helper; audio starts only after a user action and can be muted.
+- Independent render distance, near-detail distance and resolution settings, instanced terrain, capped particles and shared projectile geometries limit load.
 
 ## Validation
-`node --check game.js` and `node --test model.test.mjs` (8 progression / transaction / persistence tests). Root integration performs a CPU Three/DOM smoke test. Browser visual/performance QA is unavailable in the managed environment and must not be claimed.
+- `node --check game.js` / `node --check interior.mjs`
+- `node --test model.test.mjs interior.test.mjs`: 10 tests cover transactional purchases, compatibility, power caps, prerequisites, hull pressure, save sanitation, cargo sale and direct touchscreen UV-coordinate mapping.
+- Root integration runs real Three geometry/math with a mocked renderer and DOM. This can check runtime flow and direct screen actions but does not establish browser visual quality or actual GPU performance. Browser visual QA is unavailable in the managed environment.
 
-## Deliberate scope
-Arcade submarine simulation; no walkable interior, multiplayer or photorealistic fluid simulation. Pilot station uses an exterior chase camera. Purchased modules use compatible mounts rather than arbitrary unconstrained hull construction. Station crew have names and functional AI roles, rather than separately rendered interior characters.
+`window.deepSignal.getState()` exposes seat/walk state, camera coordinates, feed update count and physical panel hit regions for diagnostics. `runScreenAction(action,data)` supports deterministic CPU interaction checks.
