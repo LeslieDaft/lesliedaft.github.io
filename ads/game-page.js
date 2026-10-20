@@ -6,8 +6,8 @@
       // Keep the game in view after its own Start button is tapped.
       frame.contentDocument.addEventListener('click', event => {
         const button = event.target.closest('button');
-        const launchIds=['start','resume','begin','unpause','playAgain','freeBtn','campaignBtn','resumeBtn','enter','play-solo','play-public','create-private','join-private','start-room','resume-match','practice-btn','editor-btn'];
-        if (button && (launchIds.includes(button.id) || /start|play|begin|take flight|resume|accept the dare|continue week|free roam/i.test(button.textContent))) frame.scrollIntoView({block:'start',behavior:'instant'});
+        const launchIds=['start','startBtn','startButton','resume','begin','unpause','play','playAgain','freeBtn','campaignBtn','resumeBtn','resumeButton','enter','play-solo','play-public','create-private','join-private','start-room','resume-match','practice-btn','editor-btn'];
+        if (button && (launchIds.includes(button.id) || /start|play|begin|deploy|drop in|take flight|resume|accept the dare|continue week|free roam/i.test(button.textContent))) frame.scrollIntoView({block:'start',behavior:'instant'});
       }, true);
     }
     // Arcade and tool links navigate the whole page, avoiding nested ads/game frames.
