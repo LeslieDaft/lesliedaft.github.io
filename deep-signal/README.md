@@ -29,3 +29,9 @@ Three dashboard monitors show actual port, starboard and aft ocean views using `
 - Root integration runs real Three geometry/math with a mocked renderer and DOM. This can check runtime flow and direct screen actions but does not establish browser visual quality or actual GPU performance. Browser visual QA is unavailable in the managed environment.
 
 `window.deepSignal.getState()` exposes seat/walk state, camera coordinates, feed update count and physical panel hit regions for diagnostics. `runScreenAction(action,data)` supports deterministic CPU interaction checks.
+
+## Station cameras and fabrication tree
+
+The gun, torpedo and drill stations have dedicated live camera images with crosshairs. Clicking the image casts an aiming ray through that exterior camera; weapons fire along that ray. Six 256×144 feeds share an18-per-second rendering budget, prioritizing the occupied working station.
+
+The helm console is lower and narrower and the pilot eye is higher, leaving the central dome sightline clear. On the physical table, RESEARCH TREE displays all branches and prerequisite connections at once. Select nodes to inspect requirements and prices; PARTS & MOUNTS uses direct mount and equipment cards with projected pressure, hull, speed and power stats.
