@@ -9,4 +9,4 @@ export function biteGeometry(from,to,prey,size,preySize,direction,lunging){
  const reach=size*(lunging?1.8:1.05)+(lunging?.9:.38)+preySize*.4;
  return ahead>=-size*.3&&ahead<=reach&&width<=size*(lunging?.68:.45)+(lunging?.5:.2)+preySize*.35;
 }
-export function escapePace(fatigue,time,seed){return (.98-.42*Math.min(1,fatigue))*(Math.sin(time*1.7+seed)>.86?.42:1)}
+export function escapePace(fatigue,time,seed){return (.62-.30*Math.min(1,fatigue))*(Math.sin(time*1.7+seed)>.86?.42:1)}

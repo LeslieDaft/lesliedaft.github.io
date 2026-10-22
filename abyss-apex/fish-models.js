@@ -37,8 +37,9 @@ export function createFish(type,size){const spec=TYPES[type],shape=spec.shape,sh
  for(let j=0;j<8;j++)add(new T.CylinderGeometry(.0018,.001,.22,3),[-.59-j*.02,(j-3.5)*.024,side*.004],[1,1,1],2,[0,0,-.7-j*.08]);
  add(sphere,[-.06,.025,side*.175],[.32,.004,.003],1);
  }
- const geometry=merged(parts),u={time:{value:0},amplitude:{value:1},turn:{value:0},frequency:{value:5},wing:{value:ray?1:0}};
- for(const m of mats){m.onBeforeCompile=shader=>{Object.assign(shader.uniforms,{swimTime:u.time,swimAmplitude:u.amplitude,swimTurn:u.turn,swimFrequency:u.frequency,swimWing:u.wing});shader.vertexShader='attribute float swimFin; uniform float swimTime,swimAmplitude,swimTurn,swimFrequency,swimWing;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+ const geometry=merged(parts),u={time:{value:0},amplitude:{value:1},turn:{value:0},frequency:{value:5},wounds:{value:Array.from({length:20},()=>new T.Vector4(0,0,0,0))},wing:{value:ray?1:0}};
+ for(const m of mats){m.onBeforeCompile=shader=>{shader.uniforms.biteWounds=u.wounds;shader.fragmentShader='varying vec3 bitePosition; uniform vec4 biteWounds[20];\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nfor(int wi=0;wi<20;wi++){if(biteWounds[wi].w>0.0 && distance(bitePosition,biteWounds[wi].xyz)<biteWounds[wi].w) discard;}');Object.assign(shader.uniforms,{swimTime:u.time,swimAmplitude:u.amplitude,swimTurn:u.turn,swimFrequency:u.frequency,swimWing:u.wing});shader.vertexShader='varying vec3 bitePosition; attribute float swimFin; uniform float swimTime,swimAmplitude,swimTurn,swimFrequency,swimWing;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+ bitePosition=position;
  float rear=clamp((0.52-position.x)/1.1,0.0,1.0);
  float wave=swimTime*swimFrequency+position.x*7.0;
  float flex=(0.018+rear*rear*${eel?'0.23':'0.10'})*swimAmplitude;
@@ -52,5 +53,5 @@ export function createFish(type,size){const spec=TYPES[type],shape=spec.shape,sh
  if(shark)for(let i=0;i<10;i++){const t=new T.Mesh(new T.ConeGeometry(.009,.025,3),material(0xe9ecce));t.position.set(.06+i*.014,-.018,.09);t.rotation.z=Math.PI; jaw.add(t)}
  group.userData={uniforms:u,jaw,tail:new T.Group(),type};return group;
 }
-export function animateFish(g,time,effort=0,turn=0,bite=0){const u=g.userData.uniforms;if(!u)return;u.time.value=time;u.amplitude.value=.45+Math.min(1.5,effort)*.75;u.frequency.value=3+Math.min(1.5,effort)*4;u.turn.value=T.MathUtils.clamp(turn,-1,1);g.userData.jaw.rotation.z=-Math.sin(Math.min(1,bite)*Math.PI)*.4;}
+export function animateFish(g,time,effort=0,turn=0,bite=0){const u=g.userData.uniforms;if(!u)return;u.time.value=time;u.amplitude.value=.45+Math.min(1.5,effort)*.75;u.frequency.value=3+Math.min(1.5,effort)*4;u.turn.value=T.MathUtils.clamp(turn,-1,1);g.userData.jaw.rotation.z=-Math.sin(Math.min(1,bite)*Math.PI)*.85;}
 export function releaseFish(g,shared=[],sharedMaterials=[]){if(!g)return;g.traverse(o=>{if(o.geometry&&o.geometry!==sphere&&!shared.includes(o.geometry))o.geometry.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material]){if(![...neutral.values()].includes(m)&&!sharedMaterials.includes(m))m.dispose()}})}
