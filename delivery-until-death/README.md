@@ -20,3 +20,7 @@ Run `node delivery-until-death/sim.test.mjs`. Covers acceleration, braking, wet 
 ## Current limits
 
 Stylized procedural graphics, simplified suspension and collision response, grid-road traffic and simplified police steering; not a licensed vehicle simulator. Replay records the player path, not every traffic vehicle. No pedestrians, terrain elevation, deformable bodywork, spoken radio, or network multiplayer. Fuel/repair/insurance economy and career duration need player balancing. Browser saves are per device and can be lost if site data is cleared.
+
+## Driver-view and visual update
+
+First person is now the default. The car has a visible cabin with steering wheel, animated instrument display, hood, windshield pillars, console and a rear-view render in High quality. Click the road to capture mouse look, V to recenter and C to cycle cameras. Touch users can drag to look. Added tapered vehicle shells, clearcoat paint, textured/bump-mapped asphalt, storefront windows, awnings, planters, benches, crosswalks, an atmospheric sky and sun glow. Low graphics disables the extra city-detail batches and live mirror. WebGL rendering remains unverified in the available browser because its WebGL context is disabled.
