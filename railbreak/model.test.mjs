@@ -1,9 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../after-bell/vendor/three.module.js';
+import {createSkater,stepSkater} from './physics.mjs';
 import {createSkaterModel,createPedestrianModel,createFarPerson} from './character.js';
 function valid(root){root.updateMatrixWorld(true);root.traverse(o=>{for(const n of o.matrixWorld.elements)assert.ok(Number.isFinite(n),'finite transform');if(o.isMesh){for(const a of Object.values(o.geometry.attributes))for(const n of a.array)assert.ok(Number.isFinite(n),'finite contour geometry');}});}
 const state={x:0,z:0,y:0,speed:16,vx:0,vz:-16,heading:0,spin:0,flip:0,grounded:true,grind:null,manual:false,bail:0,vy:0};
 test('contoured skater has plausible human proportions and detailed non-spherical geometry',()=>{const m=createSkaterModel();m.pose({...state},{},1/60,0,1,()=>0);valid(m.root);const size=new THREE.Box3().setFromObject(m.root).getSize(new THREE.Vector3());assert.ok(size.y>1.65&&size.y<2.1,'human height');assert.ok(size.x<1.2&&size.z<1.2,'proportioned silhouette');let meshes=0;m.root.traverse(o=>{if(o.isMesh){meshes++;assert.notEqual(o.geometry.type,'SphereGeometry');}});assert.ok(meshes>65,'face, clothes, hands and shoe details exist');});
 test('push, manual, aerial flip, grind and bail poses keep finite geometry and joint transforms',()=>{const m=createSkaterModel();for(let i=0;i<120;i++){const mode=i%5,s={...state,grounded:mode!==2,manual:mode===1,grind:mode===3?{}:null,bail:mode===4?1:0,spin:mode===2?i*.1:0,flip:mode===2?i*.15:0,vy:2};m.pose(s,{push:mode===0,left:i%2===0},1/60,i/60,-1,()=>0);}valid(m.root);});
 test('near pedestrian gait and one-mesh distant silhouette remain finite',()=>{const near=createPedestrianModel(2);near.setStyle(1);near.pose(1.2,1.3);valid(near.root);const far=createFarPerson(2);assert.equal(far.isMesh,true);valid(far);});
+
+for(const direction of ['left','right'])test(`${direction} carve aligns the visible board with movement and camera heading`,()=>{
+  const s=createSkater();s.vz=-12;
+  for(let frame=0;frame<30;frame++)stepSkater(s,{[direction]:true},1/60,{heightAt:()=>0});
+  assert.ok(direction==='left'?s.x<0:s.x>0,'input must steer to the named side');
+  const m=createSkaterModel();m.pose(s,{[direction]:true},1/60,0,1,()=>0);m.root.updateMatrixWorld(true);
+  const forward=new THREE.Vector3(0,0,-1).transformDirection(m.root.matrixWorld);
+  assert.ok(Math.abs(forward.x-Math.sin(s.heading))<1e-8,'visible nose follows physical X heading');
+  assert.ok(Math.abs(forward.z+Math.cos(s.heading))<1e-8,'visible nose follows physical Z heading');
+});

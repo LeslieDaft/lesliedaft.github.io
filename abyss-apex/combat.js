@@ -1,5 +1,5 @@
 // Mass is kg. The full kill reward is paid once, only on the killing bite.
-import {TYPES} from './species.js';
+import {TYPES} from './species.js?v=10';
 export const SPECIES=TYPES;
 export function statsFor(type,size,base){const s=SPECIES[type];const area=(size/base)**2;return {mass:s.mass*(size/base)**3,maxHp:s.hp*area,damage:s.damage*area,area};}
 // Only a swept volume around the attacker's actual mouth can touch a body.
@@ -9,7 +9,7 @@ export function mouthHit(from,to,yaw,pitch,size,victim,active=true){
  const offset={x:c*cp*(front+reach),y:sp*(front+reach),z:-s*cp*(front+reach)};
  const a={x:from.x+offset.x,y:from.y+offset.y,z:from.z+offset.z},b={x:to.x+offset.x,y:to.y+offset.y,z:to.z+offset.z};
  const angle=victim.angle||0,vc=Math.cos(angle),vs=Math.sin(angle),radius=active?.23+size*.25:.06+size*.10;
- const shape=TYPES[victim.type]?.shape,shark=['shark','hammer'].includes(shape);const rx=victim.size*(shark?.65:.55)+radius,ry=victim.size*(shape==='star'?.1:shape==='ray'?.095:shape==='eel'?.13:shark?.17:['deep','angel','lion','horse'].includes(shape)?.34:shape==='puffer'?.36:.23)+radius,rz=victim.size*(shape==='ray'?.36:shape==='puffer'?.31:.18)+radius;
+ const shape=TYPES[victim.type]?.shape,shark=['shark','hammer'].includes(shape);const rx=victim.size*(shark?.65:.55)+radius,ry=victim.size*(shape==='star'?.1:shape==='ray'?.095:['eel','serpent'].includes(shape)?.10:shape==='whale'?.28:shape==='squid'?.15:shark?.17:['deep','angel','lion','horse'].includes(shape)?.34:shape==='puffer'?.36:.23)+radius,rz=victim.size*(shape==='ray'?.36:shape==='puffer'?.31:shape==='whale'?.25:shape==='squid'?.14:shape==='serpent'?.09:.18)+radius;
  function local(p){const dx=p.x-victim.p.x,dz=p.z-victim.p.z;return {x:dx*vc-dz*vs,y:p.y-victim.p.y,z:dx*vs+dz*vc}}
  const l=local(a),r=local(b),dx=(r.x-l.x)/rx,dy=(r.y-l.y)/ry,dz=(r.z-l.z)/rz;
  const ax=l.x/rx,ay=l.y/ry,az=l.z/rz,len=dx*dx+dy*dy+dz*dz;

@@ -1,6 +1,6 @@
 import * as THREE from '../after-bell/vendor/three.module.js';
 import {createSkater,stepSkater} from './physics.mjs?v=2';
-import {createSkaterModel} from './character.js?v=2';
+import {createSkaterModel} from './character.js?v=3';
 import {createCityLife} from './city-life.js?v=2';
 
 const $=id=>document.getElementById(id),TAU=Math.PI*2,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -107,4 +107,4 @@ function drawMap(){const c=$('map').getContext('2d'),W=220,scale=.12,cx=W/2,cz=W
 applySettings();updateShop();updateLOD();updateHud();drawMap();animateSkater(0,{});camera.position.set(8,5,29);cameraLook.set(0,1,18);camera.lookAt(cameraLook);
 let last=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min(.033,(now-last)/1000);last=now;if(!paused)tick(dt);else{elapsed+=dt*.2;camera.position.x=s.x+Math.sin(elapsed*.12)*10;camera.position.z=s.z+Math.cos(elapsed*.12)*12;camera.position.y=s.y+5.8;camera.lookAt(s.x,s.y+1,s.z);for(const t of tapes)if(t.g.visible)t.g.rotation.y+=dt*.3}renderer.render(scene,camera);}requestAnimationFrame(loop);
 // Read-only diagnostics make launch failures easier to report without touching progression.
-window.railbreak={getState:()=>({x:s.x,y:s.y,z:s.z,speed:s.speed,grounded:s.grounded,paused,route:route?.id,renderDistance:save.settings.render,detailDistance:save.settings.detail,traffic:cityLife.getCounts(),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),version:'1.1'};
+window.railbreak={getState:()=>({x:s.x,y:s.y,z:s.z,speed:s.speed,grounded:s.grounded,paused,route:route?.id,renderDistance:save.settings.render,detailDistance:save.settings.detail,traffic:cityLife.getCounts(),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),version:'1.2'};

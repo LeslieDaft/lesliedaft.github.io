@@ -22,9 +22,21 @@ export const TYPES=[
  fish('Manta ray',7,0x454e62,160,500,16,'ray','Gliding tank: +80% health, 25% less damage',{health:1.8,armor:.75,power:.8}),
  fish('Parrotfish',1.6,0x33c4aa,2,35,6,'bass','Crushing beak: +40% bite damage',{power:1.4}),
  fish('Catfish',2.5,0x8b8275,10,90,9,'cat','Bottom dweller: double health recovery',{regen:2,health:1.2}),
- fish('Seahorse',.7,0xd49c54,.05,12,2,'horse','Patient survivor: +50% health, 40% faster bites',{health:1.5,cooldown:.6,speed:.8})
+ fish('Seahorse',.7,0xd49c54,.05,12,2,'horse','Patient survivor: +50% health, 40% faster bites',{health:1.5,cooldown:.6,speed:.8}),
+ fish('Titan shark',48,0x4c788a,18000,9000,650,'shark','Ocean titan'),
+ fish('Sperm whale',72,0x707d8d,65000,24000,1100,'whale','Deep-water hunter'),
+ fish('Giant squid',110,0xa66079,180000,45000,1800,'squid','Ten grasping arms'),
+ fish('Colossal squid',210,0x875584,1000000,150000,4300,'squid','Abyss giant'),
+ fish('Abyssal whale',380,0x314d70,6000000,480000,12000,'whale','Living mountain'),
+ fish('Abyssal leviathan',620,0x386c70,25000000,1200000,28000,'serpent','Giant-ocean apex'),
+ fish('Giant sea serpent',750,0x4b9290,40000000,2000000,40000,'serpent','Mythical hunter'),
+ fish('Leviathan',1050,0x486f9c,120000000,5000000,85000,'serpent','Ancient deep'),
+ fish('Kraken',1350,0x713d89,250000000,9000000,140000,'squid','Mythical kraken'),
+ fish('World-eater',1800,0x3e375e,600000000,18000000,220000,'serpent','Titan of the dark'),
+ fish('Moby Dick',3000,0xe5e8df,3000000000,60000000,600000,'whale','The immense white whale')
 ];
-export const SWIMMERS=TYPES.map((s,i)=>i).filter(i=>i!==8);
+// Original 21 juvenile choices remain playable; ocean titans are NPC species.
+export const SWIMMERS=TYPES.slice(0,22).map((s,i)=>i).filter(i=>i!==8);
 export const levelFor=xp=>1+Math.floor(Math.pow(Math.max(0,xp)/6,2/3));
 export const levelXP=level=>6*Math.pow(Math.max(0,level-1),1.5);
 export function progression(type,xp){const s=TYPES[type],level=levelFor(xp),start=s.shape==='ray'?.85:s.shape==='eel'?.85:.65;
