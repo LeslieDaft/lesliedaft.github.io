@@ -146,11 +146,11 @@ export class FrontierWorld {
   this._facingTarget(u,target);return speed;
  }
  _targetFor(u,player){let targets=this.units.filter(v=>this._isEnemy(u,v));if(u.team!=='player'&&this.hostileTeams.has(u.team)&&player.hp>0)targets.push(player);let target=nearest(targets,u,v=>distance(v,u)<Math.max(240,u.range+30));return target||null;}
- _worker(u,dt){let cargoLimit=u.kind==='hauler'?(this.upgrades.has('cargo')?5:3):(this.upgrades.has('cargo')?2:1),speed=u.speed*(this.upgrades.has('servos')?1.3:1),packValue=u.cargo.reduce((n,c)=>n+c.value,0);const lodge={x:0,z:87};
-  if(u.cargo.length>=cargoLimit||u.cargo.length&&(!this.api.animals.some(a=>a.dead&&!a.harvested&&(!this.claims.has(a)||this.claims.get(a)===u.id))||distance(u,lodge)<12)){
+ _worker(u,dt){const resources=[...this.api.animals,...this.units.filter(p=>p.dead&&!p.looted&&p.team!=='player').map(p=>p.salvageNode??=( {x:p.x,z:p.z,dead:true,harvested:false,person:p}))];let cargoLimit=u.kind==='hauler'?(this.upgrades.has('cargo')?5:3):(this.upgrades.has('cargo')?2:1),speed=u.speed*(this.upgrades.has('servos')?1.3:1),packValue=u.cargo.reduce((n,c)=>n+c.value,0);const lodge={x:0,z:87};
+  if(u.cargo.length>=cargoLimit||u.cargo.length&&(!resources.some(a=>a.dead&&!a.harvested&&(!this.claims.has(a)||this.claims.get(a)===u.id))||distance(u,lodge)<12)){
    this._setAction(u,'haul');if(u.targetAnimal&&this.claims.get(u.targetAnimal)===u.id)this.claims.delete(u.targetAnimal);u.targetAnimal=null;if(distance(u,lodge)<12){let value=Math.round(packValue*(this.upgrades.has('market')?1.25:1));this.api.addCash(value);this.soldValue+=value;u.cargo=[];this._setAction(u,'idle');this.api.toast(u.name+' sold cargo for $'+value);this._saveSoon();return 0;}return this._move(u,lodge.x,lodge.z,speed,dt);
   }
-  let target=u.targetAnimal;if(!target||!target.dead||target.harvested||this.claims.get(target)!==u.id){target=nearest(this.api.animals,u,a=>a.dead&&!a.harvested&&(!this.claims.has(a)||this.claims.get(a)===u.id));if(target){this.claims.set(target,u.id);u.targetAnimal=target;u.workTimer=0;}}
+  let target=u.targetAnimal;if(!target||!target.dead||target.harvested||this.claims.get(target)!==u.id){target=nearest(resources,u,a=>a.dead&&!a.harvested&&(!this.claims.has(a)||this.claims.get(a)===u.id));if(target){this.claims.set(target,u.id);u.targetAnimal=target;u.workTimer=0;}}
   if(target){if(distance(u,target)>3){this._setAction(u,'walk');return this._move(u,target.x,target.z,speed,dt);}this._setAction(u,'harvest');u.workTimer+=dt*(this.upgrades.has('servos')?1.3:1);if(u.workTimer>=2.2){const cargo=this.api.harvestAnimal(target);this.claims.delete(target);u.targetAnimal=null;u.workTimer=0;if(cargo){u.cargo.push(cargo);this.harvests++;this._saveSoon();}}return 0;}
   if(u.cargo.length){this._setAction(u,'haul');return this._move(u,lodge.x,lodge.z,speed,dt);}this._setAction(u,'idle');return 0;
  }
@@ -171,7 +171,7 @@ export class FrontierWorld {
   for(let [animal,id] of this.claims){let u=this.units.find(u=>u.id===id);if(animal.harvested||!animal.dead||!u||u.dead)this.claims.delete(animal);}
   for(const u of this.units){u.timer+=dt;u.actionTime+=dt;u.hitClock=Math.max(0,u.hitClock-dt);u.muzzleFlash=Math.max(0,(u.muzzleFlash||0)-dt);let move=0;
    if(u.dead){u.deathTime+=dt;this.api.animateHuman(u.model,{action:'dead',deathTime:u.deathTime,deathSide:u.deathSide||1,speed:0,hit:0,isBot:u.isBot},dt);this._place(u);continue;}
-   let target=this._targetFor(u,player);if(target){move=this._combat(u,target,dt);}else if(u.team==='player'){
+   let drop=this.api.getDeathDrop?.();if(drop&&!drop.looted&&u.team!=='player'&&this.hostileTeams.has(u.team)){this._setAction(u,'run');move=this._move(u,drop.x,drop.z,u.speed,dt);this._place(u);this.api.animateHuman(u.model,{action:'run',speed:move},dt);continue;}let target=this._targetFor(u,player);if(target){move=this._combat(u,target,dt);}else if(u.team==='player'){
     this.commandMode=u.isBot?this.botOrder:this.squadOrder;let anchor=this.leaderId?this.units.find(n=>n.id===this.leaderId&&!n.dead):player;anchor=anchor||player;if(this.commandMode==='hold'){move=this._follow(u,anchor,dt);}else if(this.commandMode==='harvest'){move=this._worker(u,dt);}else if(u.role==='hunter'&&this.commandMode!=='hold'&&this.commandMode!=='attack'){move=this._hunter(u,dt);if(!move&&u.state==='idle')move=this._follow(u,player,dt);}else move=this._follow(u,anchor,dt);
     if(distance(u,{x:0,z:87})<20)u.hp=Math.min(u.maxHp,u.hp+dt*4);
    }else move=this._neutral(u,dt);
