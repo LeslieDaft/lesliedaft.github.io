@@ -10,7 +10,7 @@ import { GRID, makeDamageGrid, damageCell, integrate, behavior } from './simulat
 import { foliage, creature } from './detail.js?v=frontier-1';
 import { WEAPONS, isArrow, aimStep, smoothAim } from './equipment.js?v=frontier-1';
 import { buildFieldWeapon } from './field-weapons.js?v=frontier-1';
-import { FrontierWorld, BOT_CATALOG, UPGRADE_TREE, RECRUIT_CATALOG } from './frontier-world.js?v=orders-4';
+import { FrontierWorld, BOT_CATALOG, UPGRADE_TREE, RECRUIT_CATALOG } from './frontier-world.js?v=orders-5';
 import { Expedition, LAKE, lakeTerrain, VEHICLE_CATALOG } from './expedition.js?v=frontier-1';
 import { createHuman, createBot, animateHuman } from './humans.js?v=frontier-1';
 import { ImpactEffects } from './impact-effects.js?v=frontier-1';
