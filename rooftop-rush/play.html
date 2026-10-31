@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101621">
+<title>Rooftop Rush — Daft Arcade</title><meta name="description" content="A fluid 2D stickman parkour time trial across six handcrafted rooftop districts.">
+<link rel="stylesheet" href="style.css"><script defer src="engine.js"></script><script defer src="game.js"></script>
+</head>
+<body>
+<canvas id="game" aria-label="Rooftop Rush parkour game"></canvas>
+<div id="vignette"></div>
+<header><a href="../index.html" class="arcade">← ARCADE</a><div class="brand">ROOFTOP<span>RUSH</span></div><div class="header-actions"><button id="sound" aria-label="Toggle sound">SOUND OFF</button><button id="fullscreen" aria-label="Enter fullscreen">⛶</button></div></header>
+<div id="hud" class="hidden"><div class="hud-main"><span id="level-name">01 / FIRST LIGHT</span><strong id="timer">00:00.00</strong><div class="progress"><i id="progress-fill"></i></div></div><div class="hud-right"><span id="checkpoint">START</span><span id="death-count">0 FALLS</span><button id="pause">Ⅱ</button></div></div>
+<div id="skill-flash" aria-live="polite"></div>
+<div id="hint"></div>
+<div id="menu" class="overlay"><section class="menu-content"><div class="eyebrow"><i></i> A CITY BUILT FOR MOMENTUM</div><h1>THE CITY.<br>YOUR <em>PLAYGROUND.</em></h1><p class="intro">Find your flow above the skyline. Run, vault, slide and wall-jump through six rooftop routes. Every landing is your next move.</p><div class="menu-buttons"><button id="play" class="primary">START RUN <span>↗</span></button><button id="choose" class="secondary">CHOOSE ROUTE</button></div><div class="quick-controls"><div><b>A D / ← →</b><span>move</span></div><div><b>SPACE / W / ↑</b><span>jump · climb</span></div><div><b>S / ↓</b><span>slide · drop</span></div></div><div class="menu-bottom"><span>PROCEDURAL STICKMAN ANIMATION</span><span>6 ROUTES · PERSONAL BEST GHOST</span></div></section></div>
+<div id="routes" class="overlay hidden"><section class="panel"><div class="panel-top"><div><div class="eyebrow">THE SKYLINE SERIES</div><h2>Choose your route.</h2></div><button id="routes-back" class="close">×</button></div><div id="route-grid"></div><p class="small">Every route is available. Your best runs and ghosts save on this device.</p></section></div>
+<div id="pause-menu" class="overlay hidden"><section class="panel narrow"><div class="eyebrow">TAKE A BREATH</div><h2>Run paused.</h2><button id="resume" class="primary">KEEP MOVING <span>→</span></button><button id="restart" class="secondary">RESTART ROUTE <kbd>R</kbd></button><button id="exit" class="secondary">CHOOSE ROUTE</button><label class="setting"><span>Best-run ghost</span><input type="checkbox" id="ghost-setting" checked></label><label class="setting"><span>School mode · fewer effects</span><input type="checkbox" id="school-setting"></label><p class="small">Esc / P to pause · R to restart · F fullscreen</p></section></div>
+<div id="finish" class="overlay hidden"><section class="panel finish-panel"><div class="eyebrow" id="finish-eyebrow">ROUTE COMPLETE</div><h2 id="finish-title">You found your flow.</h2><div id="medal" class="medal">GOLD</div><div class="finish-stats"><div><span>TIME</span><b id="finish-time"></b></div><div><span>PERSONAL BEST</span><b id="finish-best"></b></div><div><span>FALLS</span><b id="finish-falls"></b></div></div><p id="finish-message"></p><div class="menu-buttons"><button id="next" class="primary">NEXT ROUTE <span>→</span></button><button id="retry" class="secondary">RUN IT AGAIN</button></div><button id="finish-routes" class="text-button">ALL ROUTES</button></section></div>
+<div id="touch"><div class="touch-move"><button data-control="left" aria-label="Move left">◀</button><button data-control="right" aria-label="Move right">▶</button></div><div class="touch-action"><button data-control="down" aria-label="Slide or drop">SLIDE</button><button data-control="jump" aria-label="Jump or climb">JUMP</button></div></div>
+<noscript>This game needs JavaScript enabled.</noscript>
+</body></html>

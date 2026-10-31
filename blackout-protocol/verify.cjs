@@ -1,0 +1,27 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const elements=new Map(),store=new Map();
+const context2d=new Proxy({createRadialGradient(){return{addColorStop(){}}},createLinearGradient(){return{addColorStop(){}}}}, {get:(o,k)=>k in o?o[k]:(...args)=>{},set:(o,k,v)=>(o[k]=v,true)});
+const element=id=>{if(!elements.has(id))elements.set(id,{id,style:{},value:'normal',checked:false,classList:{add(){},remove(){},toggle(){}},addEventListener(){},getContext(){return context2d;},dataset:{}});return elements.get(id);};
+const sandbox={document:{getElementById:element,querySelectorAll:()=>[]},window:{},innerWidth:1280,innerHeight:800,navigator:{maxTouchPoints:0},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},performance:{now:()=>1},requestAnimationFrame(){},addEventListener(){},console};
+vm.createContext(sandbox);vm.runInContext(fs.readFileSync(__dirname+'/game.js','utf8'),sandbox);const game=sandbox.window.__gameTest;
+for(const [m,n]of[[50,3],[99,3],[100,4],[199,4],[200,5],[999,12],[1000,13],[1249,13],[1250,14],[1500,15],[2000,17]])assert.equal(game.growth(m),n,'growth at '+m);
+for(const [m,n]of[[50,100],[100,200],[999,1000],[1000,1250],[1250,1500]])assert.equal(game.nextGrowth(m),n);
+const world=game.world;
+function reachable(){const start=[Math.floor(game.state.player.x/32),Math.floor(game.state.player.y/32)],seen=new Set([start.join(',')]),queue=[start];for(let h=0;h<queue.length;h++){const[x,y]=queue[h];for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=nx+','+ny;if(nx<0||ny<0||nx>=world.width||ny>=world.height||seen.has(k)||game.blocked(nx*32+16,ny*32+16,12))continue;seen.add(k);queue.push([nx,ny]);}}return seen;}
+const reachableObj=(set,o)=>set.has(Math.floor(o.x/32)+','+Math.floor(o.y/32));
+game.start();let set=reachable();assert(reachableObj(set,world.controls.find(c=>c.id==='release')));assert(!reachableObj(set,world.controls.find(c=>c.id==='reactorA')),'reactor must be gated');assert(!reachableObj(set,world.controls.find(c=>c.id==='egress')),'launch must be gated');
+let biomass=50+world.guards.filter(g=>reachableObj(set,g)).reduce((n,g)=>n+g.mass,0)+world.caches.filter(c=>reachableObj(set,c)).reduce((n,c)=>n+c.mass,0);assert(biomass>=100);
+const stages=[{mass:100,flags:{release:true},required:['reactorA','reactorB'],locked:'security'},{mass:350,flags:{reactorA:true,reactorB:true},required:['security'],locked:'coolantA'},{mass:400,flags:{security:true},required:['coolantA','coolantB'],locked:'codeBlue'},{mass:700,flags:{coolantA:true,coolantB:true},required:['codeBlue','codeWhite','codeAmber'],locked:'egress'},{mass:1200,flags:{archive:true},required:['egress']}];
+for(const s of stages){game.setPlayer({mass:s.mass});game.setFlags(s.flags);set=reachable();for(const id of s.required)assert(reachableObj(set,world.controls.find(c=>c.id===id)),id+' must be reachable');if(s.locked)assert(!reachableObj(set,world.controls.find(c=>c.id===s.locked)),s.locked+' must still be gated');biomass=50+world.guards.filter(g=>reachableObj(set,g)).reduce((n,g)=>n+g.mass,0)+world.caches.filter(c=>reachableObj(set,c)).reduce((n,c)=>n+c.mass,0);assert(biomass>=s.mass,'enough reachable biomass');}
+// Ordered puzzle resets on wrong input, then accepts its documented sequence.
+function use(id){const c=world.controls.find(c=>c.id===id);game.setPlayer({x:c.x,y:c.y});game.interact();}
+game.setFlags({archive:false});use('codeWhite');assert.equal(game.state.codeStep,0);use('codeBlue');assert.equal(game.state.codeStep,1);game.setFlags({archive:false});use('codeWhite');assert.equal(game.state.codeStep,2);use('codeAmber');assert(game.state.flags.archive);
+use('egress');game.setPlayer({mass:1250});set=reachable();assert(set.has('17,2'),'surface should be reachable after full progression');
+game.start();game.setPlayer({x:544,y:736,mass:50});game.keys.add('ArrowRight');game.step(35);game.keys.clear();game.step(90);assert(game.state.captures>=1,'first guard can be caught and absorbed');
+game.save();const saved=game.snapshot();game.setPlayer({mass:2000});game.load();assert.equal(game.state.player.mass,saved.mass);assert.equal(game.state.captures,saved.captures);assert(game.state.checkpoint,'recovery snapshot exists');game.recover();assert.equal(game.state.player.hp,100);
+game.render();game.drawMap();console.log('PASS: exact growth thresholds; gate isolation; all progression controls reachable; sufficient biomass; archive sequence; surface escape path; first capture/absorption; save/load/checkpoint; renderer smoke.');
+
+// Damaged current-save data falls back to a valid recovery snapshot; blocked storage never prevents play.
+let damaged=JSON.parse(store.get('daft-blackout-v1'));damaged.current.x=null;store.set('daft-blackout-v1',JSON.stringify(damaged));element('continueBtn').onclick();assert(Number.isFinite(game.state.player.x));assert.equal(game.state.player.x,damaged.checkpoint.x);
+store.set('daft-blackout-v1','{broken');element('continueBtn').onclick();assert.equal(game.state.player.mass,50);
+const denied={...sandbox,window:{},localStorage:{getItem(){throw Error('denied');},setItem(){throw Error('denied');}}};vm.createContext(denied);vm.runInContext(fs.readFileSync(__dirname+'/game.js','utf8'),denied);denied.window.__gameTest.start();denied.window.__gameTest.step(5);assert.equal(denied.window.__gameTest.state.mode,'playing');console.log('PASS: corrupt-save fallback and unavailable-storage startup/play.');
