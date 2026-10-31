@@ -25,3 +25,37 @@ game.render();game.drawMap();console.log('PASS: exact growth thresholds; gate is
 let damaged=JSON.parse(store.get('daft-blackout-v1'));damaged.current.x=null;store.set('daft-blackout-v1',JSON.stringify(damaged));element('continueBtn').onclick();assert(Number.isFinite(game.state.player.x));assert.equal(game.state.player.x,damaged.checkpoint.x);
 store.set('daft-blackout-v1','{broken');element('continueBtn').onclick();assert.equal(game.state.player.mass,50);
 const denied={...sandbox,window:{},localStorage:{getItem(){throw Error('denied');},setItem(){throw Error('denied');}}};vm.createContext(denied);vm.runInContext(fs.readFileSync(__dirname+'/game.js','utf8'),denied);denied.window.__gameTest.start();denied.window.__gameTest.step(5);assert.equal(denied.window.__gameTest.state.mode,'playing');console.log('PASS: corrupt-save fallback and unavailable-storage startup/play.');
+
+// Side-view regressions: grounded patrols, stun gravity, quick absorption and growth camera.
+game.start();
+assert(world.guards.every(g=>game.supported(g)),'all guards spawn supported by a floor or catwalk');
+const tutorial=world.guards[0];
+game.setPlayer({x:tutorial.x-110,y:tutorial.y-8,hp:100,invuln:999});
+game.keys.add('ArrowRight');let captureTicks=-1;
+for(let i=0;i<90;i++){game.step(1);if(tutorial.held>=0){captureTicks=i;break;}}
+assert(captureTicks>=0,'nearby grounded guard is reachable by a tentacle');
+game.keys.clear();let absorptionTicks=-1;
+for(let i=0;i<30;i++){game.step(1);if(game.state.captures>0){absorptionTicks=i;break;}}
+assert(absorptionTicks>=0,'release retracts and absorbs in less than half a second');
+game.start();
+const soldier=world.guards[0],restY=soldier.sy,restX=soldier.x;
+soldier.y-=50;soldier.vy=0;soldier.stun=4;soldier.grounded=false;
+game.setPlayer({x:soldier.x-100,y:soldier.y-20,hp:100,invuln:999});game.step(45);
+assert(game.supported(soldier),'stunned airborne guard falls and settles');
+assert(Math.abs(soldier.y-restY)<1.1,'guard feet land on the catwalk');
+assert(Math.abs(soldier.x-restX)<.01,'stunned guard has no horizontal drift');
+// Lower-right wall of the containment laboratory, away from an alerting player.
+soldier.x=soldier.sx=26*32-10.5;soldier.y=31*32-20;soldier.vx=soldier.vy=0;soldier.stun=0;soldier.face=1;soldier.alert=0;soldier.grounded=true;
+const wallX=soldier.x;game.setPlayer({x:400,y:736,invuln:999});game.step(60);
+assert(soldier.x<wallX-10,'patrol turns away after hitting a wall');
+game.start();game.setPlayer({x:2000,y:1400,mass:50,vx:180,vy:0,aimX:1,aimY:0});
+for(let i=0;i<240;i++)game.followCamera(1/60);
+const smallZoom=game.state.camera.zoom;
+assert(game.state.camera.x>game.state.player.x,'camera leads rightward movement');
+game.setPlayer({x:2000,y:1400,mass:1250,vx:-180,vy:0,aimX:-1,aimY:0});
+for(let i=0;i<240;i++)game.followCamera(1/60);
+assert(game.state.camera.x<game.state.player.x,'camera smoothly reverses its lead');
+assert(game.state.camera.zoom<smallZoom,'larger biomass gets a wider view');
+for(const value of Object.values(game.state.camera))if(typeof value==='number')assert(Number.isFinite(value),'finite camera state');
+game.render();
+console.log('PASS: grounded guard spawns, stun gravity, wall patrol turnaround, fast capture/absorption, side-camera lead/reversal and growth zoom.');
