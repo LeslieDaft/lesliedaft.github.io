@@ -38,4 +38,4 @@ function solve(index){const w=new World(index);let hold=0,lastJump=-10;const log
  }
  return {index,finished:w.finished,time:w.time.toFixed(2),deaths:w.deaths,x:Math.round(w.p.x),firstFalls:log};
 }
-const results=levels.map((_,i)=>solve(i));console.log(JSON.stringify({physics:'passed',routes:results},null,2));assert(results.every(r=>r.finished),'all six authored routes must be playable with normal movement');
+const results=levels.map((_,i)=>solve(i));console.log(JSON.stringify({physics:'passed',routes:results},null,2));assert(results.every(r=>r.finished),'all 100 routes must be playable with normal movement');

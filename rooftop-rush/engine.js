@@ -32,6 +32,9 @@ saw(l,2810,510,23,{axis:'x',amp:40,period:3.2,phase:1});spikes(l,1440,510,60);ba
 l=course('THE LAST ROOFTOP','Everything you learned. One clean run.',4640,'midnight',26,39);
 roof(l,0,410);roof(l,550,360,550);roof(l,1050,460,510);slab(l,1650,500,170,{move:{axis:'y',amp:23,period:4,phase:0}});roof(l,1960,370,460);slab(l,2470,460,220,{type:'crumble'});slab(l,2825,500,210,{type:'crumble'});roof(l,3175,440,540);roof(l,3755,300,570);roof(l,4195,445);
 spikes(l,675,550,65);bar(l,1170,510,120);roof(l,2100,70,390,{type:'hurdle'});saw(l,3550,485,20,{axis:'x',amp:25,period:3.6,phase:1});spikes(l,3370,540,75);bar(l,3860,570,100);cp(l,1100,510);cp(l,2010,460);cp(l,3240,540);token(l,480,440);token(l,975,395);token(l,1570,370);token(l,1880,335);token(l,2395,320);token(l,2755,350);token(l,3105,380);token(l,4125,440);hint(l,0,1510,'The final route. Keep your flow through jumps, slides and ledges.');hint(l,1960,400,'Jump at the block, catch its edge, then climb to carry on.');hint(l,2470,650,'Commit to the next platform. These roofs will not wait.');levels.push(l);
+const expansion=typeof module==='object'&&module.exports?require('./level-pack.js'):globalThis.RooftopLevelPack;
+if(!Array.isArray(expansion)||expansion.length!==94)throw new Error('Rooftop Rush level pack did not load.');
+levels.push(...expansion);
 levels.forEach((v,i)=>{v.id=i;v.platforms.forEach((p,j)=>{p.id=j;p.baseX=p.x;p.baseY=p.y;p.active=true;p.crack=-1;});v.hazards.forEach(h=>{h.baseX=h.x;h.baseY=h.y;});});
 function clone(v){return JSON.parse(JSON.stringify(v));}
 class World {
