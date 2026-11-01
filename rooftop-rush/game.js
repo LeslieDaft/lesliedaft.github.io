@@ -43,11 +43,16 @@ $('ghost-setting').checked=preferences.ghost;$('school-setting').checked=prefere
 function line(points,color,w){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();}
 function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();}
 function ik(a,b,l1,l2,bend=1){let dx=b.x-a.x,dy=b.y-a.y,d=Math.min(Math.hypot(dx,dy),l1+l2-.01);if(d<.01)d=.01;const base=Math.atan2(dy,dx),angle=Math.acos(clamp((l1*l1+d*d-l2*l2)/(2*l1*d),-1,1))*bend;return{x:a.x+Math.cos(base+angle)*l1,y:a.y+Math.sin(base+angle)*l1};}
+// Reforecast the landing from current velocity, jump release and moving roof positions.
+function landingTime(w,input){const p=w.p,h=1/120;let x=p.x,y=p.y,vx=p.vx,vy=p.vy;for(let n=1;n<=360;n++){const t=n*h,prev=y;const target=((input.right?1:0)-(input.left?1:0))*340;vx+=clamp(target-vx,-1300*h,1300*h);x+=vx*h;if(!input.jump&&vy<-260)vy+=1750*h;vy=Math.min(850,vy+1800*h);y+=vy*h;
+ for(const s of w.level.platforms){if(!s.active)continue;let sx=s.x,sy=s.y;if(s.move){const m=s.move,v=Math.sin((w.time+t)/m.period*TAU+(m.phase||0))*m.amp;sx=s.baseX+(m.axis==='x'?v:0);sy=s.baseY+(m.axis==='y'?v:0);}if(x+9<=sx||x-9>=sx+s.w)continue;if(vy>=0&&prev<=sy+3&&y>=sy)return t;if(vy<0&&!['slab','crumble','shortcut'].includes(s.type)&&prev-48>=sy+s.h&&y-48<=sy+s.h){y=sy+s.h+48;vy=0;}}
+ }return Math.max(.35,(Math.abs(vy)+650)/1800);}
 class Rig{
  constructor(){this.reset();}
- startFlip(p,time){this.flipStart=time;this.flipDirection=p.face||1;}
+ startFlip(p,time){this.flipStart=time;this.flipDirection=p.face||1;this.flipProgress=0;}
+ advanceFlip(dt,input){if(this.flipStart===null)return;const p=world.p;if(p.grounded||world.dying||['hang','climb','wall'].includes(p.state)){this.stopFlip();return;}const remaining=landingTime(world,input);this.flipProgress=Math.min(1,this.flipProgress+(1-this.flipProgress)*dt/Math.max(dt,remaining));}
  stopFlip(){this.flipStart=null;}
- reset(){this.flipStart=null;this.flipDirection=1;this.joints=null;this.plant=[null,null];this.prevPhase=0;this.lastState='idle';this.lean=0;}
+ reset(){this.flipProgress=0;this.flipStart=null;this.flipDirection=1;this.joints=null;this.plant=[null,null];this.prevPhase=0;this.lastState='idle';this.lean=0;}
  pose(p,t,dt,ghost=false){
  const speed=clamp(Math.abs(p.vx)/340,0,1),dir=p.face||1,phase=p.phase*TAU*.75;
  let hip={x:p.x,y:p.y-23},neck={x:p.x,y:p.y-40},head={x:p.x,y:p.y-47};let feet=[{x:p.x-7,y:p.y},{x:p.x+7,y:p.y}],hands=[{x:p.x-8,y:p.y-24},{x:p.x+8,y:p.y-24}],knees=null;
@@ -82,10 +87,11 @@ class Rig{
  if(p.state==='dead')return;let j=this.pose(p,t,dt,ghost);const dir=p.face||1;
  ctx.save();ctx.globalAlpha=alpha;
  // Rotate only the drawn runner; movement and collision remain in world coordinates.
- if(!ghost&&this.flipStart!==null){const progress=clamp((world.time-this.flipStart)/.48,0,1);if(progress<1&&!p.grounded&&!['hang','climb','wall'].includes(p.state)){const h=j.hip;const blend=Math.min(1,progress/.12,(1-progress)/.12);const layout={hip:h,neck:{x:h.x,y:h.y-18},head:{x:h.x,y:h.y-26},foot0:{x:h.x-4,y:h.y+26},foot1:{x:h.x+4,y:h.y+26},hand0:{x:h.x-5,y:h.y-39},hand1:{x:h.x+5,y:h.y-39}};j=Object.fromEntries(Object.keys(layout).map(k=>[k,{x:lerp(j[k].x,layout[k].x,blend),y:lerp(j[k].y,layout[k].y,blend)}]));const angle=-TAU*progress*this.flipDirection;ctx.translate(h.x,h.y);ctx.rotate(angle);ctx.translate(-h.x,-h.y);}else this.stopFlip();}
+ let backbend=0;
+ if(!ghost&&this.flipStart!==null){const progress=this.flipProgress||0;if(!p.grounded&&!['hang','climb','wall'].includes(p.state)){const h=j.hip,blend=Math.min(1,progress/.12,(1-progress)/.12);backbend=Math.sin(Math.PI*progress)*5.5;const back=-this.flipDirection;const layout={hip:h,neck:{x:h.x+back*backbend,y:h.y-18},head:{x:h.x+back*backbend*1.45,y:h.y-26},foot0:{x:h.x-4+back*backbend*.55,y:h.y+26},foot1:{x:h.x+4+back*backbend*.55,y:h.y+26},hand0:{x:h.x-5+back*backbend*2,y:h.y-38},hand1:{x:h.x+5+back*backbend*2,y:h.y-38}};j=Object.fromEntries(Object.keys(layout).map(k=>[k,{x:lerp(j[k].x,layout[k].x,blend),y:lerp(j[k].y,layout[k].y,blend)}]));ctx.translate(h.x,h.y);ctx.rotate(-TAU*progress*this.flipDirection);ctx.translate(-h.x,-h.y);}else this.stopFlip();}
  const limbs=[['foot0',1],['foot1',1],['hand0',-1],['hand1',-1]];
  for(let i=0;i<limbs.length;i++){const[name]=limbs[i],isLeg=i<2,anchor=isLeg?j.hip:j.neck,end=j[name],joint=ik(anchor,end,isLeg?14:11,isLeg?14:12,isLeg?-dir:dir);const c=i%2===0?(ghost?'#8bd2d7':'#8298a9'):color;line([anchor,joint,end],'#0a1420',isLeg?7:6);line([anchor,joint,end],c,isLeg?4.8:3.8);if(isLeg)line([end,{x:end.x+dir*5,y:end.y}],c,4);}
- line([j.hip,j.neck],'#081421',9);line([j.hip,j.neck],color,6);circle(j.head.x,j.head.y,7.2,'#0b1826');circle(j.head.x,j.head.y-1,5.6,color);
+ const spine={x:lerp(j.hip.x,j.neck.x,.5)-dir*backbend*.45,y:lerp(j.hip.y,j.neck.y,.5)};for(const [ink,weight]of [['#081421',9],[color,6]]){ctx.strokeStyle=ink;ctx.lineWidth=weight;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(j.hip.x,j.hip.y);ctx.quadraticCurveTo(spine.x,spine.y,j.neck.x,j.neck.y);ctx.stroke();}circle(j.head.x,j.head.y,7.2,'#0b1826');circle(j.head.x,j.head.y-1,5.6,color);
  // Simple neck band; no trailing cape or scarf.
  line([{x:j.neck.x-3,y:j.neck.y+1},{x:j.neck.x+3,y:j.neck.y+1}],ghost?'#8bd2d7':'#f5be62',4);
 
@@ -141,7 +147,7 @@ function render(t,dt){
  if(performance.now()>skillUntil)$('skill-flash').style.opacity=0;
 }
 world=new E.World(0,event);
-function frame(ms){const dt=Math.min(.05,Math.max(0,(ms-last)/1000||0));last=ms;if(mode==='play'){accumulator+=dt;while(accumulator>=1/120){world.update(1/120,{...keys,jumpPressed:jumpQueued});jumpQueued=false;accumulator-=1/120;if(mode!=='play'){accumulator=0;break;}}}render(ms/1000,dt||1/60);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+function frame(ms){const dt=Math.min(.05,Math.max(0,(ms-last)/1000||0));last=ms;if(mode==='play'){accumulator+=dt;while(accumulator>=1/120){rig.advanceFlip(1/120,keys);world.update(1/120,{...keys,jumpPressed:jumpQueued});jumpQueued=false;accumulator-=1/120;if(mode!=='play'){accumulator=0;break;}}}render(ms/1000,dt||1/60);requestAnimationFrame(frame);}requestAnimationFrame(frame);
 // Read-only diagnostic state plus intentional test-only helpers; no UI depends on this interface.
 window.__gameTest={get state(){return{mode,...world.snapshot(),viewWidth:Math.round(viewW),ghostSamples:ghost.length,levels:E.levels.length};},startLevel:start,pause,resume,step(frames,input={}){for(let i=0;i<frames;i++)world.update(1/120,input);return world.snapshot();},get course(){return JSON.parse(JSON.stringify(world.level));}};
 })();
