@@ -62,7 +62,7 @@ class World {
   p.h=targetH;p.slide=p.h<40;
   if(p.buffer>0&&p.coyote>0&&canStand){p.vy=-650;p.grounded=false;p.coyote=0;p.buffer=0;p.slide=false;p.h=48;p.air=0;this.emit('jump');}
   else if(p.buffer>0&&oldWall&&p.jumpLock<=0){p.vy=-605;p.vx=-oldWall*360;p.face=-oldWall;p.buffer=0;p.jumpLock=.17;p.wall=0;this.emit('walljump');}
-  if(p.jumpLock<=0){const max=340;const acceleration=wasGrounded?(p.slide?1150:2500):1300;p.vx=approach(p.vx,move*max,((!move&&wasGrounded)?(p.slide?320:2100):acceleration)*dt);}
+  if(p.jumpLock<=0){if(p.slide&&wasGrounded){const target=move*90,braking=move&&p.vx*move<0;p.vx=approach(p.vx,target,(braking?900:240)*dt);}else{const max=340,acceleration=wasGrounded?2500:1300;p.vx=approach(p.vx,move*max,(!move&&wasGrounded?2100:acceleration)*dt);}}
   if(move)p.face=move;
   if(!jump&&p.vy<-260)p.vy+=1750*dt;
   p.vy=Math.min(850,p.vy+1800*dt);if(oldWall&&!wasGrounded&&p.vy>130&&move===oldWall)p.vy=130;
