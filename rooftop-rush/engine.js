@@ -35,12 +35,14 @@ spikes(l,675,550,65);bar(l,1170,510,120);roof(l,2100,70,390,{type:'hurdle'});saw
 const expansion=typeof module==='object'&&module.exports?require('./level-pack.js'):globalThis.RooftopLevelPack;
 if(!Array.isArray(expansion)||expansion.length!==94)throw new Error('Rooftop Rush level pack did not load.');
 levels.push(...expansion);
+const rebuild=typeof module==='object'&&module.exports?require('./vertical-pack.js'):globalThis.BuildVerticalRoutes;levels.splice(0,levels.length,...rebuild(levels));
+function laserActive(h,t){return ((t+(h.phase||0))%h.period+h.period)%h.period<h.on;}
 levels.forEach((v,i)=>{v.id=i;v.platforms.forEach((p,j)=>{p.id=j;p.baseX=p.x;p.baseY=p.y;p.active=true;p.crack=-1;});v.hazards.forEach(h=>{h.baseX=h.x;h.baseY=h.y;});});
 function clone(v){return JSON.parse(JSON.stringify(v));}
 class World {
  constructor(index=0,onEvent=()=>{}) {this.onEvent=onEvent;this.load(index);}
  load(index){this.level=clone(levels[clamp(index,0,levels.length-1)]);this.index=this.level.id;this.time=0;this.deaths=0;this.flow=0;this.collected=new Set();this.checkpoint=0;this.saved={...this.level.start};this.finished=false;this.dying=0;this.previousJump=false;this.record=[];this.nextRecord=0;this.spawn();}
- spawn(){this.p={x:this.saved.x,y:this.saved.y,vx:0,vy:0,w:18,h:48,grounded:false,groundId:-1,wall:0,coyote:0,buffer:0,face:1,phase:0,land:0,hang:null,climb:null,jumpLock:0,slide:false,air:0,state:'idle'};this.level.platforms.forEach(p=>{p.active=true;p.crack=-1;});this.previousJump=false;this.dying=0;}
+ spawn(){this.p={x:this.saved.x,y:this.saved.y,vx:0,vy:0,w:18,h:48,grounded:false,groundId:-1,wall:0,coyote:0,buffer:0,face:1,phase:0,land:0,hang:null,climb:null,jumpLock:0,slide:false,air:0,swing:null,hasGlider:false,gliding:false,swimming:false,swimExit:0,barCooldown:0,wallGrace:0,wallSide:0,state:'idle'};this.level.platforms.forEach(p=>{p.active=true;p.crack=-1;});this.previousJump=false;this.dying=0;}
  emit(type,data={}){this.onEvent(type,data);}
  die(){if(this.dying||this.finished)return;this.deaths++;this.dying=.45;this.p.state='dead';this.emit('death');}
  activePlatforms(){return this.level.platforms.filter(p=>p.active);}
@@ -51,31 +53,37 @@ class World {
   for(const hazard of this.level.hazards){if(hazard.move){const m=hazard.move;const v=Math.sin(this.time/m.period*Math.PI*2+(m.phase||0))*m.amp;hazard.x=hazard.baseX+(m.axis==='x'?v:0);hazard.y=hazard.baseY+(m.axis==='y'?v:0);}}
   if(this.dying){this.dying-=dt;if(this.dying<=0){this.spawn();this.emit('respawn');}this.capture();return;}
   p.land=Math.max(0,p.land-dt*5);p.jumpLock=Math.max(0,p.jumpLock-dt);p.buffer=pressed?.13:Math.max(0,p.buffer-dt);
-  const move=(input.right?1:0)-(input.left?1:0);
+  const move=(input.right?1:0)-(input.left?1:0);p.barCooldown=Math.max(0,p.barCooldown-dt);p.swimExit=Math.max(0,p.swimExit-dt);
+  if(p.swing){const sw=p.swing;sw.age+=dt;sw.angle+=sw.direction*8.5*dt;p.x=sw.bar.x+Math.sin(sw.angle)*sw.bar.r;p.y=sw.bar.y+Math.cos(sw.angle)*sw.bar.r+35;p.vx=Math.cos(sw.angle)*sw.direction*8.5*sw.bar.r;p.vy=-Math.sin(sw.angle)*sw.direction*8.5*sw.bar.r;p.state='swing';if(sw.age>.16&&(!jump||pressed)){p.vx=(move||sw.direction)*540;p.vy=-720;p.swing=null;p.barCooldown=.75;p.jumpLock=.18;this.emit('launch');}this.capture();return;}
+  for(const g of this.level.gliders||[])if(Math.abs(p.x-g.x)<55&&Math.abs(p.y-24-g.y)<165&&!p.hasGlider){p.hasGlider=true;this.emit('glider');}
+  const water=(this.level.water||[]).find(v=>p.x>v.x&&p.x<v.x+v.w&&p.y>v.y+20&&p.y-p.h<v.y+v.h);
+  p.swimming=!!water&&p.swimExit<=0;p.gliding=!p.swimming&&p.hasGlider&&!input.down&&p.vy>0&&!p.grounded;
+
   if(p.climb){const c=p.climb;c.t+=dt;const q=clamp(c.t/.27,0,1),s=q*q*(3-2*q);p.x=c.fromX+(c.toX-c.fromX)*s;p.y=c.fromY+(c.toY-c.fromY)*s-Math.sin(q*Math.PI)*14;p.state='climb';if(q===1){p.climb=null;p.vx=c.vx;p.vy=0;p.grounded=true;p.coyote=.1;p.buffer=0;this.emit('vault');}this.capture();return;}
   if(p.hang){p.state='hang';const h=p.hang;p.x=h.x;p.y=h.y;p.vx=0;p.vy=0;if(input.down){p.hang=null;p.x-=p.face*5;p.vy=100;p.jumpLock=.2;}else if(pressed||(move===p.face&&h.age>.12)){p.climb={fromX:p.x,fromY:p.y,toX:h.topX+p.face*24,toY:h.topY,t:0,vx:p.face*250};p.hang=null;p.buffer=0;}else h.age+=dt;this.capture();return;}
   const ground=this.level.platforms[p.groundId];if(p.grounded&&ground&&ground.active){p.x+=ground.dx||0;p.y+=ground.dy||0;}else if(p.grounded){p.grounded=false;}
-  const wasGrounded=p.grounded,oldWall=p.wall;
+  p.wallGrace=Math.max(0,p.wallGrace-dt);const wasGrounded=p.grounded,oldWall=p.wall||(p.wallGrace>0?p.wallSide:0);
   p.coyote=wasGrounded?.1:Math.max(0,p.coyote-dt);
   const solids=this.activePlatforms();const canStand=!solids.some(s=>overlaps({x:p.x-9,y:p.y-48,w:18,h:47},s));let targetH=input.down&&wasGrounded?27:48;
   if(targetH>p.h&&!canStand)targetH=27;
   p.h=targetH;p.slide=p.h<40;
   if(p.buffer>0&&p.coyote>0&&canStand){p.vy=-650;p.grounded=false;p.coyote=0;p.buffer=0;p.slide=false;p.h=48;p.air=0;this.emit('jump');}
-  else if(p.buffer>0&&oldWall&&p.jumpLock<=0){p.vy=-605;p.vx=-oldWall*360;p.face=-oldWall;p.buffer=0;p.jumpLock=.17;p.wall=0;this.emit('walljump');}
+  else if((p.buffer>0||jump)&&oldWall&&p.jumpLock<=0){p.vy=-660;p.vx=-oldWall*440;p.face=-oldWall;p.buffer=0;p.jumpLock=.27;p.wall=0;p.wallGrace=0;p.wallSide=0;this.emit('walljump');}
   if(p.jumpLock<=0){if(p.slide&&wasGrounded){const target=move*90,braking=move&&p.vx*move<0;p.vx=approach(p.vx,target,(braking?900:240)*dt);}else{const max=340,acceleration=wasGrounded?2500:1300;p.vx=approach(p.vx,move*max,(!move&&wasGrounded?2100:acceleration)*dt);}}
   if(move)p.face=move;
-  if(!jump&&p.vy<-260)p.vy+=1750*dt;
-  p.vy=Math.min(850,p.vy+1800*dt);if(oldWall&&!wasGrounded&&p.vy>130&&move===oldWall)p.vy=130;
+  if(p.swimming){p.vx=approach(p.vx,move*210,900*dt);p.vy=approach(p.vy,jump?-190:input.down?170:-25,900*dt);if(jump&&p.y<water.y+65){p.vy=-600;p.swimExit=.45;p.swimming=false;this.emit('splash');}}else if(p.gliding){p.vx=approach(p.vx,(move||p.face)*390,900*dt);p.vy=Math.min(95,p.vy+240*dt);}else{if(!jump&&p.vy<-260)p.vy+=1750*dt;p.vy=Math.min(850,p.vy+1800*dt);}if(oldWall&&!wasGrounded&&p.vy>130&&move===oldWall)p.vy=130;
   const prevX=p.x,prevY=p.y;p.wall=0;p.x+=p.vx*dt;
   for(const s of solids){if(s.type==='slab'||s.type==='crumble'||s.type==='shortcut')continue;if(overlaps(box(p),s)){
     const dir=p.vx>0?1:p.vx<0?-1:Math.sign(p.x-(s.x+s.w/2))*-1;
     if(dir>0){p.x=s.x-p.w/2;p.wall=1;}else if(dir<0){p.x=s.x+s.w+p.w/2;p.wall=-1;}
     if(p.vx*dir>0)p.vx=0;
+    if(s.autoVault&&dir>0&&!wasGrounded&&!input.down&&p.y<s.y+100&&p.y>s.y-30){p.face=1;p.hang={x:s.x-11,y:s.y+42,topX:s.x,topY:s.y,age:0};p.buffer=0;this.emit('grab');break;}
     // Ledge catch preserves momentum and leads into a short, blended vault.
     if(!wasGrounded&&!input.down&&p.jumpLock<=0&&p.vy>-180&&s.y>p.y-61&&s.y<p.y-17&&s.type!=='bar'){
       const topX=dir>0?s.x:s.x+s.w;p.face=dir;p.hang={x:topX-dir*11,y:s.y+42,topX,topY:s.y,age:0};p.buffer=0;this.emit('grab');break;
     }
   }}
+  if(p.wall){p.wallSide=p.wall;p.wallGrace=.14;}
   if(p.hang){this.capture();return;}
   p.y+=p.vy*dt;p.grounded=false;p.groundId=-1;
   for(const s of solids){if(p.x+p.w/2<=s.x+.01||p.x-p.w/2>=s.x+s.w-.01)continue;
@@ -85,14 +93,16 @@ class World {
   }
   if(p.grounded&&!wasGrounded){p.land=clamp(p.air*.8,.2,1);this.emit('land',{impact:p.land,speed:Math.abs(p.vx)});p.air=0;}else if(!p.grounded)p.air+=dt;
   p.phase+=Math.abs(p.x-prevX)/46;
-  p.state=p.grounded?(p.slide?'slide':Math.abs(p.vx)>25?'run':'idle'):p.wall&&p.vy>0?'wall':p.vy<0?'jump':'fall';
+  if(p.grounded&&!wasGrounded)p.hasGlider=false;
+  if(!p.grounded&&!p.hang&&p.barCooldown<=0){const bar=(this.level.swingBars||[]).find(b=>Math.hypot(p.x-b.x,p.y-40-b.y)<48);if(bar){p.swing={bar,angle:0,direction:p.face,age:0};p.state='swing';this.emit('swing');this.capture();return;}}
+  p.state=p.swimming?'swim':p.gliding?'glide':p.grounded?(p.slide?'slide':Math.abs(p.vx)>25?'run':'idle'):p.wall&&p.vy>0?'wall':p.vy<0?'jump':'fall';
   p.x=clamp(p.x,12,this.level.width-12);
   const pb=box(p);
-  for(const h of this.level.hazards){if(h.type==='saw'){const cx=h.x+h.r,cy=h.y+h.r;const nx=clamp(cx,pb.x,pb.x+pb.w),ny=clamp(cy,pb.y,pb.y+pb.h);if(Math.hypot(cx-nx,cy-ny)<h.r-3){this.die();break;}}else if(overlaps({x:pb.x+3,y:pb.y+4,w:pb.w-6,h:pb.h-7},{x:h.x+3,y:h.y+5,w:h.w-6,h:h.h-5})){this.die();break;}}
-  if(p.y>950)this.die();
+  for(const h of this.level.hazards){if(h.type==='laser'&&!laserActive(h,this.time))continue;if(h.type==='saw'){const cx=h.x+h.r,cy=h.y+h.r;const nx=clamp(cx,pb.x,pb.x+pb.w),ny=clamp(cy,pb.y,pb.y+pb.h);if(Math.hypot(cx-nx,cy-ny)<h.r-3){this.die();break;}}else if(overlaps({x:pb.x+3,y:pb.y+4,w:pb.w-6,h:pb.h-7},{x:h.x+3,y:h.y+5,w:h.w-6,h:h.h-5})){this.die();break;}}
+  if(p.y>(this.level.deathY||950))this.die();
   this.level.checkpoints.forEach((c,i)=>{if(i+1>this.checkpoint&&p.x>=c.x&&p.x<c.x+180&&p.y<=c.y+10&&p.y>c.y-185){this.checkpoint=i+1;this.saved={x:c.x,y:c.y};this.emit('checkpoint',{number:i+1});}});
   this.level.tokens.forEach((t,i)=>{if(!this.collected.has(i)&&Math.hypot(p.x-t.x,p.y-p.h*.55-t.y)<26){this.collected.add(i);this.flow++;this.emit('token');}});
-  if(!this.dying&&p.x>=this.level.finish.x&&p.grounded){this.finished=true;this.emit('finish',{time:this.time,deaths:this.deaths});}
+  if(!this.dying&&p.x>=this.level.finish.x&&Math.abs(p.y-this.level.finish.y)<15&&p.grounded){this.finished=true;this.emit('finish',{time:this.time,deaths:this.deaths});}
   this.capture();
  }
  capture(){if(this.time>=this.nextRecord){const p=this.p;this.record.push([+this.time.toFixed(3),+p.x.toFixed(1),+p.y.toFixed(1),+p.vx.toFixed(1),+p.vy.toFixed(1),+p.phase.toFixed(3),p.state,p.face,+p.land.toFixed(2),p.h]);this.nextRecord+=1/30;}}
@@ -100,5 +110,5 @@ class World {
  get medal(){return this.time<=this.level.gold?'GOLD':this.time<=this.level.silver?'SILVER':'BRONZE';}
  snapshot(){return {level:this.index,time:+this.time.toFixed(3),x:+this.p.x.toFixed(2),y:+this.p.y.toFixed(2),vx:+this.p.vx.toFixed(2),vy:+this.p.vy.toFixed(2),state:this.p.state,grounded:this.p.grounded,checkpoint:this.checkpoint,deaths:this.deaths,finished:this.finished,flow:this.flow};}
 }
-return {World,levels,clamp,overlaps,box};
+return {World,levels,clamp,overlaps,box,laserActive};
 });
