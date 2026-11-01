@@ -47,7 +47,7 @@ class Rig{
  constructor(){this.reset();}
  startFlip(p,time){this.flipStart=time;this.flipDirection=p.face||1;}
  stopFlip(){this.flipStart=null;}
- reset(){this.flipStart=null;this.flipDirection=1;this.joints=null;this.scarf=[];this.plant=[null,null];this.prevPhase=0;this.lastState='idle';this.lean=0;}
+ reset(){this.flipStart=null;this.flipDirection=1;this.joints=null;this.plant=[null,null];this.prevPhase=0;this.lastState='idle';this.lean=0;}
  pose(p,t,dt,ghost=false){
  const speed=clamp(Math.abs(p.vx)/340,0,1),dir=p.face||1,phase=p.phase*TAU*.75;
  let hip={x:p.x,y:p.y-23},neck={x:p.x,y:p.y-40},head={x:p.x,y:p.y-47};let feet=[{x:p.x-7,y:p.y},{x:p.x+7,y:p.y}],hands=[{x:p.x-8,y:p.y-24},{x:p.x+8,y:p.y-24}],knees=null;
@@ -79,16 +79,16 @@ class Rig{
  return this.joints;
  }
  draw(p,t,dt,{ghost=false,alpha=1,color='#e5eef0'}={}){
- if(p.state==='dead')return;const j=this.pose(p,t,dt,ghost),dir=p.face||1;
+ if(p.state==='dead')return;let j=this.pose(p,t,dt,ghost);const dir=p.face||1;
  ctx.save();ctx.globalAlpha=alpha;
  // Rotate only the drawn runner; movement and collision remain in world coordinates.
- if(!ghost&&this.flipStart!==null){const progress=clamp((world.time-this.flipStart)/.32,0,1);if(progress<1&&!p.grounded&&!['hang','climb','wall'].includes(p.state)){const angle=TAU*progress*this.flipDirection;ctx.translate(j.hip.x,j.hip.y);ctx.rotate(angle);ctx.translate(-j.hip.x,-j.hip.y);}else this.stopFlip();}
+ if(!ghost&&this.flipStart!==null){const progress=clamp((world.time-this.flipStart)/.48,0,1);if(progress<1&&!p.grounded&&!['hang','climb','wall'].includes(p.state)){const h=j.hip;const blend=Math.min(1,progress/.12,(1-progress)/.12);const layout={hip:h,neck:{x:h.x,y:h.y-18},head:{x:h.x,y:h.y-26},foot0:{x:h.x-4,y:h.y+26},foot1:{x:h.x+4,y:h.y+26},hand0:{x:h.x-5,y:h.y-39},hand1:{x:h.x+5,y:h.y-39}};j=Object.fromEntries(Object.keys(layout).map(k=>[k,{x:lerp(j[k].x,layout[k].x,blend),y:lerp(j[k].y,layout[k].y,blend)}]));const angle=-TAU*progress*this.flipDirection;ctx.translate(h.x,h.y);ctx.rotate(angle);ctx.translate(-h.x,-h.y);}else this.stopFlip();}
  const limbs=[['foot0',1],['foot1',1],['hand0',-1],['hand1',-1]];
  for(let i=0;i<limbs.length;i++){const[name]=limbs[i],isLeg=i<2,anchor=isLeg?j.hip:j.neck,end=j[name],joint=ik(anchor,end,isLeg?14:11,isLeg?14:12,isLeg?-dir:dir);const c=i%2===0?(ghost?'#8bd2d7':'#8298a9'):color;line([anchor,joint,end],'#0a1420',isLeg?7:6);line([anchor,joint,end],c,isLeg?4.8:3.8);if(isLeg)line([end,{x:end.x+dir*5,y:end.y}],c,4);}
  line([j.hip,j.neck],'#081421',9);line([j.hip,j.neck],color,6);circle(j.head.x,j.head.y,7.2,'#0b1826');circle(j.head.x,j.head.y-1,5.6,color);
- // Bright neck band and a spring-followed ribbon accent show momentum without hiding the rig.
+ // Simple neck band; no trailing cape or scarf.
  line([{x:j.neck.x-3,y:j.neck.y+1},{x:j.neck.x+3,y:j.neck.y+1}],ghost?'#8bd2d7':'#f5be62',4);
- if(!ghost){const anchor={x:j.neck.x-dir*3,y:j.neck.y+2};if(!this.scarf.length)this.scarf=Array.from({length:5},()=>({...anchor}));let prev=anchor;for(let i=0;i<5;i++){const q=this.scarf[i],targetX=prev.x-dir*(4+Math.abs(p.vx)*.009),targetY=prev.y+1.3+Math.sin(t*8-i*.7)*Math.abs(p.vx)/340*1.2;const a=1-Math.exp(-dt*(17-i*1.5));q.x=lerp(q.x,targetX,a);q.y=lerp(q.y,targetY,a);prev=q;}line([anchor,...this.scarf],'#d8984a',2.5);}
+
  ctx.restore();
  }
 }
