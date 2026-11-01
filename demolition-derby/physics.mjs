@@ -3,7 +3,13 @@
 export const MODELS = Object.freeze({
   sedan: { name:'Interceptor', mass:1420, halfWidth:1.02, halfLength:2.28, power:8500, maxSpeed:28, armor:1.0, handling:1.0 },
   muscle: { name:'Hammerhead', mass:1730, halfWidth:1.10, halfLength:2.52, power:11200, maxSpeed:32, armor:1.12, handling:.91 },
-  truck: { name:'Ironclad', mass:2320, halfWidth:1.18, halfLength:2.65, power:10600, maxSpeed:25, armor:1.38, handling:.77 }
+  compact: {name:'Sidewinder',price:750,mass:1080,halfWidth:.91,halfLength:1.95,power:8100,maxSpeed:29,armor:.8,handling:1.3},
+ wagon:{name:'Longhorn',price:2100,mass:1850,halfWidth:1.08,halfLength:2.85,power:9800,maxSpeed:27,armor:1.2,handling:.86},
+ rally:{name:'Razor',price:2800,mass:1280,halfWidth:1,halfLength:2.12,power:12500,maxSpeed:35,armor:.9,handling:1.25},
+ van:{name:'Bulwark',price:3400,mass:2550,halfWidth:1.24,halfLength:2.9,power:11800,maxSpeed:25,armor:1.55,handling:.68},
+ coupe:{name:'Viper',price:4300,mass:1550,halfWidth:1.08,halfLength:2.4,power:14500,maxSpeed:38,armor:1.05,handling:1.1},
+ heavy:{name:'Juggernaut',price:6000,mass:3100,halfWidth:1.3,halfLength:3.1,power:14800,maxSpeed:27,armor:1.85,handling:.6},
+ truck: { name:'Ironclad', mass:2320, halfWidth:1.18, halfLength:2.65, power:10600, maxSpeed:25, armor:1.38, handling:.77 }
 });
 export const MODEL = MODELS;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -19,9 +25,9 @@ export function createCar({id=0,x=0,z=0,angle=0,model='sedan',player=false,upgra
   const mass=spec.mass;
   return { id,x,z,angle,vx:0,vz:0,omega:0,model:MODELS[model]?model:'sedan',player,
     ...spec,mass,invMass:1/mass,inertia:mass*(4*spec.halfWidth**2+4*spec.halfLength**2)/12,
-    health:100,maxHealth:100,damage:{front:0,rear:0,left:0,right:0},hits:0,kills:0,
+    health:100,maxHealth:100,engineDamage:0,damage:{front:0,rear:0,left:0,right:0},hits:0,kills:0,
     armorLevel:clamp(Number(upgrades.armor)||0,0,5),engineLevel:clamp(Number(upgrades.engine)||0,0,5),
-    handlingLevel:clamp(Number(upgrades.handling)||0,0,5),alive:true,steer:0,throttle:0,
+    handlingLevel:clamp(Number(upgrades.handling)||0,0,5),grilleLevel:clamp(Number(upgrades.grille)||0,0,5),alive:true,steer:0,throttle:0,
     slip:0,wheelRotation:0,impact:0,lastHitBy:null,lastHitAt:-100,aiTarget:null,
     aiStuck:0,aiReverse:0,aiThink:0,aiOffset:0,damageVersion:0 };
 }
@@ -45,7 +51,7 @@ export function createWorld({arena='yard',count=6,model='sedan',upgrades={},seed
     // Reserve the south grid slot for the player.
     const a=i/count*Math.PI*2;
     const x=Math.sin(a)*25,z=Math.cos(a)*20-4;
-    const c=createCar({id:i,x,z,angle:Math.atan2(-x,-z),model:['sedan','muscle','truck'][Math.floor(random()*3)]});
+    const c=createCar({id:i,x,z,angle:Math.atan2(-x,-z),model:Object.keys(MODELS)[Math.floor(random()*Object.keys(MODELS).length)]});
     c.color=colors[(i-1)%colors.length];c.aiOffset=(random()-.5)*1.8;cars.push(c);
   }
   return {arena,bounds,obstacles,cars,events:[],t:0,timeLimit:180,finished:false,winner:null,
@@ -98,13 +104,18 @@ function zoneAt(c,x,z) {
   return Math.abs(ff)>Math.abs(rr)?(ff>0?'front':'rear'):(rr>0?'right':'left');
 }
 
+// Front-mounted engines: exposed front quarters are weaker than the reinforced grille.
+export function damageMultiplier(c,x,z){const f=axisF(c),r=axisR(c),d={x:x-c.x,z:z-c.z},long=clamp(dot(f,d)/c.halfLength,-1,1),side=Math.abs(dot(r,d)/c.halfWidth),zone=zoneAt(c,x,z);const proximity=(long+1)/2;
+ if(zone==='front')return {zone,multiplier:(.8+.4*proximity)/(1+(c.grilleLevel||0)*.14),label:'ARMORED GRILLE'};
+ if(zone==='rear')return {zone,multiplier:.45,label:'REAR ARMOR'};
+ return {zone,multiplier:.45+1.95*Math.pow(proximity,1.25),label:long>.25?'ENGINE SIDE':'SIDE PANEL'};
+}
 function damageCar(world,c,amount,x,z,attacker) {
   if(!c.alive||amount<=0)return;
-  const zone=zoneAt(c,x,z),armor=c.armor*(1+c.armorLevel*.11);
-  const multiplier=zone==='front'?1.2:zone==='rear'?.7:1;
+  const {zone,multiplier,label}=damageMultiplier(c,x,z),armor=c.armor*(1+c.armorLevel*.11);
   const dealt=amount*multiplier/armor;
-  c.health=Math.max(0,c.health-dealt);c.damage[zone]=Math.min(1,c.damage[zone]+dealt/72);
-  c.damageVersion++;c.impact=Math.min(1,c.impact+dealt/20);
+  const actual=Math.min(c.health,dealt);world.events.push({type:'damage',id:c.id,attacker,x,z,amount:actual,multiplier,zone,label});c.health=Math.max(0,c.health-dealt);c.damage[zone]=Math.min(1,c.damage[zone]+dealt/72);
+  if(label==='ENGINE SIDE'||zone==='front')c.engineDamage=Math.min(1,c.engineDamage+actual/85);c.damageVersion++;c.impact=Math.min(1,c.impact+dealt/20);
   if(attacker!==null&&attacker!==undefined){c.lastHitBy=attacker;c.lastHitAt=world.t;}
   if(c.health<=0){
     c.alive=false;c.throttle=0;
@@ -191,7 +202,7 @@ function integrateCar(c,input,dt) {
   let throttle=c.alive?clamp(Number(input.throttle)||0,-1,1):0;
   const targetSteer=c.alive?clamp(Number(input.steer)||0,-1,1):0;
   c.steer+=(targetSteer-c.steer)*(1-Math.exp(-dt*9));c.throttle=throttle;
-  const damagedEngine=1-c.damage.front*.47;
+  const damagedEngine=1-Math.max(c.damage.front,c.engineDamage||0)*.47;
   const engine=c.power*(1+c.engineLevel*.08)*damagedEngine;
   const maxSpeed=c.maxSpeed*(1+c.engineLevel*.025)*damagedEngine;
   const braking=throttle!==0&&Math.sign(throttle)!==Math.sign(forward)&&Math.abs(forward)>1.6;
@@ -207,7 +218,7 @@ function integrateCar(c,input,dt) {
   c.vx+=(f.x*longitudinalForce+r.x*lateralForce)*c.invMass*dt;
   c.vz+=(f.z*longitudinalForce+r.z*lateralForce)*c.invMass*dt;
   // Bicycle steering target, softened at speed so the heavy vehicles resist snapping.
-  const steeringAngle=c.steer*.55*c.handling/(1+Math.abs(forward)*.022);
+  const steeringAngle=c.steer*.55*c.handling*(1+c.handlingLevel*.055)/(1+Math.abs(forward)*.022);
   const desiredYaw=forward/(c.halfLength*1.35)*Math.tan(steeringAngle)*(input.handbrake?1.48:1);
   const steerGrip=c.alive?(1-Math.exp(-dt*(input.handbrake?2.5:5.0)*grip)):0;
   c.omega+=(desiredYaw-c.omega)*steerGrip;

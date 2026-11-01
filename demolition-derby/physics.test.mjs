@@ -48,5 +48,5 @@ for(const arena of ['yard','industrial','speedway']){
   }
   assert.ok(w.cars.some(c=>c.health<100),'AI should engage in collisions');
 }
-assert.equal(Object.keys(MODELS).length,3);
+assert.equal(Object.keys(MODELS).length,9);
 console.log('Derby physics: SAT, drive/steer, momentum, damage, yaw, and 3-arena AI soak passed.');
