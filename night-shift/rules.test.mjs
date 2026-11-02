@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {newGlass,panicStrike,canInteract,clearSegment} from './rules.mjs';
+let glass=newGlass(),visitor={};let rolls=0;const crack=()=>{rolls++;return .2;};
+assert.equal(panicStrike(glass,visitor,crack).cracked,true);for(let i=0;i<600;i++)panicStrike(glass,visitor,crack);assert.equal(rolls,1,'One roll per customer, not per frame');assert.equal(glass.cracks,1);
+assert.equal(panicStrike(glass,{},()=>1/3).cracked,false,'Exactly one-third threshold');assert.equal(glass.cracks,1);
+panicStrike(glass,{},crack);assert.equal(glass.cracks,2);assert.equal(glass.shattered,false);panicStrike(glass,{},crack);assert.deepEqual(glass,{cracks:3,shattered:true});panicStrike(glass,{},crack);assert.equal(glass.cracks,3);
+let successes=0;for(let i=0;i<3000;i++)successes+=Number(panicStrike(newGlass(),{},()=>i/3000).cracked);assert.equal(successes,1000);
+const wall=[{x:-8,z:1,w:.125,d:6}];const breaker={outside:true,pos:{x:-8.9,z:-1}};assert.equal(canInteract({x:-7.7,z:-1},breaker,wall),false);assert.equal(canInteract({x:-9.6,z:-1},breaker,wall),true);assert.equal(canInteract({x:-12,z:-1},breaker,wall),false);
+const door=[{x:0,z:7,w:1.15,d:.15,door:true}];assert.equal(clearSegment({x:0,z:6},{x:0,z:8},door),false);assert.equal(clearSegment({x:0,z:6},{x:0,z:8},door,{doorOpen:true}),true);assert.equal(clearSegment({x:0,z:6},{x:0,z:8},door,{shattered:true}),true);
+console.log('Panic rules: one 1/3 roll per visitor, three cracks shatter, walls block interaction, outdoor repair and door barriers PASS');
+const {findPath}=await import('./navigation.mjs');
+const blocked=(x,z)=>x>-3&&x<3&&z>-.6&&z<.6;
+const path=findPath({x:0,z:-3},{x:0,z:3},blocked);assert.ok(path.length>0);assert.ok(path.every(p=>!blocked(p.x,p.z)));assert.ok(path.some(p=>Math.abs(p.x)>=3),'Routes around barriers instead of phasing through');
