@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://lesliedaft.github.io/sitemap.xml

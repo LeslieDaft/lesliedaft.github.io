@@ -1,0 +1,3 @@
+const select=document.getElementById('bootQuality'),button=document.getElementById('bootContinue'),status=document.getElementById('bootStatus');
+try{select.value=localStorage.getItem('motionFootballGraphics')==='school'?'school':'high';}catch{}
+button.onclick=async()=>{globalThis.motionFootballGraphics=select.value;button.disabled=true;status.textContent='Loading game…';try{try{localStorage.setItem('motionFootballGraphics',select.value);}catch{}await import('./app.js');document.getElementById('graphicsBoot').remove();}catch(error){status.textContent='Could not load the game. Refresh to try again.';button.disabled=false;console.error(error);}};
