@@ -1,6 +1,2 @@
-const assert=require('node:assert/strict'),{levels}=require('./engine.js'),{solve}=require('./adventure-solver.cjs');
-assert.equal(levels.length,100);const hashes=new Set();let checkpointCount=0;
-for(const l of levels){assert(l.revision===3);assert(l.width>20000);assert(l.start.y-l.finish.y>800);assert(l.water.length&&l.gliders.length&&l.swingBars.length&&l.hazards.some(h=>h.type==='laser')&&l.hazards.some(h=>h.type==='saw'));hashes.add(JSON.stringify([l.platforms,l.hazards,l.gliders]));for(const c of l.checkpoints){assert(l.platforms.some(p=>c.x>p.x&&c.x<p.x+p.w&&c.y===p.y),'safe checkpoint support');checkpointCount++;}}
-assert.equal(hashes.size,100);
-const start=Number(process.argv[2]||0),end=Number(process.argv[3]||100),results=[];for(let i=start;i<end;i++){const result=solve(i);results.push(result);assert(result.finished,'route '+(i+1)+' must finish: '+JSON.stringify(result));}
-console.log(JSON.stringify({routes:results.length,distinctLayouts:hashes.size,checkpointCount,completed:results.filter(r=>r.finished).length,minSeconds:Math.min(...results.map(r=>r.time)),maxSeconds:Math.max(...results.map(r=>r.time)),maxRetries:Math.max(...results.map(r=>r.deaths)),features:results.reduce((s,r)=>{for(const[k,v]of Object.entries(r.events))s[k]=(s[k]||0)+v;return s;},{})},null,2));
+// Every revised route must have a distinct composition and a verified completion.
+require('./verify-unique.cjs');
