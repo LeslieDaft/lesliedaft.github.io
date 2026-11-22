@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Drive an endless city street with four programmable speed curves.">
+<title>Doubling Mile · Daft Arcade</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#101923;color:#eef5ff;--accent:#f9db78}
+*{box-sizing:border-box}
+body{margin:0}
+main{max-width:1100px;margin:auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+a{color:#b9cde6;text-decoration:none}
+a:hover{text-decoration:underline}
+h1{font-size:clamp(24px,5vw,44px);margin:0;letter-spacing:-.04em}
+.stage{position:relative;background:#293b55;overflow:hidden;border:1px solid #455977;border-radius:14px}
+canvas{width:100%;height:clamp(295px,56vh,620px);display:block}
+.hud{display:flex;gap:18px;flex-wrap:wrap;position:absolute;top:10px;left:10px;right:10px;background:#0c1527e8;padding:9px 14px;border-radius:8px;font-variant-numeric:tabular-nums}
+.hud b{color:var(--accent)}
+#status{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:max-content;max-width:94%;margin:0;padding:8px 13px;background:#101923ed;border-radius:7px;text-align:center}
+#status:empty{display:none}
+form,.steering{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin-top:12px}
+label{display:grid;gap:5px;color:#b9cde6}
+button,select,input{font:inherit;border:1px solid #4a5f7c;border-radius:7px;padding:9px 12px;background:#1c2a3d;color:inherit;min-height:44px}
+input{width:135px}
+button{cursor:pointer;touch-action:manipulation}
+button[type=submit]{background:var(--accent);color:#201809;font-weight:750;border-color:transparent}
+button:disabled{opacity:.5;cursor:default}
+form p{flex-basis:100%;margin:0;color:#b9cde6}
+.steering button{flex:1}
+</style>
+<script type="module" src="game.mjs"></script>
+</head>
+<body><main>
+<header><h1>Doubling Mile</h1><a href="../">Daft Arcade</a></header>
+<section class="stage" aria-label="Endless city road">
+<canvas aria-label="Four-lane city road. Your car is gold."></canvas>
+<div class="hud"><span><b id="speed">35</b> mph</span><span><b id="time">0.0</b> s</span><span><b id="distance">0.00</b> mi</span><span>Traffic <b>35</b> mph</span></div>
+<p id="status" role="status">Set your speed mode and start driving.</p>
+</section>
+<form>
+<label>Speed mode<select id="mode"><option value="constant">Constant speed</option><option value="accel">Constant acceleration</option><option value="exp">Exponential</option><option value="super">Super exponential</option></select></label>
+<label><span id="parameter">Speed (mph)</span><input id="value" type="number" inputmode="decimal" required min="0" max="1000000" step="any" value="35"></label>
+<button type="submit" id="start">Start drive</button>
+<button type="button" id="pause" disabled>Pause</button>
+<p id="formula">Hold your selected speed for the whole drive.</p>
+</form>
+<div class="steering"><button id="left" type="button" aria-label="Change lane left">← Left</button><button id="right" type="button" aria-label="Change lane right">Right →</button></div>
+<p>Steer with A/D, the left/right arrow keys, or the buttons. Press P to pause.</p>
+</main></body>
+</html>
