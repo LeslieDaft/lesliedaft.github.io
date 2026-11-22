@@ -11,7 +11,7 @@ select{font:inherit;color:inherit;background:#202942;border:1px solid #444f6c;bo
 const games=[
  ['Free Throw','Grab the red ball, drag it around, then let go to throw it.','Wall hits'],
  ['Line Heist','Every bounce off the rim anchors a new line. Hit an enemy line to steal it. The last color with any lines wins.',''],
- ['Brick Break','Pull back from the ball to aim and set power, then release. Clear all 28 bricks to win.','Bricks'],
+ ['Brick Break','Drag backward anywhere on the court to aim. Follow the dotted path and release to shoot. Clear all 28 bricks to win.','Bricks'],
  ['Pocket Shot','Sink all five colored balls. Flick them directly or use the white cue ball.','Pocketed'],
  ['Chime Run','Collect the six chimes in numbered order. The next chime glows gold.','Chimes'],
  ['Pinball','Flick into the bumpers and score 500 points with five balls. Guard the drain by catching the ball.','Points'],
@@ -131,7 +131,7 @@ function select(i){
  [...nav.querySelectorAll('button')].forEach((b,j)=>b.setAttribute('aria-current',i===j));
  $('#settings').hidden=i!==1;$('#counts').hidden=i!==1;
  $('#settingsTitle').textContent=i===1?'Match setup':'Physics';
- $('#tip').textContent=i===1?'At 101%, a straight-on rebound adds 1% speed. Each ball starts with one line and adds one per rim bounce.':'Use a quick drag and release for a faster throw.';
+ $('#tip').textContent=i===2?'Pull farther for more power. Recall the ball to take another shot.':i===1?'At 101%, a straight-on rebound adds 1% speed. Each ball starts with one line and adds one per rim bounce.':'Use a quick drag and release for a faster throw.';
  reset();
 }
 function bouncePercent(){return challenge==='classic'?preferences[mode]:100}
@@ -253,14 +253,14 @@ canvas.onpointerdown=e=>{
  unlock();if(pointer!==null||finished||mode===1)return;
  const p=position(e);
  if(mode===6){paddle=clamp(p.x,57,W-57);return}
- const b=balls.find(b=>b.alive&&(mode!==7||b===balls[0])&&Math.hypot(b.x-p.x,b.y-p.y)<b.r+19);
- if(!b)return;
  if(mode===2){
   if(brickInFlight)return;
   canvas.setPointerCapture(e.pointerId);pointer=e.pointerId;
   aim={x:p.x,y:p.y,vx:0,vy:0};
   return;
  }
+ const b=balls.find(b=>b.alive&&(mode!==7||b===balls[0])&&Math.hypot(b.x-p.x,b.y-p.y)<b.r+19);
+ if(!b)return;
  if(challenge==='timer')clockStarted=true;
  canvas.setPointerCapture(e.pointerId);pointer=e.pointerId;
  held={b,dx:b.x-p.x,dy:b.y-p.y,samples:[{x:b.x,y:b.y,t:performance.now()}]};
@@ -473,6 +473,32 @@ function disk(x,y,r,fill,stroke){
 function line(x,y,x2,y2,color,width=1){
  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();
 }
+function paintBrickAim(){
+ const {x,y}=brickLaunch;
+ ctx.lineWidth=2;disk(x,y,22,null,'#647da5');
+ if(!aim)return;
+ const power=Math.hypot(aim.vx,aim.vy);
+ ctx.fillStyle='#17243d';ctx.fillRect(x-70,H-31,140,8);
+ ctx.fillStyle='#ffeab6';ctx.fillRect(x-70,H-31,140*power/1000,8);
+ ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='bottom';
+ ctx.fillText('POWER '+Math.round(power/10)+'%',x,H-37);
+ if(power<35)return;
+ const r=balls[0].r,restitution=bouncePercent()/100;
+ const ticksBetweenDots=Math.max(1,Math.round(18*240/power));
+ let px=x,py=y,vx=aim.vx,vy=aim.vy,dots=0;
+ for(let tick=1;tick<=ticksBetweenDots*28;tick++){
+  px+=vx/240;py+=vy/240;
+  if(px<r||px>W-r){px=clamp(px,r,W-r);vx*=-restitution}
+  if(py<r||py>H-r){py=clamp(py,r,H-r);vy*=-restitution}
+  const brick=targets.find(t=>Math.hypot(px-clamp(px,t.x,t.x+t.w),py-clamp(py,t.y,t.y+t.h))<r);
+  if(brick){ctx.lineWidth=2;disk(px,py,9,null,'#ffeab6');break}
+  if(tick%ticksBetweenDots===0){
+   ctx.globalAlpha=1-dots++/38;
+   disk(px,py,Math.max(2,4-dots*.075),'#ffeab6');
+  }
+ }
+ ctx.globalAlpha=1;
+}
 function paint(dt){
  ctx.clearRect(0,0,W,H);
  const field=ctx.createRadialGradient(CX,CY,0,CX,CY,440);
@@ -488,15 +514,7 @@ function paint(dt){
   disk(l.x,l.y,lines.length>40?2:5,l.owner.color);
   if(!running&&!finished&&action.textContent==='Start match')line(l.owner.x,l.owner.y,l.owner.x+l.owner.vx*.14,l.owner.y+l.owner.vy*.14,'#e8eeff',2);
  }
- if(mode===2&&!brickInFlight){
-  ctx.lineWidth=2;disk(brickLaunch.x,brickLaunch.y,22,null,'#536784');
-  if(aim){
-   const {x,y}=brickLaunch;
-   const tipX=x+aim.vx*.13,tipY=y+aim.vy*.13;
-   line(x,y,tipX,tipY,'#ffeab6',3);
-   disk(tipX,tipY,4,'#ffeab6');
-  }
- }
+ if(mode===2&&!brickInFlight)paintBrickAim();
  if(mode===2)for(const t of targets){
   ctx.beginPath();ctx.roundRect(t.x,t.y,t.w,t.h,5);ctx.fillStyle=t.color;ctx.fill();
   line(t.x+6,t.y+3,t.x+t.w-6,t.y+3,'#ffffff88',2);
