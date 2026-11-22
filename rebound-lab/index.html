@@ -11,7 +11,7 @@ select{font:inherit;color:inherit;background:#202942;border:1px solid #444f6c;bo
 const games=[
  ['Free Throw','Grab the red ball, drag it around, then let go to throw it.','Wall hits'],
  ['Line Heist','Every bounce off the rim anchors a new line. Hit an enemy line to steal it. The last color with any lines wins.',''],
- ['Brick Break','Flick the ball into the brick wall. Clear all 28 bricks to win.','Bricks'],
+ ['Brick Break','Pull back from the ball to aim and set power, then release. Clear all 28 bricks to win.','Bricks'],
  ['Pocket Shot','Sink all five colored balls. Flick them directly or use the white cue ball.','Pocketed'],
  ['Chime Run','Collect the six chimes in numbered order. The next chime glows gold.','Chimes'],
  ['Pinball','Flick into the bumpers and score 500 points with five balls. Guard the drain by catching the ball.','Points'],
@@ -38,7 +38,7 @@ const challengeSelect=$('#challenge');
 const challengeModes=['','','timer','timer','timer','timer infinite','timer infinite','timer','timer','timer infinite'];
 let challenge='classic', elapsed=0, clockStarted=false, bestTime=null, orbitDeadline=35;
 const clockText=t=>t.toFixed(2)+' s';
-function recordKey(){return 'rebound-lab:records:v1:'+mode+':'+challenge}
+function recordKey(){return 'rebound-lab:records:v2:'+mode+':'+challenge}
 function showRecord(){
  const record=$('#record');
  record.hidden=challenge==='classic';
@@ -58,6 +58,8 @@ function updateDescription(){
 matchSpeed.oninput=()=>{$('#matchSpeedValue').value=matchSpeed.value+'×'};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 let mode=0, balls=[], lines=[], targets=[], effects=[], score=0, time=0, shots=5, paddle=360;
+const brickLaunch={x:360,y:355};
+let aim=null, brickInFlight=false;
 let lineCountsDirty=false;
 let running=true, finished=false, held=null, pointer=null, audio, muted=false, lastSound=0, gates=[], stars=[];
 let preferences=games.map((_,i)=>i===1?101:i===3?82:89);
@@ -130,10 +132,22 @@ function select(i){
  $('#settings').hidden=i!==1;$('#counts').hidden=i!==1;
  $('#settingsTitle').textContent=i===1?'Match setup':'Physics';
  $('#tip').textContent=i===1?'At 101%, a straight-on rebound adds 1% speed. Each ball starts with one line and adds one per rim bounce.':'Use a quick drag and release for a faster throw.';
- bounce.value=preferences[i];$('#bounceValue').value=bounce.value+'%';reset();
+ reset();
 }
-bounce.oninput=()=>{$('#bounceValue').value=bounce.value+'%';preferences[mode]=Number(bounce.value)};
+function bouncePercent(){return challenge==='classic'?preferences[mode]:100}
+bounce.oninput=()=>{
+ if(challenge==='classic')preferences[mode]=Number(bounce.value);
+ $('#bounceValue').value=bouncePercent()+'%'+(challenge==='classic'?'':' (locked)');
+};
+function launchBrick(vx,vy){
+ balls[0].vx=vx;balls[0].vy=vy;
+ brickInFlight=true;clockStarted=true;action.textContent='Recall ball';tone('point');
+}
 function reset(){
+ bounce.disabled=challenge!=='classic';
+ bounce.value=bouncePercent();
+ bounce.oninput();
+ aim=null;brickInFlight=false;
  held=null;pointer=null;balls=[];lines=[];targets=[];effects=[];gates=[];stars=[];score=0;time=0;shots=5;paddle=360;
  elapsed=0;clockStarted=false;bestTime=null;orbitDeadline=35;
  if(challenge!=='classic'){
@@ -163,6 +177,9 @@ function reset(){
     index++;
    }
   });
+ }else if(mode===2){
+  ball(brickLaunch.x,brickLaunch.y);
+  for(let row=0;row<4;row++)for(let col=0;col<7;col++)targets.push({x:42+col*93,y:48+row*35,w:78,h:21,color:colors[row]});
  }else if(mode===3){
   ball(174,255,14,'#e7f3ff');
   for(let i=0;i<5;i++)ball(380+(i%3)*43,197+Math.floor(i/3)*72,14,colors[i%4]);
@@ -172,7 +189,6 @@ function reset(){
   for(let i=0;i<6;i++){const a=i*TAU/6;ball(405+64*Math.cos(a),255+64*Math.sin(a),15,'#42d9ff')}
  }else{
   ball(mode===8?75:360,mode===5?417:mode===8?255:mode===6?345:mode===4?385:355);
-  if(mode===2)for(let row=0;row<4;row++)for(let col=0;col<7;col++)targets.push({x:42+col*93,y:48+row*35,w:78,h:21,color:colors[row]});
   if(mode===4)targets=[[160,305],[276,160],[464,310],[555,155],[345,90],[112,110]].map(([x,y])=>({x,y,r:21}));
   if(mode===5)targets=[[185,172],[360,112],[535,172],[260,292],[460,292]].map(([x,y])=>({x,y,r:33,flash:0}));
   if(mode===8)for(let i=0;i<4;i++)gates.push({x:185+140*i,phase:i*1.7});
@@ -218,6 +234,14 @@ action.onclick=()=>{
   if(action.textContent==='Start match')reset();
   running=true;action.textContent='Pause match';updateStatus();tone('point');return;
  }
+ if(mode===2){
+  if(aim)return;
+  if(brickInFlight){
+   Object.assign(balls[0],brickLaunch,{vx:0,vy:0,trail:[]});
+   brickInFlight=false;action.textContent='Launch';
+  }else launchBrick(-210,-550);
+  return;
+ }
  if(mode!==3&&Math.hypot(balls[0].vx,balls[0].vy)>25)return;
  const angles={2:-1.94,3:0,4:-2.82,5:-1.93,6:-1.23,7:0,8:0,9:-1.95};
  clockStarted=true;
@@ -231,14 +255,26 @@ canvas.onpointerdown=e=>{
  if(mode===6){paddle=clamp(p.x,57,W-57);return}
  const b=balls.find(b=>b.alive&&(mode!==7||b===balls[0])&&Math.hypot(b.x-p.x,b.y-p.y)<b.r+19);
  if(!b)return;
+ if(mode===2){
+  if(brickInFlight)return;
+  canvas.setPointerCapture(e.pointerId);pointer=e.pointerId;
+  aim={x:p.x,y:p.y,vx:0,vy:0};
+  return;
+ }
  if(challenge==='timer')clockStarted=true;
  canvas.setPointerCapture(e.pointerId);pointer=e.pointerId;
  held={b,dx:b.x-p.x,dy:b.y-p.y,samples:[{x:b.x,y:b.y,t:performance.now()}]};
  b.vx=b.vy=0;tone('hit');
 };
+function updateAim(p){
+ const dx=aim.x-p.x,dy=aim.y-p.y;
+ const power=Math.min(7,1000/(Math.hypot(dx,dy)||1));
+ aim.vx=dx*power;aim.vy=dy*power;
+}
 canvas.onpointermove=e=>{
  const p=position(e);
  if(mode===6){paddle=clamp(p.x,57,W-57);return}
+ if(aim&&e.pointerId===pointer){updateAim(p);return}
  if(!held||e.pointerId!==pointer)return;
  const {b,dx,dy,samples}=held;
  let x=clamp(p.x+dx,b.r,W-b.r),y=clamp(p.y+dy,b.r,H-b.r);
@@ -250,6 +286,13 @@ canvas.onpointermove=e=>{
  b.x=x;b.y=y;samples.push({x,y,t:performance.now()});if(samples.length>20)samples.shift();
 };
 function release(e,cancel=false){
+ if(aim&&e.pointerId===pointer){
+  if(!cancel){
+   updateAim(position(e));
+   if(Math.hypot(aim.vx,aim.vy)>=35)launchBrick(aim.vx,aim.vy);
+  }
+  aim=null;pointer=null;return;
+ }
  if(!held||e.pointerId!==pointer)return;
  const {b,samples}=held,now=performance.now(),last=samples.at(-1);
  const first=samples.find(s=>last.t-s.t<=100);
@@ -273,7 +316,7 @@ function point(x,y,color,goal,amount=1){
 function reflect(b,nx,ny){
  const v=b.vx*nx+b.vy*ny;
  if(v<=0)return false;
- const impulse=(1+preferences[mode]/100)*v;
+ const impulse=(1+bouncePercent()/100)*v;
  b.vx-=impulse*nx;b.vy-=impulse*ny;tone();
  return true;
 }
@@ -303,7 +346,7 @@ function collide(a,b,heldBall){
  a.x-=nx*overlap*ma;a.y-=ny*overlap*ma;b.x+=nx*overlap*mb;b.y+=ny*overlap*mb;
  const approach=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
  if(approach<=0)return;
- const impulse=(1+preferences[mode]/100)*approach/(ma+mb);
+ const impulse=(1+bouncePercent()/100)*approach/(ma+mb);
  a.vx-=impulse*nx*ma;a.vy-=impulse*ny*ma;b.vx+=impulse*nx*mb;b.vy+=impulse*ny*mb;tone();
 }
 function steal(dt){
@@ -444,6 +487,15 @@ function paint(dt){
   line(l.owner.x,l.owner.y,l.x,l.y,l.owner.color,l.cooldown>0?width+2:width);
   disk(l.x,l.y,lines.length>40?2:5,l.owner.color);
   if(!running&&!finished&&action.textContent==='Start match')line(l.owner.x,l.owner.y,l.owner.x+l.owner.vx*.14,l.owner.y+l.owner.vy*.14,'#e8eeff',2);
+ }
+ if(mode===2&&!brickInFlight){
+  ctx.lineWidth=2;disk(brickLaunch.x,brickLaunch.y,22,null,'#536784');
+  if(aim){
+   const {x,y}=brickLaunch;
+   const tipX=x+aim.vx*.13,tipY=y+aim.vy*.13;
+   line(x,y,tipX,tipY,'#ffeab6',3);
+   disk(tipX,tipY,4,'#ffeab6');
+  }
  }
  if(mode===2)for(const t of targets){
   ctx.beginPath();ctx.roundRect(t.x,t.y,t.w,t.h,5);ctx.fillStyle=t.color;ctx.fill();
