@@ -36,14 +36,26 @@ const colorCount=$('#colorCount'), addColor=$('#addColor');
 const matchSpeed=$('#matchSpeed');
 const challengeSelect=$('#challenge');
 const challengeModes=['','','timer','timer','timer','timer infinite','timer infinite','timer','timer','timer infinite'];
-let challenge='classic', elapsed=0, clockStarted=false, bestTime=null, orbitDeadline=35;
+let challenge='classic', elapsed=0, clockStarted=false, bestTime=null, slowestTime=null, orbitDeadline=35;
 const clockText=t=>t.toFixed(2)+' s';
 function recordKey(){return 'rebound-lab:records:v2:'+mode+':'+challenge}
+function loadTime(key){
+ try{
+  const time=Number(localStorage.getItem(key));
+  return Number.isFinite(time)&&time>0?time:null;
+ }catch{return null}
+}
+function saveTime(key,time){
+ try{localStorage.setItem(key,String(time))}catch{}
+}
 function showRecord(){
  const record=$('#record');
  record.hidden=challenge==='classic';
  if(record.hidden)return;
- record.textContent=(challenge==='timer'?'Time ':'Survived ')+clockText(elapsed)+' · Personal best '+(bestTime===null?'—':clockText(bestTime));
+ if(challenge==='timer'){
+  record.textContent='Time '+clockText(elapsed)+' · Fastest clear '+(bestTime===null?'—':clockText(bestTime))+
+   ' · Slowest clear '+(slowestTime===null?'—':clockText(slowestTime));
+ }else record.textContent='Survived '+clockText(elapsed)+' · Personal best '+(bestTime===null?'—':clockText(bestTime));
 }
 challengeSelect.onchange=()=>{challenge=challengeSelect.value;updateDescription();reset()};
 function updateDescription(){
@@ -149,13 +161,9 @@ function reset(){
  bounce.oninput();
  aim=null;brickInFlight=false;
  held=null;pointer=null;balls=[];lines=[];targets=[];effects=[];gates=[];stars=[];score=0;time=0;shots=5;paddle=360;
- elapsed=0;clockStarted=false;bestTime=null;orbitDeadline=35;
- if(challenge!=='classic'){
-  try{
-   const stored=Number(localStorage.getItem(recordKey()));
-   if(Number.isFinite(stored)&&stored>0)bestTime=stored;
-  }catch{}
- }
+ elapsed=0;clockStarted=false;orbitDeadline=35;
+ bestTime=challenge==='classic'?null:loadTime(recordKey());
+ slowestTime=challenge==='timer'?Math.max(loadTime(recordKey()+':slowest')??0,bestTime??0)||null:null;
  showRecord();
  finished=false;running=mode!==1;action.hidden=mode===0;action.textContent=mode===1?'Start match':'Launch';
  if(mode===1){
@@ -220,8 +228,14 @@ function finish(message,win=true){
   const better=bestTime===null||(challenge==='timer'?elapsed<bestTime:elapsed>bestTime);
   if(better){
    bestTime=elapsed;
-   try{localStorage.setItem(recordKey(),String(bestTime))}catch{}
+   saveTime(recordKey(),bestTime);
    message+=' Personal best!';
+  }
+  if(challenge==='timer'&&(slowestTime===null||elapsed>slowestTime)){
+   const hadRecord=slowestTime!==null;
+   slowestTime=elapsed;
+   saveTime(recordKey()+':slowest',slowestTime);
+   if(hadRecord&&!better)message+=' New slowest clear!';
   }
  }
  showRecord();
