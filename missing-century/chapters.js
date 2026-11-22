@@ -8,6 +8,7 @@
   const recall = (question, ...answers) => ({question, answers});
   const npc = (name, lines, key, requires, blocked) => ({kind:'npc', name, lines, key, requires, blocked});
   const relic = (name, key, lines, requires, blocked) => ({kind:'relic', name, key, lines, requires, blocked});
+  const shop = (name, greeting) => ({kind:'shop', name, greeting});
   const chest = (name, text) => ({kind:'chest', name, key:name, lines:[narrator(text)]});
   const gate = (name, next, requires, blocked, lines = []) => ({kind:'gate', name, next, requires, blocked, lines});
   const enemy = (name, form, pattern, key, lines = [], requires, blocked) =>
@@ -28,7 +29,7 @@
       '#c.:....+++++++.....:.d#',
       '#..:................:..#',
       '#..::::::..::::::::::..#',
-      '#.....*....@.....*.....#',
+      '#.....*..g.@.....*.....#',
       '#...e............f.....#',
       '#,,.......***........,,#',
       '########################'
@@ -45,7 +46,7 @@
       '#...:...,,...,,....:..d#',
       '#...::::::::::.:::::...#',
       '#....f.......:.........#',
-      '#...@........:.....e...#',
+      '#...@.g......:.....e...#',
       '#**........**...,,.....#',
       '########################'
     ],
@@ -62,7 +63,7 @@
       '#.......:........:..:..#',
       '#..::::::..::::::::::..#',
       '#..:....f..:..,,.......#',
-      '#..@....**.:.....**....#',
+      '#..@.g..**.:.....**....#',
       '########################'
     ],
     grove: [
@@ -77,7 +78,7 @@
       '#...::::...##..::::::..#',
       '#...:......##..:....:..#',
       '#.###..*...##..:....:..#',
-      '#.e....@...:::::...f:..#',
+      '#.e....@.g.:::::...f:..#',
       '#...........**.........#',
       '########################'
     ],
@@ -93,7 +94,7 @@
       '#......#.#...#.#.......#',
       '####+..#..::::.#..+#####',
       '#.....::::::::::::.....#',
-      '#..e...#....@......#f..#',
+      '#..e...#..g.@......#f..#',
       '#......#...........#...#',
       '########################'
     ],
@@ -125,7 +126,7 @@
       '#~~~...~~~...~~~...~~~~#',
       '#~~~.e.~~~...~~~.f.~~~~#',
       '#~~~...===...===...~~~~#',
-      '#~~~~~~..@....~~~~~~~~~#',
+      '#~~~~~~..@..g.~~~~~~~~~#',
       '#~~~~~~.......~~~~~~~~~#',
       '########################'
     ],
@@ -183,7 +184,7 @@
     const actors = [];
     const tiles = layouts[layout].map((source, y) => {
       const row = mirror ? [...source].reverse().join('') : source;
-      return row.replace(/[a-f]/g, (marker, x) => {
+      return row.replace(/[a-g]/g, (marker, x) => {
         const actor = placements[marker];
         if (actor) actors.push({...actor, x, y});
         return '.';
@@ -202,6 +203,7 @@
       quiz:[],
       maps:[
         region('Bellmead Festival', 'meadow', 'square', 'Ask Mayor Tansy about the stalled festival, then follow the old road.', {
+          g:shop('Jory’s Gear Stall','Off to fetch the bell rope? Try something sturdy. The old road gets muddy.'),
           a:npc('Mayor Tansy',[line('Mayor Tansy','The bell has gone silent. Take my blue ribbon. The groundskeeper tied its twin to the old road.'),
             line('Mayor Tansy','He also found this photograph in a bottle. The date’s in the hundred years our books skip. Is that you in the square?'),
             ari('That’s my coat. I’ve never been to that square in my life.'),
@@ -213,6 +215,7 @@
           f:enemy('Ribbon Beetle','beetle','rush',undefined,[bram('Hey! That beetle is making off with the prize ribbon.')])
         }),
         region('Willowford', 'meadow', 'channels', 'Free the jammed sluice, recover the bell rope, and cross to the drowned village.', {
+          g:shop('Hester’s Ford Shop','Came through the sluice, did you? Set down your boots. I’ve got a dry spot and a few things that travel well.'),
           a:relic('Bell Rope','rope',[narrator('The groundskeeper’s red bell rope has caught on the sluice wheel.'),
             ari('I can reach it now. It’s still dry. How is it still dry?')],['sluice'],'The Sluice Crab has wedged the wheel shut.'),
           b:gate('Drowned Lane',2,['rope'],'We need the bell rope before crossing.'),
@@ -247,6 +250,7 @@
         recall('What color was the rope you freed from the sluice?', 'red')],
       maps:[
         region('Gullmarket','coast','square','Borrow a skiff from Ione’s grandson and leave through the seaside lane.', {
+          g:shop('Nim’s Chandlery','Before you take the skiff out, check your straps. Saltwater makes a meal of cheap buckles.'),
           a:npc('Ferrin',[line('Ferrin','That is my gran’s seal. Take her skiff, the Wren. It always brings someone home.'),bram('Even if they haven’t been born yet?')],'wren'),
           b:gate('Seaside Lane',1,['wren'],'Ferrin has the only skiff that can make the crossing.'),
           c:npc('Oyster Seller',[line('Oyster Seller','Don’t eat anything you caught in two different centuries.')]),
@@ -286,6 +290,7 @@
         quiz('What did Ione give you after the rescue?',['A copper hook','A glass shard','Her old sail'],1)],
       maps:[
         region('Copperleaf Camp','meadow','grove','Learn what froze the forest and follow Sedge’s trail.', {
+          g:shop('Tallow’s Trail Shop','I laid this gear out before the forest froze. Good to see someone come by who can still try it on.'),
           a:npc('Sedge',[line('Sedge','Shake the branch with my green ribbon and say the name of the seed. Yew. Can you remember a word that short?'),
             bram('Tell me again after I’ve had lunch.')],'yew'),
           b:gate('Glasswood Trail',1,['yew'],'Sedge knows how to save a seed.'),
@@ -325,6 +330,7 @@
         quiz('What shape was punched on the ticket from the roots?',['A star','A triangle','A crescent'],1)],
       maps:[
         region('Cinderpass Station','ember','keep','Get a boiler permit from the engineer before entering the switchyard.', {
+          g:shop('Lena’s Station Outfitters','Stand clear of the tracks. The gear on this bench is for travelers.'),
           a:npc('Engineer Doss',[line('Engineer Doss','Here’s the permit. The superintendent won’t start a train unless you give the furnace a copper coal.'),
             bram('I miss when trains just needed a ticket.')],'boiler'),
           b:npc('Station Teashop',[line('Station Teashop','If you save the day, give me five minutes to finish the pastry glaze.')]),
@@ -334,6 +340,7 @@
           f:npc('Parcel Clerk',[line('Parcel Clerk','That white case has been waiting a hundred years. You’d think they would reply to one letter.')])
         },true),
         region('Upper Switchyard','ember','terraces','Drive the foreman off the switch, unhook the passenger line, then head to the furnace.', {
+          g:shop('Switchyard Supply','Stock up before you go down. The furnace throws sparks clear to the elevator.'),
           a:gate('Furnace Elevator',2,['track'],'Set the passenger tracks before going down to the furnace.'),
           b:relic('Track Switch','track',[narrator('Bram throws the switch. The entire mountain rings like a rail struck with a hammer.'),bram('Passenger track is free.')],['foreman'],'The slag foreman is gripping the switch.'),
           c:enemy('Slag Foreman','golem','ash','foreman',[narrator('Rail spikes glow in its arms. It regards the party as three maintenance requests.')]),
@@ -364,6 +371,7 @@
         quiz('Which track did Bram free at the switch?',['The passenger track','The quarry spur','The ore line'],0)],
       maps:[
         region('Kitewright’s Mooring','sky','square','Get the captain’s favor before climbing onto the yellow sailship.', {
+          g:shop('Fen’s Deck Supply','Gear up here and tie it tight. Anything you drop will be halfway to Cinderpass before you blink.'),
           a:npc('Captain Vale',[line('Captain Vale','I got a fleet caught in a cloud with no wind. Take my yellow sail up and open the weather valve. You’re crew now.')],'crew'),
           b:gate('Yellow Sailship',1,['crew'],'Sign on with Captain Vale before you board.'),
           c:npc('Cloud Cook',[line('Cloud Cook','Everything tastes better up here except tea. Hard to get a boil going.')]),
@@ -402,6 +410,7 @@
         quiz('What came out of the valve fitting?',['A blue cap','A white mitten','A small bell'],1)],
       maps:[
         region('Driftpost','frost','square','Show the mitten to the winter guide and take the mail sled.', {
+          g:shop('Marta’s Winter Outfitters','There’s fresh stock beside the stove. Feel how much warmer it is with the door shut?'),
           a:npc('Guide Osa',[line('Guide Osa','My brother left without that mitten. Load his three parcels and my red scarf onto the sled. He’ll see you coming.')],'mail'),
           b:gate('Snow Road',1,['mail'],'Osa has the sled and packages.'),
           c:npc('Foot warmer',[line('Foot warmer','One silver for warm boots, two for boots that remember what summer was like.')]),
@@ -439,6 +448,7 @@
         recall('How many parcels went on the sled?', 'three', '3', 'three parcels', '3 parcels')],
       maps:[
         region('Suncourt Lantern Market','dusk','square','Talk to the thief under the balcony and get into the watch quarter.', {
+          g:shop('Ilex’s Market Armory','The palace buys its brass here. Look under the lantern if you want to see how it catches the light.'),
           a:npc('Kess',[line('Kess','I borrowed the calendar because it wrote my name under “erase.” Its silver seal broke off in the garden.'),
             mira('We’ve been finding the people who fell off those pages. Get behind us.')],'kess'),
           b:gate('Watch Quarter',1,['kess'],'Find Kess first. Only she knows what to look for.'),
@@ -447,6 +457,7 @@
           f:chest('Lantern Crown','Wearing this crown traditionally means you owe everyone soup.')
         }),
         region('Hanging Gardens','dusk','grove','Find the silver seal and recover the calendar from the palace gallery.', {
+          g:shop('Pell’s Garden Stall','I brought the last of my stock inside when the watch closed the market. You can look while we wait for a bell.'),
           a:gate('Palace Gallery',2,['silver'],'The gate only opens for a silver seal.'),
           b:relic('Silver Seal','silver',[narrator('A silver wax stamp lies in the grass. It bears the shape of an open eye.')],['hound'],'The Gilt Hound is guarding its prize.'),
           c:enemy('Gilt Hound','knight','rush','hound',[bram('That would be a lot friendlier if it had a tail instead of a spear.')]),
@@ -479,6 +490,7 @@
         quiz('Which object listed the returned days?',['The Living Calendar','The invitation','The harbor map'],0)],
       maps:[
         region('Reed Village','marsh','channels','Learn the path under the marsh, then open the sluice gate.', {
+          g:shop('Sula’s Reed Supply','Step onto the mat first. I keep the whole stall dry even when the river runs over it.'),
           a:npc('Mudkeeper Renn',[line('Mudkeeper Renn','That’s an old map. Go down river with a reed token. The lock opens when it hears the frogs.')],'reed'),
           b:gate('Sluice Gate',1,['reed'],'Ask Renn for a reed token to open the sluice.'),
           c:npc('Frog Caller',[line('Frog Caller','Sometimes a frog sings before it opens its mouth. I don’t think that’s a frog.')]),
@@ -518,6 +530,7 @@
         recall('Which animal’s call opened the marsh lock?', 'frog', 'frogs', 'frog call')],
       maps:[
         region('Morrowhall Square','dusk','square','Get the iron key from the keeper of the town clock.', {
+          g:shop('Morrowhall Outfitter','I was saving the good pieces for the morning market. You can have first pick.'),
           a:npc('Clockkeeper Neris',[line('Clockkeeper Neris','You need the first seal. Here’s the observatory key. Before you go, look at these faces. They know what’s coming.'),
             narrator('Ari takes the key and looks around. This is the square in the photograph from Bellmead.'),
             ari('There’s the photographer. He’s about to take my picture.')],'iron'),
@@ -560,6 +573,7 @@
         recall('Who gave you the observatory key?', 'Neris', 'Clockkeeper Neris')],
       maps:[
         region('The Road Beneath Midnight','dusk','terraces','Gather the stories from the crossroads and carry them into the dark.', {
+          g:shop('Pilgrim’s Last Supply','The families left these for you. Take a moment to choose before you start down.'),
           a:npc('Captain Ione',[line('Captain Ione','The harbor sent its light. Osa sent red wool. You gave us those days. Take them with you.'),
             narrator('Ari takes the bundle. The light inside makes the wet road look just like a street in Bellmead.')],'witnesses'),
           b:gate('Outside Time',1,['witnesses'],'Carry the people’s memories before going down.'),
@@ -568,6 +582,7 @@
           e:chest('Warm Festival Lantern','Its paper is warm with the heat of the first day.')
         }),
         region('Outside Time','void','platform','Open the buried road by breaking both hourweights.', {
+          g:shop('Keeper of Spare Arms','Your coins are still warm. Leave them here, and give these blades a day they can be used in.'),
           a:gate('Chamber of First Sleep',2,['outerweight','innerweight'],'Two hourweights are tied to this door. Break both.'),
           b:enemy('Outer Hourweight','golem','ward','outerweight',[narrator('A chain passes through its shoulders and keeps going into the dark.')]),
           c:enemy('Inner Hourweight','knight','counter','innerweight',[narrator('A figure presses its ear to the first link. It draws a blade every time the breathing below stops.')]),

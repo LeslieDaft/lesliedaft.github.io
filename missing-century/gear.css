@@ -1,0 +1,40 @@
+.game-actions { display:flex; align-items:center; gap:7px; }
+#gold { color:var(--gold); font-weight:700; white-space:nowrap; }
+#field-notice { color:var(--gold); font-weight:700; }
+#field-notice:empty { display:none; }
+.overlay:has(.gear-panel) { position:relative; padding:0; display:block; background:#142021; }
+.screen-frame:has(.overlay:not([hidden]) .gear-panel) #world { display:none; }
+.gear-panel { display:grid; gap:12px; width:100%; padding:clamp(13px,3vw,28px); background:linear-gradient(135deg,#293a36,#142122 75%); }
+.gear-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 13px; }
+.gear-heading > div { flex:1; min-width:140px; }
+.gear-heading h2 { font:700 clamp(22px,4vw,37px)/1.1 var(--serif); }
+.gear-gold { color:#ffdc89; font-size:16px; white-space:nowrap; }
+.gear-summary { color:#d4d9c9; line-height:1.4; }
+.gear-nav,.gear-filters { display:flex; flex-wrap:wrap; gap:6px; }
+.gear-nav:empty { display:none; }
+.gear-panel button { min-height:38px; border:1px solid #647a6b; border-radius:4px; padding:7px 10px; background:#223533; }
+.gear-panel button:not(:disabled):hover { border-color:#ecd398; background:#354e41; }
+.gear-panel button[aria-pressed=true] { background:#edd093; border-color:#ffe0a5; color:#251d14; font-weight:700; }
+.gear-panel button:disabled:not(.gear-equipped) { opacity:.67; }
+.gear-panel .gear-equipped { color:#d2ebc8; border-color:#52765d; }
+.gear-list { display:grid; max-height:435px; overflow:auto; gap:6px; padding:2px 5px 2px 2px; overscroll-behavior:contain; }
+.gear-item { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; min-width:0; background:#101f20; padding:9px; border:1px solid #435954; border-radius:5px; }
+.gear-item:focus { outline:2px solid var(--gold); outline-offset:0; }
+.gear-item h3 { font:700 18px/1.15 var(--serif); }
+.gear-item button { white-space:nowrap; }
+.gear-icon { display:grid; place-items:center; width:31px; height:31px; border:1px solid #537065; border-radius:4px; background:#263c38; color:var(--gold); font-size:20px; }
+.gear-stats,.gear-compare { font-size:13px; line-height:1.35; margin-top:3px; }
+.gear-stats { color:#c4dec4; }
+.gear-compare { color:#cdcab7; }
+.gear-notice,.gear-empty { color:var(--gold); line-height:1.4; }
+.gear-notice:empty { display:none; }
+@media(max-width:550px) {
+  .game-head { align-items:flex-start; }
+  .game-actions { flex-wrap:wrap; justify-content:flex-end; max-width:145px; }
+  .gear-filters button { padding:5px 8px; font-size:13px; }
+  .gear-item { gap:7px; }
+  .gear-item h3 { font-size:16px; }
+  .gear-item button { padding:6px; font-size:13px; }
+  .gear-icon { width:23px; height:27px; font-size:16px; }
+  .gear-list { max-height:min(330px,45svh); }
+}

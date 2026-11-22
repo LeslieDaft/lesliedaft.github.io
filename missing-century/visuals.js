@@ -225,28 +225,46 @@
     ['#b88756', '#f0c586', '#52473e'], ['#7b618f', '#b98065', '#342d39'],
     ['#628894', '#f2c2a1', '#725245']
   ];
-  function person(ctx, x, y, color, facing = 'down', frame = 0) {
+  function person(ctx, x, y, color, facing = 'down', stride) {
     const [coat, skin, hair] = color;
+    const swing = Number.isFinite(stride) ? Math.sin(stride * Math.PI) : 0;
+    const step = Math.round(swing * 2);
+    const bob = Math.abs(step) === 2 ? 1 : 0;
+    const profile = facing === 'left' || facing === 'right';
+    const leftFootX = profile ? 9 + step : 8;
+    const rightFootX = profile ? 13 - step : 14;
+    const leftFootY = profile ? 18 : 18 + Math.min(0, step);
+    const rightFootY = profile ? 18 : 18 - Math.max(0, step);
     rect(ctx, '#121e276f', x + 5, y + 18, 14, 4);
+    rect(ctx, '#293040', x + leftFootX, y + leftFootY, 3, 4);
+    rect(ctx, '#293040', x + rightFootX, y + rightFootY, 3, 4);
+    y -= bob;
     rect(ctx, '#232b35', x + 7, y + 11, 11, 9);
     rect(ctx, '#232b35', x + 6, y + 12, 13, 5);
     rect(ctx, coat, x + 8, y + 11, 9, 6);
     rect(ctx, '#f2cd88', x + 8, y + 16, 9, 1);
-    rect(ctx, '#293040', x + 8, y + 18 + frame, 3, 3);
-    rect(ctx, '#293040', x + 14, y + 19 - frame, 3, 3);
     rect(ctx, hair, x + 7, y + 1, 11, 11);
     rect(ctx, hair, x + 8, y, 9, 12);
     rect(ctx, skin, x + 8, y + 6, 9, 6);
     if (facing === 'up') {
       rect(ctx, hair, x + 8, y + 5, 9, 6);
+    } else if (profile) {
+      const side = facing === 'left' ? -1 : 1;
+      rect(ctx, hair, x + 11 - side * 3, y + 5, 3, 5);
+      rect(ctx, '#2c2b38', x + 12 + side * 3, y + 7, 1, 2);
+      rect(ctx, '#a76059', x + 12 + side * 3, y + 10, 2, 1);
     } else {
-      rect(ctx, '#2c2b38', x + (facing === 'left' ? 8 : 10), y + 7, 1, 2);
-      if (facing !== 'left') rect(ctx, '#2c2b38', x + (facing === 'right' ? 16 : 14), y + 7, 1, 2);
+      rect(ctx, '#2c2b38', x + 10, y + 7, 1, 2);
+      rect(ctx, '#2c2b38', x + 14, y + 7, 1, 2);
       rect(ctx, '#a76059', x + 12, y + 10, 2, 1);
     }
     rect(ctx, coat, x + 8, y + 2, 5, 1);
-    rect(ctx, skin, x + 6, y + 13, 2, 3);
-    rect(ctx, skin, x + 17, y + 13, 2, 3);
+    if (profile) {
+      rect(ctx, skin, x + 11 - step, y + 13, 3, 3);
+    } else {
+      rect(ctx, skin, x + 6, y + 13 - Math.max(0, step), 2, 3);
+      rect(ctx, skin, x + 17, y + 13 + Math.min(0, step), 2, 3);
+    }
   }
   function monster(ctx, p, x, y, foe, large, pulse) {
     const form = foe && foe.form;
@@ -283,11 +301,46 @@
     rect(ctx, color, x + 2, y, 1, 5);
     rect(ctx, color, x, y + 2, 5, 1);
   }
+  function shopStall(ctx, x, y) {
+    const trim = '#452f33';
+    const wood = '#aa6e51';
+    const sun = '#efbc80';
+    rect(ctx, '#14232b83', x + 1, y + 20, 22, 4);
+    rect(ctx, trim, x + 1, y + 4, 3, 17);
+    rect(ctx, trim, x + 20, y + 4, 3, 17);
+    rect(ctx, wood, x + 2, y + 5, 1, 15);
+    rect(ctx, wood, x + 21, y + 5, 1, 15);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(Math.round(x), Math.round(y + 5), 24, 10);
+    ctx.clip();
+    person(ctx, x, y + 6, ['#458882', '#edb98b', '#514050']);
+    ctx.restore();
+    rect(ctx, trim, x, y + 14, 24, 8);
+    rect(ctx, wood, x + 1, y + 15, 22, 5);
+    rect(ctx, sun, x + 1, y + 15, 22, 1);
+    rect(ctx, '#78503d', x + 2, y + 21, 20, 1);
+    rect(ctx, '#c18d65', x + 4, y + 18, 16, 1);
+    rect(ctx, '#80b69e', x + 3, y + 12, 3, 3);
+    rect(ctx, '#d8e6a6', x + 4, y + 11, 1, 1);
+    rect(ctx, '#dc8f74', x + 18, y + 12, 3, 3);
+    rect(ctx, '#ffdf99', x + 19, y + 11, 1, 1);
+    polygon(ctx, trim, [[x,y+4],[x+3,y-1],[x+21,y-1],[x+24,y+4],[x+24,y+8],[x,y+8]]);
+    for (let stripe = 0; stripe < 6; stripe++) {
+      const left = x + stripe * 4;
+      const cloth = stripe % 2 ? sun : '#c67565';
+      rect(ctx, cloth, left + 1, y + 2, 3, 5);
+      rect(ctx, cloth, left + (stripe === 0 ? 3 : 1), y, stripe === 0 || stripe === 5 ? 1 : 3, 2);
+      rect(ctx, stripe % 2 ? '#ca925e' : '#975250', left + 1, y + 6, 3, 1);
+    }
+  }
   function actorSprite(ctx, actor, p, x, y, time) {
     const phase = Math.floor(time * 3 + actor.x + actor.y) % 2;
     const selected = actor.selected || actor.nearby;
     if (selected) rect(ctx, p.bright, x + 4, y + 22, 16, 1);
-    if (actor.kind === 'npc') {
+    if (actor.kind === 'shop') {
+      shopStall(ctx, x, y);
+    } else if (actor.kind === 'npc') {
       const identity = Object.keys(people).find(name => actor.name.startsWith(name));
       const color = people[identity] || characterColors[Math.floor(rand(actor.x, actor.y) * characterColors.length)];
       person(ctx, x, y + 1, color, 'down');
@@ -330,11 +383,13 @@
     const worldHeight = grid.length * size;
     const focusX = player ? (player.x + .5) * size : worldWidth * .5;
     const focusY = player ? (player.y + .5) * size : worldHeight * .5;
-    const cameraX = Math.floor(Math.max(0, Math.min(worldWidth - width, focusX - width * .5)));
-    const cameraY = Math.floor(Math.max(0, Math.min(worldHeight - height, focusY - height * .52)));
-    const firstX = Math.floor(cameraX / size);
-    const firstY = Math.floor(cameraY / size);
-    const lastX = Math.min(worldWidth / size, Math.ceil((cameraX + width) / size));
+    // Track the interpolated position directly, snapping only the final camera
+    // offset to a canvas pixel so scenery stays crisp and edges stay clamped.
+    const cameraX = Math.round(Math.max(0, Math.min(worldWidth - width, focusX - width * .5)));
+    const cameraY = Math.round(Math.max(0, Math.min(worldHeight - height, focusY - height * .52)));
+    const firstX = Math.max(0, Math.floor(cameraX / size) - 1);
+    const firstY = Math.max(0, Math.floor(cameraY / size) - 1);
+    const lastX = Math.min(worldWidth / size, Math.ceil((cameraX + width) / size) + 1);
     const lastY = Math.min(grid.length, Math.ceil((cameraY + height) / size) + 1);
     const units = [...actors, ...(player ? [{...player, kind:'player'}] : [])].sort((a,b) => a.y - b.y);
     rect(ctx, p.dark, 0, 0, width, height);
@@ -356,11 +411,11 @@
         if (grid[y][x] === '#') barrier(ctx, p, x * size - cameraX, y * size - cameraY, rand(x,y,25));
       }
       for (const actor of units) {
-        if (actor.y !== y || actor.x < firstX || actor.x > lastX) continue;
+        if (Math.floor(actor.y) !== y || actor.x < firstX || actor.x >= lastX) continue;
         const x = actor.x * size - cameraX;
         const py = y * size - cameraY;
         if (actor.kind === 'player') {
-          person(ctx, x, py, people.Ari, actor.facing);
+          person(ctx, x, py, people.Ari, actor.facing, actor.stride);
           rect(ctx, p.bright, x + 6, py + 22, 12, 1);
         } else actorSprite(ctx, actor, p, x, py, time);
       }

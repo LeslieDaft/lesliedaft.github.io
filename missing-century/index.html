@@ -7,12 +7,16 @@
   <meta name="description" content="Travel through ten pixel-art role-playing adventures in The Missing Century.">
   <title>The Missing Century · Daft Arcade</title>
   <link rel="icon" href="../favicon.svg">
-  <link rel="stylesheet" href="style.css">
-  <script defer src="chapters.js"></script>
-  <script defer src="visuals.js"></script>
-  <script defer src="battle.js"></script>
+  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="gear.css">
+  <link rel="stylesheet" href="combat.css">
+  <script defer src="chapters.js?v=2"></script>
+  <script defer src="visuals.js?v=2"></script>
+  <script defer src="battle.js?v=2"></script>
   <script defer src="audio.js"></script>
-  <script defer src="game.js"></script>
+  <script defer src="gear.js"></script>
+  <script defer src="gear-menu.js"></script>
+  <script defer src="game.js?v=2"></script>
 <style id="daft-banner-sizes">
 .daft-ad-band{box-sizing:border-box;display:block;clear:both;margin:0;padding:10px 0;background:#101315;color:#a3ada8;text-align:center;border-block:1px solid #303637;font:10px/16px Arial,sans-serif;letter-spacing:1px}
 .daft-ad-label{display:block;margin:0 0 6px}.daft-banner{display:block;width:320px;height:50px;margin:0 auto;background:transparent}
@@ -48,7 +52,7 @@
     <main id="play" hidden>
       <header class="game-head">
         <div><p id="chapter-no" class="eyebrow"></p><h1 id="game-title"></h1></div>
-        <div class="game-actions"><button id="pause" type="button">Menu</button></div>
+        <div class="game-actions"><button id="equipment" type="button">Equipment</button><button id="pause" type="button">Menu</button></div>
       </header>
       <div class="game-body">
         <div class="screen-frame">
@@ -58,7 +62,7 @@
         </div>
         <div class="field-bar">
           <span id="area"></span><span id="objective" aria-live="polite"></span>
-          <span id="nearby" aria-live="polite"></span>
+          <span id="nearby" aria-live="polite"></span><span id="gold"></span><span id="field-notice" role="status"></span>
         </div>
         <div class="controls">
           <div class="dpad" aria-label="Touch movement">
@@ -67,7 +71,7 @@
             <button class="down" data-move="down" aria-label="Move down" type="button">▼</button>
             <button class="right" data-move="right" aria-label="Move right" type="button">▶</button>
           </div>
-          <p class="key-help"><kbd>WASD</kbd> or <kbd>↑ ↓ ← →</kbd> Move <span>·</span> <kbd>E</kbd> or <kbd>Space</kbd> Interact <span>·</span> <kbd>Esc</kbd> Menu</p>
+          <p class="key-help"><kbd>WASD</kbd> or <kbd>↑ ↓ ← →</kbd> Move <span>·</span> <kbd>E</kbd> or <kbd>Space</kbd> Interact <span>·</span> <kbd>I</kbd> Equipment <span>·</span> <kbd>Esc</kbd> Menu</p>
           <button id="interact" class="action-key primary" type="button">Interact</button>
         </div>
       </div>

@@ -2,6 +2,7 @@
   const chapters = window.CHAPTERS;
   const art = window.MissingCenturyArt;
   const sound = window.MissingCenturySound;
+  const gear = window.MissingCenturyGear;
   const byId = (id) => document.getElementById(id);
   const hub = byId('hub');
   const play = byId('play');
@@ -23,15 +24,24 @@
   let field;
   let dialogue;
   let battle;
-  let touchTimer;
-  let movingLast = 0;
+  const stepTime = 118;
+  const held = new Map();
+  let touch = null;
+  let motion = null;
+  let pendingStep = null;
+  let stride = 0;
+  let stopUntil = 0;
+  let noticeTimer;
 
   function readSave() {
     try {
       const saved = JSON.parse(localStorage.getItem(saveName));
-      if (saved && Array.isArray(saved.complete) && saved.fields && typeof saved.fields === 'object') return saved;
+      if (saved && Array.isArray(saved.complete) && saved.fields && typeof saved.fields === 'object') {
+        saved.wallet = gear.create(saved.wallet, saved.complete.length);
+        return saved;
+      }
     } catch {}
-    return {complete:[], fields:{}, keepsakes:{}};
+    return {complete:[], fields:{}, keepsakes:{}, wallet:gear.create()};
   }
 
   function save() {
@@ -111,7 +121,8 @@
     battle = null;
     battleRoot.hidden = true;
     clearOverlay();
-    endTouchMove();
+    releaseMovement(true);
+    showNotice('');
     const requested = new URLSearchParams(location.search).get('game');
     const index = requested === null ? -1 : Number(requested) - 1;
     if (!Number.isInteger(index) || !chapters[index]) {
@@ -119,6 +130,7 @@
       return;
     }
     gameIndex = index;
+    byId('gold').textContent = data.wallet.gold + ' gold';
     document.title = chapters[index].title + ' · The Missing Century';
     hub.hidden = true;
     play.hidden = false;
@@ -152,6 +164,8 @@
     field.x = map().tiles[y].indexOf('@');
     field.y = y;
     field.facing = 'down';
+    releaseMovement(true);
+    stride = 0;
   }
 
   function checkpoint() {
@@ -166,23 +180,34 @@
     });
   }
 
-  function draw(time) {
+  function draw(milliseconds) {
+    const time = reducedMotion.matches ? 0 : milliseconds / 1000;
     if (mode === 'hub') art.cover(byId('cover'), time);
     else if (field && mode !== 'battle') {
+      const progress = motion && !reducedMotion.matches
+        ? Math.min(1, Math.max(0, (milliseconds - motion.start) / stepTime))
+        : 1;
+      const x = motion ? motion.x + (field.x - motion.x) * progress : field.x;
+      const y = motion ? motion.y + (field.y - motion.y) * progress : field.y;
       art.render(world, {
         map:map(), theme:map().theme || chapter().theme,
-        player:{x:field.x,y:field.y,facing:field.facing},
+        player:{x,y,facing:field.facing,stride:motion && !reducedMotion.matches ? stride+progress : undefined},
         actors:actors().map(actor=>({...actor, done:field.flags.includes(actor.key)})), time
       });
     }
   }
 
   let lastDraw = -Infinity;
+  let wasMoving = false;
   function frame(milliseconds) {
-    if (milliseconds - lastDraw > (reducedMotion.matches ? 180 : 39)) {
-      draw(reducedMotion.matches ? 0 : milliseconds / 1000);
+    if (mode === 'field') advanceMovement(milliseconds);
+    const walking = !!motion;
+    const interval = reducedMotion.matches ? 180 : mode === 'hub' ? 55 : 35;
+    if (walking || wasMoving || milliseconds - lastDraw >= interval) {
+      draw(milliseconds);
       lastDraw = milliseconds;
     }
+    wasMoving = walking;
     requestAnimationFrame(frame);
   }
 
@@ -199,7 +224,8 @@
 
   function setMode(next) {
     mode = next;
-    if (next !== 'field') endTouchMove();
+    if (next !== 'field') releaseMovement(true);
+    byId('equipment').disabled = next !== 'field';
     byId('pause').disabled = !['field','pause'].includes(next);
     byId('interact').disabled = !['field','dialogue'].includes(next);
     document.querySelectorAll('[data-move]').forEach(node => { node.disabled = next !== 'field'; });
@@ -210,8 +236,11 @@
     const goal = map().objectives?.find(entry => !field.flags.includes(entry.until));
     byId('objective').textContent = goal?.text || map().objective || 'Find a way forward.';
     const nearest = inReach();
-    const label = nearest && mode === 'field' ? nearest.name : '';
+    const label = nearest && mode === 'field' ? nearest.name + (nearest.kind === 'shop' ? ' · Shop' : '') : '';
     if (byId('nearby').textContent !== label) byId('nearby').textContent = label;
+    const action = nearest?.kind === 'shop' && mode === 'field' ? 'Shop' : 'Interact';
+    if (byId('interact').textContent !== action) byId('interact').textContent = action;
+    byId('gold').textContent = data.wallet.gold + ' gold';
     world.setAttribute('aria-label', map().name + ', position ' + (field.x + 1) + ', ' + (field.y + 1));
   }
 
@@ -363,19 +392,75 @@
     return nearby.find(actor => actor.x === field.x + dx && actor.y === field.y + dy) || nearby[0];
   }
 
-  function walk(direction) {
-    if (mode !== 'field') return;
+  function step(direction, time) {
     const [dx,dy] = moves[direction];
     const x = field.x + dx;
     const y = field.y + dy;
     const target = map().tiles[y]?.[x];
-    const blocker = actors().find(actor => actor.x === x && actor.y === y);
-    field.facing = direction;
-    if (target && !solid.has(target) && !blocker) {
-      field.x = x;
-      field.y = y;
+    const blocker = actors().some(actor => actor.x === x && actor.y === y);
+    if (field.facing !== direction) {
+      field.facing = direction;
+      updateField();
     }
+    if (!target || solid.has(target) || blocker) {
+      stopUntil = time + 52;
+      return;
+    }
+    motion = {x:field.x,y:field.y,start:time};
+    field.x = x;
+    field.y = y;
     updateField();
+  }
+
+  function requestStep(direction) {
+    if (mode !== 'field') return;
+    const time = performance.now();
+    if (motion && !pendingStep && time >= motion.start + stepTime) {
+      motion = null;
+      stride++;
+    }
+    if (motion) pendingStep = direction;
+    else step(direction, time);
+  }
+
+  function advanceMovement(time) {
+    let nextStart = time;
+    if (motion) {
+      if (time < motion.start + stepTime) return;
+      nextStart = Math.max(time - 32, motion.start + stepTime);
+      stride++;
+      motion = null;
+    }
+    const direction = pendingStep || touch?.direction || [...held.values()].at(-1);
+    if (!direction || time < stopUntil && !pendingStep) return;
+    pendingStep = null;
+    step(direction, nextStart);
+  }
+
+  function releaseMovement(interrupted = false) {
+    held.clear();
+    touch = null;
+    pendingStep = null;
+    stopUntil = 0;
+    if (interrupted) motion = null;
+  }
+
+  function showNotice(message) {
+    clearTimeout(noticeTimer);
+    byId('field-notice').textContent = message;
+    if (message) noticeTimer = setTimeout(() => { byId('field-notice').textContent = ''; }, 5200);
+  }
+
+  function openGear(merchant) {
+    if (mode !== 'field') return;
+    setMode(merchant ? 'shop' : 'gear');
+    const panel = element('section');
+    window.MissingCenturyGearMenu.open(panel, {
+      wallet:data.wallet, merchant, chapter:gameIndex+1, close:enterField,
+      save() { checkpoint(); byId('gold').textContent = data.wallet.gold + ' gold'; },
+      play: name => sound.sfx(name)
+    });
+    setOverlay(panel);
   }
 
   function act() {
@@ -383,6 +468,7 @@
     if (mode !== 'field') return;
     const actor = inReach();
     if (!actor) return;
+    if (actor.kind === 'shop') { sound.sfx('talk'); openGear(actor); return; }
     if (actor.requires?.some(key => !field.flags.includes(key))) {
       sound.sfx('error');
       showDialogue([{speaker:actor.name,text:actor.blocked || 'Something nearby must be put right first.'}], enterField);
@@ -425,7 +511,11 @@
     world.hidden = true;
     battleRoot.hidden = false;
     sound.scene(gameIndex === 9 && actor.kind === 'boss' ? 'last' : 'battle');
+    const goldReward = gear.victoryGold(gameIndex + 1, actor.kind === 'boss');
     battle = window.MissingCenturyBattle.start(battleRoot, {
+      gear: gear.total(data.wallet.loadout),
+      gearName: gear.catalog[data.wallet.loadout.weapon]?.name,
+      goldReward,
       chapter:gameIndex + 1, enemy:{name:actor.name, ...actor.foe, boss:actor.kind === 'boss'},
       bonus:field.items.length + (gameIndex === 9 ? Math.min(2, Object.values(data.keepsakes || {}).filter(Boolean).length) : 0),
       sfx: name => sound.sfx(name),
@@ -436,6 +526,8 @@
         battleRoot.hidden = true;
         sound.scene('field');
         if (!won) { showDefeat(actor); return; }
+        data.wallet.gold += goldReward;
+        showNotice('+' + goldReward + ' gold · ' + actor.name + ' defeated');
         if (actor.kind === 'boss') { completeChapter(); return; }
         field.defeated.push(actorId(actor));
         collect(actor);
@@ -475,7 +567,8 @@
       const isFinal = gameIndex === chapters.length - 1;
       const panel = element('section', '', 'ending-panel panel');
       panel.append(element('p', isFinal ? 'Series complete' : 'Game ' + roman[gameIndex] + ' complete', 'eyebrow'),
-        element('h2', isFinal ? 'The century returns.' : chapter().title));
+        element('h2', isFinal ? 'The century returns.' : chapter().title),
+        element('p',data.wallet.gold + ' gold in your purse. Your equipment carries forward.'));
       const actions = element('div', '', 'panel-actions');
       if (!isFinal) actions.append(button('Begin Game ' + roman[gameIndex + 1], () => navigate(gameIndex + 1), 'primary'));
       actions.append(button('Series menu', () => navigate(-1), isFinal ? 'primary' : ''));
@@ -498,25 +591,29 @@
     setOverlay(panel);
   }
 
-  function endTouchMove() {
-    clearInterval(touchTimer);
-    touchTimer = null;
-  }
-
   document.querySelectorAll('[data-move]').forEach(node => {
     node.addEventListener('pointerdown', event => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       event.preventDefault();
       node.setPointerCapture(event.pointerId);
-      endTouchMove();
-      walk(node.dataset.move);
-      touchTimer = setInterval(() => walk(node.dataset.move), 125);
+      touch = {id:event.pointerId,direction:node.dataset.move};
+      requestStep(touch.direction);
     });
-    for (const name of ['pointerup','pointercancel','lostpointercapture']) node.addEventListener(name, endTouchMove);
-    node.addEventListener('click', event => { if (event.detail === 0) walk(node.dataset.move); });
+    for (const name of ['pointerup','pointercancel','lostpointercapture']) {
+      node.addEventListener(name, event => {
+        if (touch?.id === event.pointerId) touch = null;
+      });
+    }
+    node.addEventListener('click', event => { if (event.detail === 0) requestStep(node.dataset.move); });
   });
 
-  window.addEventListener('blur', endTouchMove);
+  window.addEventListener('blur', () => releaseMovement());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseMovement(); });
+  document.addEventListener('keyup', event => {
+    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+    held.delete(key);
+  });
+
   window.addEventListener('popstate', openCurrent);
   byId('series-menu').addEventListener('click', event => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -525,6 +622,7 @@
     navigate(-1);
   });
   byId('pause').addEventListener('click', togglePause);
+  byId('equipment').addEventListener('click', () => openGear());
   byId('interact').addEventListener('click', act);
   byId('sound').addEventListener('click', event => {
     const enabled = sound.toggle();
@@ -534,19 +632,22 @@
   document.addEventListener('keydown', event => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-    if (key === 'Escape' && ['field','pause'].includes(mode)) {
+    if (key === 'Escape' && ['field','pause','shop','gear'].includes(mode)) {
       event.preventDefault();
-      if (!event.repeat) togglePause();
+      if (!event.repeat) {
+        if (mode === 'shop' || mode === 'gear') enterField();
+        else togglePause();
+      }
       return;
     }
     if (mode === 'field' && keys[key]) {
       event.preventDefault();
-      const now = performance.now();
-      if (!event.repeat || now - movingLast >= 82) {
-        walk(keys[key]);
-        movingLast = now;
+      if (!event.repeat && !held.has(key)) {
+        held.set(key,keys[key]);
+        requestStep(keys[key]);
       }
     }
+    if (mode === 'field' && key === 'i' && !event.repeat) openGear();
     const buttonKey = (key === ' ' || key === 'Enter') && event.target instanceof HTMLButtonElement;
     if (['field','dialogue'].includes(mode) && !buttonKey && ['e',' ','Enter'].includes(key)) {
       event.preventDefault();

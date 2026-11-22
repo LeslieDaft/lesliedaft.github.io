@@ -40,6 +40,39 @@
     collapse: { name:'End of Days', cue:'The arena begins to collapse into a single point. Guard or use Spark.', damage:2.35, high:true, interrupt:true },
     fracture: { name:'Fractured Time', cue:'The floor splits into yesterday and tomorrow.', damage:1.2 }
   };
+  Object.assign(moves, {
+    crackedBell:{name:'Cracked Chime',cue:'The warden lowers one shoulder. Guard the chime or interrupt with Spark.',damage:1.75,high:true,interrupt:true},
+    riptide:{name:'Riptide',cue:'The reef pulls back the water. Guard to keep your Focus.',damage:1.65,high:true,interrupt:true,focusLoss:2},
+    briars:{name:'Briar Bloom',cue:'New roots reach for you. Interrupt with Spark to stop it from healing.',damage:1.45,high:true,interrupt:true,heal:true},
+    furnace:{name:'Open Furnace',cue:'Its furnace door opens. Spark can cut off the blast.',damage:2.05,high:true,interrupt:true},
+    squall:{name:'Crosswind',cue:'Clouds spiral around its wings. Guard to steady the party and preserve Focus.',damage:1.8,high:true,interrupt:true,focusLoss:2},
+    whiteout:{name:'Whiteout',cue:'The herald draws a ring in the snow. Use Spark or lose Focus in the whiteout.',damage:1.32,interrupt:true,focusLoss:2},
+    tithe:{name:'The Toll',cue:'The bailiff reaches for your Focus. Guard or knock its hand away with Spark.',damage:1.15,interrupt:true,focusLoss:3},
+    tablet:{name:'Living Tablet',cue:'The custodian shields itself with a tablet. Crosslight can shatter it.',damage:.7,block:true,counter:true},
+    pendulum:{name:'Clockwork Cut',cue:'The keeper starts the clock. Spark can interrupt the blade through your guard.',damage:1.7,high:true,pierce:true,interrupt:true}
+  });
+  const guardianTurns = {
+    1:['crackedBell','ward','heavy'],
+    2:['riptide','pierce','quick'],
+    3:['briars','ash','drain'],
+    4:['furnace','quick','ward'],
+    5:['squall','quick','gale'],
+    6:['whiteout','pierce','heavy'],
+    7:['tithe','counter','pierce'],
+    8:['tablet','charge','ward','heavy'],
+    9:['pendulum','ward','quick']
+  };
+  const guardianLines=[
+    'The warden braces against a crack in the bell above it.',
+    'The Reef Crown coils around the pillar and draws the tide inward.',
+    'White Briar digs its roots into the glass road.',
+    'The outer casing breaks away. There’s a working furnace inside.',
+    'The albatross climbs high enough to pull the clouds with it.',
+    'The herald plants the tip of its blade in the snow.',
+    'The bailiff snaps the ledger shut and demands its toll.',
+    'The custodian lifts a second tablet out of the silt.',
+    'The keeper takes one hand off the last unwritten day and starts the clock.'
+  ];
   const finalTurns = [
     ['age','echo','breath','age'],
     ['rewind','nightmare','shade','echo'],
@@ -47,10 +80,10 @@
   ];
   const finalNames = ['In Its Sleep','The Dreaming Dark','The Eye Opens'];
   const commands = [
-    {id:'strike', title:'Strike', desc:'+2 Focus', cost:0},
+    {id:'strike', title:'Strike', desc:'+2 Focus · pressure', cost:0},
     {id:'spark', title:'Spark', desc:'2 Focus · interrupt', cost:2},
     {id:'mend', title:'Mend', desc:'3 Focus · restore HP', cost:3},
-    {id:'guard', title:'Guard', desc:'+2 Focus · brace', cost:0},
+    {id:'guard', title:'Guard', desc:'+2 Focus · counter a heavy blow', cost:0},
     {id:'combo', title:'Crosslight', desc:'4 Focus · break ward', cost:4},
     {id:'anchor', title:'Anchor', desc:'Remember together', cost:0}
   ];
@@ -61,22 +94,33 @@
   ];
   const capped = (value, min, max) => Math.min(max,Math.max(min,value));
 
-  function create({chapter=1, enemy={}, party=partyNames, bonus=0}={}) {
+  const gearForce = value => value <= 5 ? value : Math.round(5 + 17*(value-5)/(18+value-5));
+
+  function create({chapter=1, enemy={}, party=partyNames, bonus=0, gear={}, gearName=''}={}) {
     const enemies = {...enemy};
     const final = !!enemies.boss && (chapter === 10 || enemies.form === 'final' || enemies.form === 'last');
     const power = capped(Number(enemies.power) || (enemies.boss ? 13 : 9) + Math.floor(chapter/2),5,24);
-    const hp = capped(Number(enemies.hp) || (enemies.boss ? 76+chapter*5 : 34+chapter*4),24,165);
+    const hp = capped(Number(enemies.hp) || (enemies.boss ? 96+chapter*6 : 38+chapter*4),24,175);
     const pattern = patterns[enemies.pattern] || patterns[aliases[enemies.pattern]] || patterns[aliases[enemies.form]] || patterns.rush;
-    const health = 108 + capped(Number(bonus) || 0, 0, 6)*2 + chapter*2;
+    const stat = (id, max) => capped(Math.round(Number(gear?.[id]) || 0),0,max);
+    const stats={attack:stat('attack',100),defense:stat('defense',100),magic:stat('magic',100),
+      hp:stat('hp',100),focus:stat('focus',3),critical:stat('critical',55)};
+    const health = 108 + capped(Number(bonus) || 0, 0, 6)*2 + chapter*2 + stats.hp;
+    const threshold = final ? 6 : enemies.boss ? 5 : 4;
     const state = {
-      chapter, enemy:enemies, party, final, phase:0, turn:0,
-      maxHp:health, hp:health, focus:2, enemyHp:final ? 62 : hp, enemyMaxHp:final ? 62 : hp,
-      intent:null, log:[], status:'playing', effect:'none', hit:0, lastStrike:0, ruins:false
+      chapter, enemy:enemies, party, final, phase:0, turn:0, gear:stats, gearName,
+      maxHp:health, hp:health, focus:2+Math.ceil(stats.focus/2), maxFocus:6+stats.focus,
+      enemyHp:final ? 75 : hp, enemyMaxHp:final ? 75 : hp,
+      intent:null, log:[], status:'playing', effect:'none', hit:0, lastStrike:0, ruins:false,
+      threshold, pressure:0, vulnerable:false, riposte:false, critical:0, surge:false, surgeTurn:0,
+      result:{damage:0,healed:0,lost:0,blocked:false,stagger:false,burst:false,command:''}
     };
     const say = line => { state.log.push(line); if (state.log.length > 5) state.log.shift(); };
     function nextIntent() {
-      const rotation = final ? finalTurns[state.phase] : pattern;
-      const id = rotation[state.turn % rotation.length];
+      const surge = guardianTurns[chapter];
+      const rotation = final ? finalTurns[state.phase] : state.surge && surge ? surge : pattern;
+      const count = !final && state.surge && surge ? state.surgeTurn : state.turn;
+      const id = rotation[count % rotation.length];
       state.intent = {id,...moves[id]};
     }
     function available() {
@@ -84,7 +128,8 @@
         const visible = command.id !== 'anchor' || final && state.phase > 0;
         const local = command.id !== 'anchor' || state.intent.rewind || state.intent.freeze;
         const frozen = state.intent.freeze && command.id !== 'anchor';
-        return {...command, visible, enabled:visible && local && !frozen && state.focus >= command.cost && state.status === 'playing'};
+        const title = command.id === 'strike' && state.riposte ? 'Counterstrike' : command.title;
+        return {...command, title, visible, enabled:visible && local && !frozen && state.focus >= command.cost && state.status === 'playing'};
       });
     }
     function applyCommand(id) {
@@ -92,50 +137,92 @@
       if (!command) return false;
       const guarding = id === 'guard';
       const {intent} = state;
-      let damage = 0;
+      const result = {damage:0,healed:0,lost:0,blocked:false,stagger:false,burst:false,command:id};
+      state.result = result;
       state.focus -= command.cost;
       state.effect = id;
+      let buildup = 0;
+      const attack = gearForce(stats.attack);
+      const magic = gearForce(stats.magic);
       if (id === 'strike') {
-        damage = intent.block ? 7 : 17;
-        say(`Ari strikes for ${damage}.`);
+        result.damage = intent.block ? 8+Math.floor(attack*.38) : 16+attack;
+        buildup = state.riposte ? 2 : 1;
+        if (state.riposte) {
+          result.damage += 9;
+          state.riposte = false;
+          say('Ari follows Bram’s parry with a counterstrike.');
+        }
       }
       if (id === 'spark') {
-        damage = intent.interrupt ? 15 : intent.block ? 6 : 18;
-        say(`Mira casts Spark for ${damage}.`);
+        result.damage = intent.interrupt ? 15+magic : intent.block ? 7+Math.floor(magic*.42) : 17+magic;
+        buildup = intent.interrupt ? 2 : 1;
       }
       if (id === 'mend') {
-        const healed = Math.min(state.maxHp - state.hp, 44);
-        state.hp += healed;
-        say(`Mira restores ${healed} party HP.`);
+        result.healed = Math.min(state.maxHp - state.hp, 42+magic*2);
+        state.hp += result.healed;
+        say(`Mira restores ${result.healed} party HP.`);
       }
-      if (id === 'guard') say('Bram shields the party and builds Focus.');
+      if (guarding) {
+        buildup = intent.high ? 1 : 0;
+        if (intent.high) state.riposte = true;
+        say(intent.high ? 'Bram braces for the blow and sets up a counterstrike.' : 'Bram shields the party and builds Focus.');
+      }
       if (id === 'combo') {
-        damage = intent.block ? 43 : 39;
-        say(`Ari and Mira land Crosslight for ${damage}.`);
+        result.damage = (intent.block ? 43 : 38)+Math.ceil((attack+magic)*.65);
+        buildup = intent.block ? 3 : 2;
       }
       if (id === 'anchor') {
-        damage = 30;
+        result.damage = 30;
         say(intent.freeze
           ? 'Ari hears the bell at Bellmead. Mira feels the spray at the lighthouse. Bram smells copper coal. Their hands move together.'
           : 'The party remembers the bell at Bellmead. The moment holds.');
-        state.focus = Math.min(6,state.focus + 2);
+        state.focus += 2;
       }
-      if (id === 'strike' || guarding) state.focus = Math.min(6,state.focus + 2);
-      state.enemyHp = Math.max(0, state.enemyHp - damage);
-      state.hit = damage;
+      if (id === 'strike' || guarding) state.focus += 2;
+      state.focus = Math.min(state.maxFocus,state.focus);
+      if (result.damage > 0 && id !== 'anchor') {
+        state.critical += 18 + Math.round(stats.critical*.72);
+        if (state.critical >= 100) {
+          state.critical -= 100;
+          result.damage = Math.round(result.damage*1.45);
+          result.burst = true;
+        }
+      }
+      if (result.damage && state.vulnerable) {
+        result.damage += Math.round(result.damage*.3);
+        state.vulnerable = false;
+      }
+      if (result.damage > 0 && id !== 'anchor') {
+        const move = {strike:'Ari strikes',spark:'Mira casts Spark',combo:'Ari and Mira land Crosslight'}[id];
+        say(`${move} for ${result.damage}${result.burst?' — critical!':'.'}`);
+      }
+      state.enemyHp = Math.max(0, state.enemyHp - result.damage);
+      state.hit = result.damage;
+      state.pressure += buildup;
+      if (state.pressure >= state.threshold && !intent.rewind && !intent.freeze && intent.id !== 'age') {
+        state.pressure -= state.threshold;
+        state.vulnerable = true;
+        result.stagger = true;
+        say('The enemy staggers. Its guard is open for the next hit.');
+      } else state.pressure = Math.min(state.threshold,state.pressure);
 
-      const breakAttack = id === 'spark' && intent.interrupt || id === 'combo' && intent.block || id === 'anchor';
+      const breakAttack = result.stagger || id === 'spark' && intent.interrupt || id === 'combo' && intent.block || id === 'anchor';
       const livePhase = final && state.phase < 2;
       const phaseProtected = livePhase && state.turn < (state.phase === 0 ? 2 : 1);
+      if (state.enemyHp === 0 && enemies.boss && !final && !state.surge && guardianTurns[chapter]) {
+        state.enemyHp = Math.ceil(state.enemyMaxHp*.18);
+      }
       if (state.enemyHp === 0 && !phaseProtected) {
         if (livePhase) {
           state.phase += 1;
-          state.enemyMaxHp = [62,78,105][state.phase];
+          state.enemyMaxHp = [75,92,125][state.phase];
           state.enemyHp = state.enemyMaxHp;
           state.focus = Math.max(2,state.focus);
-          state.hp = Math.min(state.maxHp,state.hp+33);
+          state.hp = Math.min(state.maxHp,state.hp+29);
           state.turn = 0;
           state.lastStrike = 0;
+          state.pressure = 0;
+          state.vulnerable = false;
           state.ruins = false;
           state.effect = 'phase';
           say(phaseLines[state.phase]);
@@ -147,19 +234,27 @@
         return true;
       }
       if (breakAttack) {
-        if (id !== 'anchor') say(`${intent.name} is interrupted.`);
+        if (id !== 'anchor' && !result.stagger) say(`${intent.name} is interrupted.`);
+        result.blocked = true;
       } else {
         if (intent.rewind) {
-          const restored = Math.min(state.enemyMaxHp-state.enemyHp,Math.max(18,state.lastStrike+damage));
+          const restored = Math.min(state.enemyMaxHp-state.enemyHp,Math.max(18,state.lastStrike+result.damage));
           state.enemyHp += restored;
           say(`Unmake rewinds the wound. ${restored} enemy HP returns.`);
           state.effect = 'rewind';
         }
-        let lost = Math.round(power * intent.damage * (guarding ? (intent.pierce ? .67 : .23) : 1));
-        if (intent.counter && id === 'strike') lost += 9;
-        state.hp = Math.max(0, state.hp-lost);
-        if (lost) say(`${intent.name} hits the party for ${lost}.`);
-        if (intent.heal) state.enemyHp = Math.min(state.enemyMaxHp, state.enemyHp + Math.floor(lost/2));
+        const incoming = (power+(state.surge ? 2 : 0)) * intent.damage * (guarding ? (intent.pierce ? .67 : .24) : 1);
+        const mitigation = gearForce(stats.defense) * (intent.high || intent.pierce ? .48 : .85);
+        result.lost = Math.max(incoming > 0 ? 1 : 0,Math.round(incoming - Math.min(incoming*.55,mitigation)));
+        if (intent.counter && id === 'strike') result.lost += Math.max(4,9-Math.floor(mitigation));
+        state.hp = Math.max(0, state.hp-result.lost);
+        if (result.lost) say(`${intent.name} hits the party for ${result.lost}.`);
+        if (intent.heal) state.enemyHp = Math.min(state.enemyMaxHp, state.enemyHp + Math.floor(result.lost/1.7));
+        if (intent.focusLoss && !guarding && state.focus>0) {
+          const lost = Math.min(state.focus,intent.focusLoss);
+          state.focus -= lost;
+          say(`The attack drains ${lost} Focus.`);
+        }
         if (intent.id === 'age') {
           state.effect = 'age';
           state.ruins = true;
@@ -170,7 +265,13 @@
         say('The party falls.');
       } else {
         state.turn += 1;
-        state.lastStrike = damage;
+        state.lastStrike = result.damage;
+        if (state.surge) state.surgeTurn += 1;
+        if (!state.final && !state.surge && enemies.boss && state.enemyHp <= state.enemyMaxHp*.49 && guardianTurns[chapter]) {
+          state.surge = true;
+          state.surgeTurn = 0;
+          say(guardianLines[chapter-1]);
+        }
         nextIntent();
       }
       return true;
@@ -186,7 +287,12 @@
     ['#161e2f','#214651','#2e656e','#73978c','#304b58','#25343f','#d1d9c2'],
     ['#181a2c','#302d4d','#553b61','#89768c','#443b5d','#2d2846','#e6b7ba'],
     ['#261c25','#573540','#774a46','#9d7457','#553b42','#3b2a38','#f4c387'],
-    ['#08152a','#1a3d5c','#2e5672','#75a2b1','#26394e','#1c2439','#d5eaed']
+    ['#08152a','#1a3d5c','#2e5672','#75a2b1','#26394e','#1c2439','#d5eaed'],
+    ['#1b293b','#314f70','#63819b','#9fb9c3','#424f68','#35475f','#eff6e1'],
+    ['#2b2030','#4a304a','#70505a','#a97569','#4d3d51','#3b2b42','#ffbb91'],
+    ['#14292c','#264045','#426153','#73876a','#324b45','#273c3c','#cecf81'],
+    ['#241d32','#453456','#735268','#998078','#4c4053','#292a3b','#f1bd85'],
+    ['#110f22','#282444','#483357','#876673','#39314c','#272330','#e0a7b5']
   ];
   const finalPalettes = [
     ['#180e1c','#351d32','#593846','#8b6562','#473040','#2d202f','#f1bb82'],
@@ -219,6 +325,63 @@
     ctx.closePath();
     ctx.fill();
   }
+  function arenaLandmark(ctx,chapter,c,t) {
+    const slow=Math.floor(t/280);
+    if(chapter===1){
+      for(let i=0;i<13;i++){
+        const x=12+i*31, y=72+i*11%23;
+        pixel(ctx,x+5,y,4,28,c[1]);
+        pixel(ctx,x,y,16,11,c[2]);
+        pixel(ctx,x+3,y-4,12,8,c[2]);
+        pixel(ctx,x+8,y-2,8,4,c[3]);
+      }
+    } else if(chapter===2){
+      pixel(ctx,52,55,11,45,c[1]);
+      pixel(ctx,55,61,4,36,c[3]);
+      pixel(ctx,49,52,18,8,c[2]);
+      pixel(ctx,53,54,10,2,c[6]);
+      for(let i=0;i<5;i++) for(let j=0;j<10;j++) pixel(ctx,(j*47+slow+i*12)%384,85+i*3,12,1,c[i%2?3:2]);
+    } else if(chapter===3){
+      for(let i=0;i<8;i++){
+        const x=12+i*53, y=61+i*37%25;
+        poly(ctx,[[x,100],[x+5,y+13],[x+14,y],[x+25,y+17],[x+29,100]],c[1]);
+        poly(ctx,[[x+3,100],[x+14,y],[x+12,y+18],[x+20,100]],c[3]);
+        pixel(ctx,x+13,y+1,2,3,c[6]);
+      }
+    } else if(chapter===4){
+      for(let i=0;i<5;i++){
+        const x=10+i*86;
+        pixel(ctx,x,58,15,44,c[1]);
+        pixel(ctx,x+2,58,2,44,c[3]);
+        pixel(ctx,x-10,54,35,7,c[1]);
+      }
+      for(let i=0;i<15;i++) pixel(ctx,18+i*29,97-(slow+i*9)%25,2,2,c[6]);
+    } else if(chapter===5 || chapter===6){
+      for(let i=0;i<8;i++){
+        const x=(i*59+slow)%410-20, y=41+(i*19)%47;
+        pixel(ctx,x+1,y+5,42,5,c[2]);
+        pixel(ctx,x+6,y+1,27,7,c[3]);
+        pixel(ctx,x+15,y-3,12,8,c[3]);
+      }
+      if(chapter===6) for(let i=0;i<16;i++) pixel(ctx,(i*61+slow)%385,63+(i*7+slow)%38,2,1,c[6]);
+    } else if(chapter===7 || chapter===9){
+      for(let i=0;i<13;i++){
+        const x=i*31+3,y=76-(i*47)%19;
+        pixel(ctx,x,y,20,39,c[1]);
+        pixel(ctx,x+5,y-7,9,12,c[2]);
+        pixel(ctx,x+6,y+11,3,6,c[3]);
+        pixel(ctx,x+14,y+13,3,6,c[6]);
+      }
+    } else if(chapter===8){
+      pixel(ctx,0,34,384,5,c[1]);
+      for(let i=0;i<14;i++){
+        const x=3+i*28;
+        pixel(ctx,x,37,8,55,c[1]);
+        pixel(ctx,x+2,41,2,47,c[3]);
+        pixel(ctx,x+8,55+i*19%19,19,2,c[1]);
+      }
+    }
+  }
   function field(ctx,state,t) {
     const c = state.final ? finalPalettes[state.phase] : battlePalettes[(state.chapter-1) % battlePalettes.length];
     pixel(ctx,0,0,384,152,c[0]);
@@ -245,6 +408,7 @@
       poly(ctx,[[x,108],[x+9,y+19],[x+19,y],[x+31,y+17],[x+53,104]],c[2]);
       poly(ctx,[[x+19,y],[x+22,y+17],[x+32,y+24],[x+46,105],[x+37,106]],c[3]);
     }
+    if(!state.final) arenaLandmark(ctx,state.chapter,c,t);
     if (state.final || [3,6,9].includes(state.chapter)) {
       for (const [x,h] of [[25,38],[51,61],[140,30],[335,55],[365,32]]) {
         const n=state.ruins ? Math.floor(h*.42) : h+((state.final && state.phase===1)?10:0);
@@ -272,13 +436,11 @@
       if (Math.sin(t/500+i)>0) pixel(ctx,x,y,1+(i%3===0),1,c[6]);
     }
   }
-  function hero(ctx,index,x,y,step,state) {
+  function hero(ctx,index,x,y,step,offset=0) {
     const [skin,coat,boot,shine,hair] = heroes[index];
     const bounce = (step+index)%6===0 ? -1:0;
-    const selected = {strike:0,spark:1,mend:1,guard:2,combo:0,anchor:1}[state.effect];
-    const lean = selected === index && step % 8 < 3 ? 4 : 0;
     pixel(ctx,x-6,y-2,27,5,'#171b2b');
-    x += lean;
+    x += offset;
     y += bounce;
     pixel(ctx,x+2,y-18,15,20,'#1b1b2c');
     pixel(ctx,x+4,y-30,14,15,'#212036');
@@ -434,6 +596,65 @@
     if(value!==undefined) node.textContent=value;
     return node;
   }
+  function battleEffects(ctx,state,age,reducedMotion) {
+    const {result, effect}=state;
+    const strength=Math.max(0,1-age/590);
+    const drift=reducedMotion ? 14 : 9+(1-strength)*20;
+    const hit = result.command;
+    const bright = result.burst ? '#ffdd7e' : '#fff3ce';
+    if (!reducedMotion){
+      ctx.save();
+      ctx.globalAlpha=strength;
+      if (effect === 'phase' || effect === 'age' || effect === 'rewind'){
+        pixel(ctx,0,0,384,152,'rgba(201,164,208,.2)');
+        for(let i=0;i<14;i++) pixel(ctx,(i*53+age/6)%384,i*12,35-i,1,'#ebcdeb');
+      } else if (hit==='strike' || hit==='combo'){
+        poly(ctx,[[270,88],[309,47],[318,54],[280,96]],bright);
+        if(hit==='combo') poly(ctx,[[308,95],[266,53],[266,63],[296,91]],'#9cf8d9');
+      } else if (hit==='spark'){
+        ctx.beginPath();
+        ctx.moveTo(97,74);
+        ctx.lineTo(131,54);
+        ctx.lineTo(172,74);
+        ctx.lineTo(207,52);
+        ctx.lineTo(243,66);
+        ctx.lineTo(292,69);
+        ctx.strokeStyle='#7e92ff';
+        ctx.lineWidth=5;
+        ctx.stroke();
+        ctx.strokeStyle='#e3eeff';
+        ctx.lineWidth=2;
+        ctx.stroke();
+      } else if (hit==='guard'){
+        poly(ctx,[[142,84],[154,86],[161,92],[158,112],[143,122],[131,112],[128,94]],'#62b0a8');
+        poly(ctx,[[142,87],[151,90],[157,94],[154,110],[143,117],[135,108],[132,96]],'#204e63');
+        pixel(ctx,140,93,4,17,'#a9eee4');
+      } else if (hit==='mend' || hit==='anchor'){
+        for(let i=0;i<22;i++){
+          const spread=hit==='anchor'?310:112;
+          const x=37+i*39%spread;
+          const y=64+(i*67%57)-drift;
+          const color=hit==='anchor'?'#ffefb3':'#87f9b7';
+          pixel(ctx,x-2,y,5,1,color);
+          pixel(ctx,x,y-2,1,5,color);
+        }
+      }
+      if(result.stagger){for(let i=0;i<8;i++) pixel(ctx,232+i*13,46+(i*17)%38,3,3,'#ffdb88');}
+      ctx.restore();
+    }
+    function label(value,x,y,color) {
+      ctx.font='bold 14px monospace';
+      ctx.textAlign='center';
+      ctx.lineWidth=3;
+      ctx.strokeStyle='#141623';
+      ctx.strokeText(value,x,y);
+      ctx.fillStyle=color;
+      ctx.fillText(value,x,y);
+    }
+    if(result.damage && effect!=='phase') label(`${result.damage}${result.burst?'!':''}`,290,62-drift,bright);
+    if(result.lost) label(`−${result.lost}`,110,73-drift,'#ffaca0');
+    if(result.healed) label(`+${result.healed}`,110,93-drift,'#a6ffc1');
+  }
   function start(root, config) {
     const battle=create(config);
     const {state}=battle;
@@ -443,7 +664,12 @@
     const phase=createNode('span','battle-phase');
     const enemyMeter=createNode('progress','battle-meter');
     enemyMeter.setAttribute('aria-label','Enemy HP');
-    header.append(name,phase,enemyMeter);
+    const guardMeter=createNode('progress','battle-meter guard-meter');
+    guardMeter.setAttribute('aria-label','Enemy stagger');
+    const guardLabel=createNode('span','battle-guard-label');
+    const guardRow=createNode('div','battle-guard');
+    guardRow.append(guardLabel,guardMeter);
+    header.append(name,phase,enemyMeter,guardRow);
     const arena=createNode('div','battle-arena');
     const canvas=createNode('canvas','battle-canvas');
     canvas.width=384;
@@ -459,7 +685,9 @@
     const partyState=createNode('div','battle-party-state');
     const playerMeter=createNode('progress','battle-meter player-meter');
     playerMeter.setAttribute('aria-label','Party HP');
-    party.append(partyList,partyState,playerMeter);
+    const gearLabel=createNode('span','battle-gear',state.gearName);
+    gearLabel.hidden=!state.gearName;
+    party.append(partyList,partyState,playerMeter,gearLabel);
     const log=createNode('p','battle-log');
     log.setAttribute('aria-live','polite');
     status.append(party,log);
@@ -476,10 +704,11 @@
       button.type='button';
       button.dataset.battleAction=action.id;
       button.setAttribute('aria-keyshortcuts',String(i+1));
-      button.append(createNode('span','',action.title),createNode('small','',action.desc));
+      const label=createNode('span','',action.title);
+      button.append(label,createNode('small','',action.desc));
       button.addEventListener('click',()=>act(action.id));
       controls.append(button);
-      return [action.id,button];
+      return [action.id,{button,label}];
     }));
     function refresh() {
       ui.dataset.hp=state.hp;
@@ -489,18 +718,23 @@
       ui.dataset.threat=state.intent.high?'high':'normal';
       ui.dataset.phase=state.final?String(state.phase+1):'';
       ui.dataset.status=state.status;
-      phase.textContent=state.final?finalNames[state.phase]:state.enemy.boss?'Guardian':'Encounter';
+      ui.dataset.vulnerable=state.vulnerable?'true':'false';
+      phase.textContent=state.final?finalNames[state.phase]:state.surge?'Guardian · second wind':state.enemy.boss?'Guardian':'Encounter';
       enemyMeter.max=state.enemyMaxHp;
       enemyMeter.value=state.enemyHp;
       enemyMeter.title=`${state.enemyHp}/${state.enemyMaxHp} enemy HP`;
+      guardMeter.max=state.threshold;
+      guardMeter.value=state.vulnerable?state.threshold:state.pressure;
+      guardLabel.textContent=state.vulnerable?'Guard open':'Stagger';
       playerMeter.max=state.maxHp;
       playerMeter.value=state.hp;
       telegraph.dataset.threat=state.intent.high?'high':'normal';
       telegraph.textContent=state.status==='playing'?state.intent.cue:state.status==='won'?'Victory':'The party needs to recover';
-      partyState.textContent=`${state.hp}/${state.maxHp} HP · ${state.focus}/6 Focus`;
+      partyState.textContent=`${state.hp}/${state.maxHp} HP · ${state.focus}/${state.maxFocus} Focus`;
       log.textContent=state.log.slice(-2).join(' ');
       for(const action of battle.actions()){
-        const button=controlsById.get(action.id);
+        const {button,label}=controlsById.get(action.id);
+        label.textContent=action.title;
         button.hidden=!action.visible;
         button.disabled=!action.enabled;
         button.classList.toggle('primary',action.enabled && (action.id==='anchor' || action.id==='combo'));
@@ -527,28 +761,28 @@
       if(!alive) return;
       const stageTime=state.intent.freeze || reducedMotion ? 0 : t;
       const step=Math.floor(stageTime/110);
-      const effect=state.status==='playing'||state.status==='won';
-      const motion=t-effectAt<320 && effect && !reducedMotion;
+      const age=t-effectAt;
+      const isNew=age>=0 && age<590 && state.result.command;
+      const motion=isNew && !reducedMotion && !state.intent.freeze;
+      const outgoing=motion?Math.sin(Math.PI*Math.min(1,age/415)):0;
+      const {command,lost,damage,stagger}=state.result;
+      const cast=motion && ['spark','combo','mend','anchor'].includes(command)?Math.round(outgoing*10):0;
+      const lunge=motion && ['strike','combo'].includes(command)?Math.round(outgoing*(command==='strike'?50:32)):0;
+      const brace=motion && command==='guard'?Math.round(outgoing*13):0;
+      const recoil=motion && lost && age>225?Math.round(Math.sin((age-225)/25)*Math.max(0,7-(age-225)/50)):0;
+      const flinch=motion && damage?Math.round(Math.sin(age/20)*(stagger?7:4)*Math.max(0,1-age/260)):0;
       context.save();
       field(context,state,stageTime);
-      hero(context,1,73,99,step,state);
-      hero(context,0,115,109,step,state);
-      hero(context,2,61,128,step,state);
+      hero(context,1,73,99,step,cast-recoil);
+      hero(context,0,115,109,step,lunge-recoil);
+      hero(context,2,61,128,step,brace-recoil);
+      context.save();
+      context.translate(flinch,0);
+      if(state.status==='won' && age>260 && !reducedMotion) context.globalAlpha=Math.max(.13,1-(age-260)/420);
       if(state.final) sleepingPower(context,state,stageTime);
       else beast(context,state,step);
-      if(motion && state.hit && ['strike','spark','combo','anchor'].includes(state.effect)){
-        const x=265+((step%3)*4);
-        const tint=state.effect==='spark'?'#b8d3ff':state.effect==='anchor'?'#ffe8b3':'#fef2cc';
-        const flicker=1-(t-effectAt)/320;
-        context.globalAlpha=flicker;
-        poly(context,[[x-19,86],[x+16,51],[x+24,55],[x-10,94]],tint);
-        for(let i=0;i<8;i++) pixel(context,x-18+i*6,55+((i*13)%34),2+i%3,2,tint);
-        context.globalAlpha=1;
-      }
-      if(motion && ['phase','age','rewind'].includes(state.effect)){
-        pixel(context,0,0,384,152,'rgba(180, 154, 199, .16)');
-        for(let i=0;i<10;i++) pixel(context,(i*57+step*7)%384,i*16,22,1,'#e7c7d9');
-      }
+      context.restore();
+      if(isNew) battleEffects(context,state,age,reducedMotion);
       context.restore();
       frame=requestAnimationFrame(draw);
     }

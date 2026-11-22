@@ -1,0 +1,111 @@
+.battle-ui {
+  --battle-line: #5c6a60;
+  --battle-mint: #a4e8ca;
+  --battle-gold: #f6cc86;
+}
+
+.battle-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 12px;
+}
+
+.battle-heading > .battle-meter,
+.battle-guard {
+  grid-column: 1 / -1;
+}
+
+.battle-guard {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  color: #b7c8bf;
+  font: 10px var(--mono, monospace);
+}
+
+.battle-guard-label {
+  white-space: nowrap;
+}
+
+.battle-guard .guard-meter {
+  height: 4px;
+  accent-color: #93b8e0;
+}
+
+[data-vulnerable="true"] .battle-guard {
+  color: var(--battle-gold);
+}
+
+[data-vulnerable="true"] .battle-guard .guard-meter {
+  accent-color: var(--battle-gold);
+}
+
+.battle-party .player-meter {
+  accent-color: var(--battle-mint);
+}
+
+.battle-party-state {
+  color: #e4f2e8;
+  font: 12px var(--mono, monospace);
+}
+
+.battle-gear {
+  display: block;
+  padding-top: 3px;
+  color: var(--battle-gold);
+  font-size: 11px;
+}
+
+.battle-telegraph {
+  margin: 0;
+  min-height: 28px;
+  padding: 5px 8px;
+  background: #16262b;
+  border-left: 2px solid #657c80;
+}
+
+.battle-telegraph[data-threat="high"] {
+  background: #35242b;
+  border-left-color: #eaa28d;
+}
+
+.battle-actions button {
+  min-height: 49px;
+}
+
+.battle-actions button.primary {
+  background: #c3e8b9;
+  color: #172820;
+}
+
+.battle-actions button.primary small {
+  color: #30493d;
+}
+
+.battle-actions button.primary[data-battle-action="anchor"] {
+  background: #fae0ad;
+  color: #2e2022;
+  border-color: #fff1d4;
+  box-shadow: 0 0 13px #fadb8b4d;
+}
+
+[data-intent="freeze"] .battle-arena {
+  border-color: #bcabd4;
+}
+
+@media (max-width: 570px) {
+  #battle:not([hidden]) {
+    position: relative;
+    inset: auto;
+    overflow: visible;
+  }
+
+  .battle-actions button {
+    min-height: 45px;
+  }
+
+  .battle-telegraph {
+    font-size: 12px;
+  }
+}
