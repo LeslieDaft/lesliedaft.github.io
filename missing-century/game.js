@@ -184,9 +184,7 @@
     const time = reducedMotion.matches ? 0 : milliseconds / 1000;
     if (mode === 'hub') art.cover(byId('cover'), time);
     else if (field && mode !== 'battle') {
-      const progress = motion && !reducedMotion.matches
-        ? Math.min(1, Math.max(0, (milliseconds - motion.start) / stepTime))
-        : 1;
+      const progress = motion ? Math.min(1, Math.max(0, (milliseconds - motion.start) / stepTime)) : 1;
       const x = motion ? motion.x + (field.x - motion.x) * progress : field.x;
       const y = motion ? motion.y + (field.y - motion.y) * progress : field.y;
       art.render(world, {
@@ -232,16 +230,23 @@
   }
 
   function updateField() {
-    byId('area').textContent = map().name;
+    const area = byId('area');
+    const name = map().name;
+    if (area.textContent !== name) area.textContent = name;
     const goal = map().objectives?.find(entry => !field.flags.includes(entry.until));
-    byId('objective').textContent = goal?.text || map().objective || 'Find a way forward.';
+    const objective = byId('objective');
+    const objectiveText = goal?.text || map().objective || 'Find a way forward.';
+    if (objective.textContent !== objectiveText) objective.textContent = objectiveText;
     const nearest = inReach();
     const label = nearest && mode === 'field' ? nearest.name + (nearest.kind === 'shop' ? ' · Shop' : '') : '';
     if (byId('nearby').textContent !== label) byId('nearby').textContent = label;
     const action = nearest?.kind === 'shop' && mode === 'field' ? 'Shop' : 'Interact';
     if (byId('interact').textContent !== action) byId('interact').textContent = action;
-    byId('gold').textContent = data.wallet.gold + ' gold';
-    world.setAttribute('aria-label', map().name + ', position ' + (field.x + 1) + ', ' + (field.y + 1));
+    const gold = byId('gold');
+    const goldText = data.wallet.gold + ' gold';
+    if (gold.textContent !== goldText) gold.textContent = goldText;
+    const position = name + ', position ' + (field.x + 1) + ', ' + (field.y + 1);
+    if (world.getAttribute('aria-label') !== position) world.setAttribute('aria-label', position);
   }
 
   function enterField() {
@@ -398,18 +403,19 @@
     const y = field.y + dy;
     const target = map().tiles[y]?.[x];
     const blocker = actors().some(actor => actor.x === x && actor.y === y);
-    if (field.facing !== direction) {
-      field.facing = direction;
-      updateField();
-    }
+    const turning = field.facing !== direction;
+    field.facing = direction;
     if (!target || solid.has(target) || blocker) {
       stopUntil = time + 52;
-      return;
+      if (turning) updateField();
+      return false;
     }
+    stopUntil = 0;
     motion = {x:field.x,y:field.y,start:time};
     field.x = x;
     field.y = y;
     updateField();
+    return true;
   }
 
   function requestStep(direction) {
@@ -424,17 +430,22 @@
   }
 
   function advanceMovement(time) {
+    // Keep held steps on the same clock when a frame arrives late.
     let nextStart = time;
-    if (motion) {
-      if (time < motion.start + stepTime) return;
-      nextStart = Math.max(time - 32, motion.start + stepTime);
-      stride++;
-      motion = null;
+    for (;;) {
+      if (motion) {
+        const arrival = motion.start + stepTime;
+        if (time < arrival) return;
+        motion = null;
+        stride++;
+        // Bound catch-up to two tiles after a very long frame.
+        nextStart = Math.max(time - stepTime * 2, arrival);
+      }
+      const direction = pendingStep || touch?.direction || [...held.values()].at(-1);
+      if (!direction || time < stopUntil && !pendingStep) return;
+      pendingStep = null;
+      if (!step(direction, nextStart)) return;
     }
-    const direction = pendingStep || touch?.direction || [...held.values()].at(-1);
-    if (!direction || time < stopUntil && !pendingStep) return;
-    pendingStep = null;
-    step(direction, nextStart);
   }
 
   function releaseMovement(interrupted = false) {

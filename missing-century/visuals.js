@@ -138,7 +138,7 @@
       }
     }
   }
-  function villageRoofs(ctx, p, grid, cameraX, cameraY, width, height) {
+  function villageRoofs(ctx, p, grid) {
     for (let y = 0; y < grid.length; y++) {
       const row = grid[y];
       const before = grid[y - 1];
@@ -148,13 +148,10 @@
         let depth = 1;
         while (row[x + run] === '+') run++;
         while (grid[y + depth]?.slice(x,x + run) === '+'.repeat(run)) depth++;
-        const px = x * size - cameraX;
-        const py = y * size - cameraY;
-        if (px > width || px + run * size < 0 || py > height || py + depth * size < 0) continue;
         const houses = run >= 6 ? 2 : 1;
         for (let i = 0; i < houses; i++) {
           const piece = Math.floor(run * size / houses);
-          house(ctx, p, px + i * piece, py, piece, depth * size, (i + x + y) % 2 === 0, rand(x,y));
+          house(ctx, p, x * size + i * piece, y * size, piece, depth * size, (i + x + y) % 2 === 0, rand(x,y));
         }
       }
     }
@@ -166,8 +163,12 @@
     rect(ctx, p.stone, x + 17, y + 6, 2, 15);
     rect(ctx, p.bright, x + 11, y + 5, 2, 5);
   }
-  function terrain(ctx, tile, p, x, y, mapX, mapY, time) {
+  function terrain(ctx, tile, p, x, y, mapX, mapY) {
     const n = rand(mapX, mapY, 34);
+    if (tile === '~') {
+      rect(ctx, p.water, x, y, size, size);
+      return;
+    }
     rect(ctx, p.floor, x, y, size, size);
     if (n < .45) {
       rect(ctx, p.patch, x + 9, y + 3, 10, 3);
@@ -191,13 +192,6 @@
         if (n > .25) rect(ctx, p.bright, x + 16, y + 4, 2, 1);
       }
     }
-    if (tile === '~') {
-      rect(ctx, p.water, x, y, size, size);
-      const slide = Math.floor(time / .37 + n * 8) % 6;
-      rect(ctx, p.shade, x + 2 + slide, y + 12, 12, 1);
-      rect(ctx, p.ripple, x + 4 + slide, y + 5, 6, 1);
-      if (n > .4) rect(ctx, p.ripple, x + 14 - slide, y + 18, 6, 1);
-    }
     if (tile === ',' || tile === '*' || n > .76 && (tile === '.' || tile === '@')) {
       grass(ctx, p, x + 5, y + 12);
       if (n > .24) grass(ctx, p, x + 15, y + 6);
@@ -215,6 +209,69 @@
     else if (p === themes.water || p === themes.ember || p === themes.dusk || p === themes.void || p === themes.sky) wall(ctx, p, x, y, n);
     else tree(ctx, p, x, y, n > .5 ? 1 : 0);
   }
+  function surface(width, height) {
+    if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(width, height);
+    const layer = document.createElement('canvas');
+    layer.width = width;
+    layer.height = height;
+    return layer;
+  }
+
+  const mapLayers = new WeakMap();
+  const barrierPadding = 5;
+  function layersFor(canvas, grid, p) {
+    const previous = mapLayers.get(canvas);
+    if (previous?.grid === grid && previous.p === p) return previous;
+
+    const columns = Math.max(...grid.map(row => row.length));
+    const width = columns * size;
+    const height = grid.length * size;
+    const floor = surface(width, height);
+    const floorCtx = floor.getContext('2d');
+    const barriers = [];
+    const water = [];
+    for (let y = 0; y < grid.length; y++) {
+      let barrierCtx;
+      for (let x = 0; x < columns; x++) {
+        const tile = grid[y][x] || '#';
+        const px = x * size;
+        const py = y * size;
+        terrain(floorCtx, tile, p, px, py, x, y);
+        if (tile === '~') {
+          if (grid[y - 1]?.[x] && grid[y - 1][x] !== '~' && grid[y - 1][x] !== '=') rect(floorCtx, p.ripple, px, py, size, 1);
+          if (grid[y][x - 1] && grid[y][x - 1] !== '~' && grid[y][x - 1] !== '=') rect(floorCtx, p.ripple, px, py, 1, size);
+          water.push({x:px, y:py, variation:rand(x,y,34)});
+        }
+        if (grid[y][x] === '#') {
+          if (!barrierCtx) {
+            barriers[y] = surface(width, size + barrierPadding * 2);
+            barrierCtx = barriers[y].getContext('2d');
+          }
+          barrier(barrierCtx, p, px, barrierPadding, rand(x,y,25));
+        }
+      }
+    }
+    if (isVillage(p)) villageRoofs(floorCtx, p, grid);
+    const ripples = water.length ? surface(width, height) : null;
+    const layers = {grid, p, width, height, floor, barriers, water, ripples, rippleTime:-1};
+    mapLayers.set(canvas, layers);
+    return layers;
+  }
+
+  function updateRipples(layers, time) {
+    const frame = Math.floor(time * 12);
+    if (!layers.ripples || layers.rippleTime === frame) return;
+    layers.rippleTime = frame;
+    const ctx = layers.ripples.getContext('2d');
+    const {p} = layers;
+    ctx.clearRect(0, 0, layers.width, layers.height);
+    for (const {x, y, variation} of layers.water) {
+      const slide = Math.floor(frame / (12 * .37) + variation * 8) % 6;
+      rect(ctx, p.shade, x + 2 + slide, y + 12, 12, 1);
+      rect(ctx, p.ripple, x + 4 + slide, y + 5, 6, 1);
+      if (variation > .4) rect(ctx, p.ripple, x + 14 - slide, y + 18, 6, 1);
+    }
+  }
   const people = {
     Ari: ['#c96f52', '#f6c287', '#684238'],
     Mira: ['#519d94', '#f1bca0', '#5f394f'],
@@ -229,8 +286,8 @@
     const [coat, skin, hair] = color;
     const swing = Number.isFinite(stride) ? Math.sin(stride * Math.PI) : 0;
     const step = Math.round(swing * 2);
-    const bob = Math.abs(step) === 2 ? 1 : 0;
     const profile = facing === 'left' || facing === 'right';
+    const bob = profile && Math.abs(step) === 2 ? 1 : 0;
     const leftFootX = profile ? 9 + step : 8;
     const rightFootX = profile ? 13 - step : 14;
     const leftFootY = profile ? 18 : 18 + Math.min(0, step);
@@ -379,12 +436,11 @@
     const {width, height} = canvas;
     const grid = map.tiles;
     const p = themeFor(theme);
-    const worldWidth = Math.max(...grid.map(row => row.length)) * size;
-    const worldHeight = grid.length * size;
-    const focusX = player ? (player.x + .5) * size : worldWidth * .5;
-    const focusY = player ? (player.y + .5) * size : worldHeight * .5;
-    // Track the interpolated position directly, snapping only the final camera
-    // offset to a canvas pixel so scenery stays crisp and edges stay clamped.
+    const layers = layersFor(canvas, grid, p);
+    const {width:worldWidth, height:worldHeight} = layers;
+    // Camera and sprites share a pixel grid so the hero stays steady while tracked.
+    const focusX = player ? Math.round(player.x * size) + size / 2 : worldWidth / 2;
+    const focusY = player ? Math.round(player.y * size) + size / 2 : worldHeight / 2;
     const cameraX = Math.round(Math.max(0, Math.min(worldWidth - width, focusX - width * .5)));
     const cameraY = Math.round(Math.max(0, Math.min(worldHeight - height, focusY - height * .52)));
     const firstX = Math.max(0, Math.floor(cameraX / size) - 1);
@@ -392,28 +448,18 @@
     const lastX = Math.min(worldWidth / size, Math.ceil((cameraX + width) / size) + 1);
     const lastY = Math.min(grid.length, Math.ceil((cameraY + height) / size) + 1);
     const units = [...actors, ...(player ? [{...player, kind:'player'}] : [])].sort((a,b) => a.y - b.y);
-    rect(ctx, p.dark, 0, 0, width, height);
-    for (let y = firstY; y < lastY; y++) {
-      for (let x = firstX; x < lastX; x++) {
-        const tile = grid[y][x] || '#';
-        const px = x * size - cameraX;
-        const py = y * size - cameraY;
-        terrain(ctx, tile, p, px, py, x, y, time);
-        if (tile === '~') {
-          if (grid[y-1]?.[x] && grid[y-1][x] !== '~' && grid[y-1][x] !== '=') rect(ctx, p.ripple, px, py, size, 1);
-          if (grid[y]?.[x-1] && grid[y][x-1] !== '~' && grid[y][x-1] !== '=') rect(ctx, p.ripple, px, py, 1, size);
-        }
-      }
+    if (width > worldWidth || height > worldHeight) rect(ctx, p.dark, 0, 0, width, height);
+    ctx.drawImage(layers.floor, -cameraX, -cameraY);
+    if (layers.ripples) {
+      updateRipples(layers, time);
+      ctx.drawImage(layers.ripples, -cameraX, -cameraY);
     }
-    if (isVillage(p)) villageRoofs(ctx, p, grid, cameraX, cameraY, width, height);
     for (let y = firstY; y < lastY; y++) {
-      for (let x = firstX; x < lastX; x++) {
-        if (grid[y][x] === '#') barrier(ctx, p, x * size - cameraX, y * size - cameraY, rand(x,y,25));
-      }
+      if (layers.barriers[y]) ctx.drawImage(layers.barriers[y], -cameraX, y * size - cameraY - barrierPadding);
       for (const actor of units) {
         if (Math.floor(actor.y) !== y || actor.x < firstX || actor.x >= lastX) continue;
-        const x = actor.x * size - cameraX;
-        const py = y * size - cameraY;
+        const x = Math.round(actor.x * size) - cameraX;
+        const py = Math.round(actor.y * size) - cameraY;
         if (actor.kind === 'player') {
           person(ctx, x, py, people.Ari, actor.facing, actor.stride);
           rect(ctx, p.bright, x + 6, py + 22, 12, 1);
