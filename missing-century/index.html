@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101a1c">
+  <meta name="description" content="Travel through ten pixel-art role-playing adventures in The Missing Century.">
+  <title>The Missing Century · Daft Arcade</title>
+  <link rel="icon" href="../favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="chapters.js"></script>
+  <script defer src="visuals.js"></script>
+  <script defer src="battle.js"></script>
+  <script defer src="audio.js"></script>
+  <script defer src="game.js"></script>
+<style id="daft-banner-sizes">
+.daft-ad-band{box-sizing:border-box;display:block;clear:both;margin:0;padding:10px 0;background:#101315;color:#a3ada8;text-align:center;border-block:1px solid #303637;font:10px/16px Arial,sans-serif;letter-spacing:1px}
+.daft-ad-label{display:block;margin:0 0 6px}.daft-banner{display:block;width:320px;height:50px;margin:0 auto;background:transparent}
+@media(min-width:500px){.daft-banner{width:468px;height:60px}}
+@media(min-width:800px){.daft-banner{width:728px;height:90px}}
+@media(max-width:339px){.daft-ad-band{display:none}.daft-banner{display:none}}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3739385001345239" crossorigin="anonymous"></script>
+<script defer src="../ads/banners.js"></script>
+</head>
+<body>
+  <aside class="daft-ad-band" aria-label="Advertisement"><span class="daft-ad-label">ADVERTISEMENT</span><ins class="adsbygoogle daft-banner" data-ad-client="ca-pub-3739385001345239" data-ad-slot="8097159972"></ins></aside>
+  <div class="shell">
+    <header class="site-head">
+      <a class="brand" href="../"><span class="brand-mark" aria-hidden="true">◈</span> Daft Arcade</a>
+      <div class="head-actions"><a id="series-menu" href="./" hidden>Series menu</a><button id="sound" type="button" aria-pressed="false">Sound off</button></div>
+    </header>
+
+    <main id="hub">
+      <section class="hero" aria-labelledby="series-title">
+        <div class="hero-art"><canvas id="cover" width="480" height="240" aria-hidden="true"></canvas></div>
+        <div class="hero-copy">
+          <p class="eyebrow">A ten-game role-playing saga</p>
+          <h1 id="series-title">The Missing<br><em>Century</em></h1>
+          <p class="lede">Every history book skips the same hundred years. At the Bellmead festival, you find a photograph that puts you in the middle of them.</p>
+          <div class="hero-actions"><button id="begin" class="primary" type="button">Begin Game 1</button><a href="#chapters">Browse the series</a></div>
+        </div>
+      </section>
+      <div class="ledger-head"><h2>The ten games</h2><span id="series-progress"></span></div>
+      <div id="chapters" class="chapter-grid"></div>
+    </main>
+
+    <main id="play" hidden>
+      <header class="game-head">
+        <div><p id="chapter-no" class="eyebrow"></p><h1 id="game-title"></h1></div>
+        <div class="game-actions"><button id="pause" type="button">Menu</button></div>
+      </header>
+      <div class="game-body">
+        <div class="screen-frame">
+          <canvas id="world" width="384" height="216" role="img" aria-label="Overworld map"></canvas>
+          <div id="battle" hidden></div>
+          <div id="overlay" class="overlay" hidden></div>
+        </div>
+        <div class="field-bar">
+          <span id="area"></span><span id="objective" aria-live="polite"></span>
+          <span id="nearby" aria-live="polite"></span>
+        </div>
+        <div class="controls">
+          <div class="dpad" aria-label="Touch movement">
+            <button class="up" data-move="up" aria-label="Move up" type="button">▲</button>
+            <button class="left" data-move="left" aria-label="Move left" type="button">◀</button>
+            <button class="down" data-move="down" aria-label="Move down" type="button">▼</button>
+            <button class="right" data-move="right" aria-label="Move right" type="button">▶</button>
+          </div>
+          <p class="key-help"><kbd>WASD</kbd> or <kbd>↑ ↓ ← →</kbd> Move <span>·</span> <kbd>E</kbd> or <kbd>Space</kbd> Interact <span>·</span> <kbd>Esc</kbd> Menu</p>
+          <button id="interact" class="action-key primary" type="button">Interact</button>
+        </div>
+      </div>
+    </main>
+    <noscript>This game requires JavaScript.</noscript>
+  </div>
+  <aside class="daft-ad-band" aria-label="Advertisement"><span class="daft-ad-label">ADVERTISEMENT</span><ins class="adsbygoogle daft-banner" data-ad-client="ca-pub-3739385001345239" data-ad-slot="7846798403"></ins></aside>
+  <footer style="text-align:center;padding:16px;font-size:13px"><a href="../privacy.html">Privacy Policy</a> · <a href="../feedback.html">Feedback</a></footer>
+</body>
+</html>
