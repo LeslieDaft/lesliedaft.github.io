@@ -92,7 +92,7 @@ function connectRoom(host){
   seat=host?0:1;
   roomReady=false;
   revision=0;
-  const roomId='daft-checkerboard-football-v2-'+code;
+  const roomId='daft-checkerboard-football-v3-'+code;
   const current=new Peer(host?roomId:undefined);
   peer=current;
   get('roomCode').value=code;
@@ -243,9 +243,9 @@ function moves(p,kind=mode){
   });
 }
 function specialMoves(){
-  if(phase!=='play' || mode!=='move' || !ball || selected!==ball ||
+  if(phase!=='play' || !['move','juke','hurdle'].includes(mode) || !ball || selected!==ball ||
     ball.role!=='RB' || ball.team!==turn || turn!==offense) return [];
-  return ['hurdle','juke'].flatMap(kind=>moves(ball,kind).map(square=>({...square,kind})));
+  return (mode==='move'?['hurdle','juke']:[mode]).flatMap(kind=>moves(ball,kind).map(square=>({...square,kind})));
 }
 function boardPlay(x,y){
   const special=specialMoves().find(move=>move.x===x && move.y===y);
@@ -535,8 +535,12 @@ function render(){
   board.replaceChildren();
   const highlights=moves(selected);
   const specials=specialMoves();
-  get('moveHelp').hidden=blocked || aiTurn || !specials.length;
-  get('moveHelp').textContent='Tap a labeled square for a 50/50 move. Tails leaves the RB in place and ends your turn.';
+  const rbTurn=phase==='play' && turn===offense && ball?.role==='RB';
+  get('moveHelp').hidden=blocked || aiTurn || !rbTurn;
+  get('moveHelp').textContent=specials.length
+    ? 'Tap a labeled square to flip the coin. Tails leaves the RB in place and ends the turn.'
+    : 'Juke needs an empty square to the RB’s left. Hurdle needs an adjacent defender and an empty square just beyond.';
+
 
   get('white').textContent='White '+score[0];
   get('black').textContent='Black '+score[1];
@@ -629,6 +633,16 @@ function render(){
       action(mode==='pass'?'Cancel pass':'Forward pass',()=>{
         selected=ball;mode=mode==='pass'?'move':'pass';render();
       });
+    }
+    if(rbTurn){
+      for(const kind of ['juke','hurdle']){
+        const label=kind==='juke'?'Juke':'Hurdle';
+        action(mode===kind?'Cancel '+label:label,()=>{
+          selected=ball;
+          mode=mode===kind?'move':kind;
+          render();
+        },!moves(ball,kind).length);
+      }
     }
     const juke=specials.find(move=>move.kind==='juke');
     if(juke && highlights.some(move=>move.x===juke.x && move.y===juke.y)){
