@@ -5,6 +5,7 @@
 *{box-sizing:border-box}body{margin:0;background:#101b17;color:#fff5da;font:16px system-ui}main{max-width:960px;margin:auto;padding:20px}h1{font-size:clamp(28px,6vw,52px);letter-spacing:-.055em;margin:0 0 12px}.score{display:flex;justify-content:space-between;gap:10px;background:#21342d;padding:12px 16px;border-radius:10px;font-weight:800}.layout{display:grid;grid-template-columns:minmax(0,560px) 1fr;gap:18px;margin-top:14px}.field{display:grid;grid-template-columns:repeat(8,1fr);border:3px solid #829985;border-radius:8px;overflow:hidden}.cell{position:relative;aspect-ratio:1;padding:0;border:1px solid #ffffff13;background:#355e49;color:white;display:grid;place-items:center}.dark{background:#2b503d}.end{background:#354960}.end.dark{background:#2b3c51}.line{border-bottom:3px solid #e3cb8b}.token{width:83%;height:83%;display:grid;place-items:center;border-radius:50%;background:#f3e8cb;color:#202722;border:3px double #a99a78;font-size:clamp(9px,2.7vw,15px);font-weight:900;box-shadow:0 3px 4px #0007}.black{background:#252c35;color:#fff;border-color:#9aa9bb}.ball{box-shadow:0 0 0 2px #ffcc60}.ball::after{content:'🏈';position:absolute;bottom:4%;right:3%;font-size:clamp(11px,3vw,19px)}.selected{outline:3px solid #ffe18b;outline-offset:-3px}.legal::after{content:'';position:absolute;inset:10%;border:2px dashed #ffde80;border-radius:8px;pointer-events:none}.row{position:absolute;top:2px;left:2px;font-size:9px;color:#fff9;pointer-events:none}aside{background:#1b2c25;padding:14px;border-radius:10px}#status{min-height:44px;margin:0 0 10px;font-weight:700}button,select{font:inherit}button{cursor:pointer}button:focus-visible{outline:3px solid #fff}#actions{display:flex;gap:7px;flex-wrap:wrap}#actions button,#kick,#new{background:#e5c77d;color:#202417;border:0;border-radius:6px;padding:8px 11px;font-weight:800}button:disabled{opacity:.45;cursor:default}.field button:disabled{opacity:1}details{margin-top:14px;color:#e0e9dd}summary{cursor:pointer}p{line-height:1.4}.meter{height:34px;position:relative;background:#324a3e;border-radius:5px;margin:12px 0;overflow:hidden}.target{position:absolute;height:100%;background:#6fbc7f}.arrow{position:absolute;top:1px;transform:translateX(-50%);font-size:21px;color:#fff}label{display:inline-flex;flex-direction:column;align-items:center;gap:4px}select{background:#f3e8cb;color:#202722;border-radius:5px;padding:4px}#setup{margin:0 0 10px}#formation{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}#kickbox[hidden],#setup[hidden]{display:none}@media(max-width:720px){.layout{grid-template-columns:1fr;gap:10px}main{max-width:560px;padding:12px}}
 .special{box-shadow:inset 0 0 0 2px #78dcf0}.special::after{content:none}.move-label{color:#c5f6ff;font-size:clamp(7px,1.7vw,14px);font-weight:900;pointer-events:none}.move-help{font-size:.9rem;color:#c5f6ff;margin:8px 0}
 #coinFlip{display:grid;justify-items:center;gap:6px;margin:12px 0;color:#fff1bc}#coinFlip[hidden]{display:none}.coin-disc{display:grid;place-items:center;width:64px;height:64px;border:4px double #ffedaa;border-radius:50%;background:#c49439;color:#241a0a;font-size:28px;font-weight:900;animation:coin-spin .65s ease-out}.coin-disc span,#coinLabel{animation:coin-reveal .65s step-end}@keyframes coin-spin{from{transform:translateY(-8px) rotateY(0)}to{transform:translateY(0) rotateY(1080deg)}}@keyframes coin-reveal{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.coin-disc,.coin-disc span,#coinLabel{animation:none}}
+#aiProfiles{margin:12px 0;background:#21342d;padding:12px 14px;border-radius:10px}.profile-controls{display:flex;flex-wrap:wrap;align-items:end;gap:8px}.profile-controls label{align-items:start}.profile-controls select,.profile-controls input,.profile-controls button{min-height:34px}.profile-controls input{width:14ch;font:inherit}.profile-controls button{border:0;border-radius:6px;padding:6px 9px;background:#e5c77d;color:#202417;font-weight:700}#aiProfiles p{margin:6px 0 0;font-size:.9rem}
 </style>
 <main>
 <a href="../" style="color:inherit">← Daft Arcade</a>
@@ -15,7 +16,17 @@
   <button id="join">Join room</button>
   <p id="network" role="status">Create a room or enter a friend's code.</p>
 </div>
-<p id="learning" hidden></p>
+<section id="aiProfiles" hidden aria-label="Adaptive AI profiles">
+  <div class="profile-controls">
+    <label>AI profile <select id="profileSelect"></select></label>
+    <label>Learning <select id="profileMode"><option value="train">Keep training</option><option value="frozen">Frozen</option></select></label>
+    <label>Profile name <input id="profileName" maxlength="40" placeholder="Name your AI"></label>
+    <button type="button" id="profileSave">Save as new AI</button>
+    <button type="button" id="profileRename">Rename current AI</button>
+    <button type="button" id="profileRestart" hidden>New match</button>
+  </div>
+  <p id="learning"></p><p id="profileStatus" role="status"></p>
+</section>
 <div class="score"><span id="white"></span><span id="drive"></span><span id="black"></span></div>
 <div class="layout"><div id="board" class="field" aria-label="Football checkerboard"></div><aside>
 <p id="status" aria-live="polite"></p>
@@ -23,7 +34,7 @@
 <p id="moveHelp" class="move-help" hidden></p><div id="coinFlip" hidden><div class="coin-disc" aria-hidden="true"><span id="coinFace"></span></div><strong id="coinLabel"></strong></div><div id="actions"></div>
 <div id="kickbox" hidden><div class="meter"><div class="target" id="target"></div><span class="arrow" id="arrow">▼</span></div><button id="kick">Kick</button></div>
 <details><summary>How to play</summary>
-<p>Choose Computer, Adaptive AI, Pass & Play on one device, or Online room for two devices. Adaptive AI learns which lanes give up gains and touchdowns, which defensive moves get stops, and which of its own offensive calls work during the match. The computer picks its own lineup and positions before each down. During setup, the offense places its line, the defense places five checkers, then they alternate one checker at a time. Choose a checker and tap a highlighted square. Pick RB, TE, or WR as you place each of your five skill players. Up to three RBs use rows 1–2 and must leave the square directly in front of the QB open, WRs use rows 3–4, and up to three TEs use row 4. The five offensive linemen are placed together. The QB starts in one of the three squares directly behind the center. Choose DL, LB, CB, or S as you place each defender. Field 3–5 defensive linemen, who are placed individually, from one square outside either tackle inward. Both lines start at the line of scrimmage. Select a checker, then a highlighted square. Pieces move like chess queens. Opposing pieces that collide without the ball are both removed. WRs can make or take contact until they cross the line of scrimmage. A WR carrying the ball can always be tackled. Choose a preset or Same formation to place checkers automatically on your setup turns.</p>
+<p>Choose Computer, Adaptive AI, Pass & Play on one device, or Online room for two devices. Adaptive AI learns which lanes give up gains and touchdowns, which defensive moves get stops, and which of its own offensive calls work across matches in this browser. You can save named copies or play a frozen profile. The computer picks its own lineup and positions before each down. During setup, the offense places its line, the defense places five checkers, then they alternate one checker at a time. Choose a checker and tap a highlighted square. Pick RB, TE, or WR as you place each of your five skill players. Up to three RBs use rows 1–2 and must leave the square directly in front of the QB open, WRs use rows 3–4, and up to three TEs use row 4. The five offensive linemen are placed together. The QB starts in one of the three squares directly behind the center. Choose DL, LB, CB, or S as you place each defender. Field 3–5 defensive linemen, who are placed individually, from one square outside either tackle inward. Both lines start at the line of scrimmage. Select a checker, then a highlighted square. Pieces move like chess queens. Opposing pieces that collide without the ball are both removed. WRs can make or take contact until they cross the line of scrimmage. A WR carrying the ball can always be tackled. Choose a preset or Same formation to place checkers automatically on your setup turns.</p>
 <p>On the snap turn, the QB can keep the ball and end the turn, or hand off, pitch, or throw a screen to an RB who can run immediately. Touching squares, including diagonals, count as a handoff. A gap of one or two squares is a pitch. A larger gap is a screen pass. For a regular forward pass, select Forward pass, then tap a highlighted WR, TE or RB downfield. You get one forward pass per play. Heads completes the pass and the receiver can run immediately. Tails ends the down. A lateral goes sideways or backward to a teammate. You get one lateral per turn. Heads lets the recipient run immediately. Tails is a dropped lateral and ends the down.</p>
 <p>An RB with the ball can run through one teammate. A juke moves one square to the offense’s left and a hurdle jumps an adjacent opponent into the next square. Run the ball-carrying RB next to a defender and tap a labeled landing square. Juke and hurdle share one attempt per down. Heads lets you keep running. Tails leaves the RB in place and ends the turn.</p>
 <p>Reach row 8 on one play. A tackle ends the down and brings all pieces back. You can adjust formations before every down. On fourth down you can kick instead. A touchdown is 6, a field goal is 3, and an extra point is 1. Press Kick or Space when the arrow is in the green. Each team gets four possessions, with extra pairs if tied.</p>
@@ -43,27 +54,160 @@ let pieces = [], offense = 0, turn = 0, down = 1, phase = 'setup', setupTeam = 0
 let coin=null, lateraled=false, rbMoveUsed=false;
 let selected = null, ball = null, passed = false, opening = false, catchRun = false, rbStage = 0, mode = 'move', message = '';
 let kickStart = 0, kickType = '', kickFrame = 0, possessions = 0;
-const tendencies={calls:{}, lanes:Array(8).fill(0), samples:0};
 const laneStats=()=>({attempts:0,gain:0,td:0,stops:0});
-const defenseLanes=Array.from({length:8},laneStats);
-const offenseLanes=Array.from({length:8},laneStats);
-const humanFront=Array(8).fill(0);
-const playResults={}, defensiveMoves={}, defensiveFronts={};
-let trial=null, activeCall=null, defensiveMove=null, defensiveTurnGain=0;
+function emptyLearning(){
+  return {
+    tendencies:{calls:{},lanes:Array(8).fill(0),samples:0},
+    defenseLanes:Array.from({length:8},laneStats),
+    offenseLanes:Array.from({length:8},laneStats),
+    humanFront:Array(8).fill(0),playResults:{},defensiveMoves:{},defensiveFronts:{}
+  };
+}
+const profileKey='daft-checkerboard-football-adaptive-v1';
 const adaptive=()=>gameMode==='Adaptive AI';
-const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
-function beginTrial(){
-  if(!adaptive()) return;
-  trial={visited:new Set(),peak:0,front:pieces.filter(p=>p.role==='DL').length};
+const training=()=>adaptive() && !frozen;
+const canSwitchProfile=()=>phase==='setup' && possessions===0 && !betweenDowns && !pieces.length;
+let profiles=readProfiles();
+let profileId=profiles.current;
+let frozen=profiles.frozen;
+let learningDirty=false, profileNotice='';
+let tendencies,defenseLanes,offenseLanes,humanFront,playResults,defensiveMoves,defensiveFronts;
+let trial=null,activeCall=null,defensiveMove=null;
+loadProfile();
+if(profiles.resumeAdaptive) gameMode='Adaptive AI';
+function readProfiles(){
+  try{
+    const data=JSON.parse(localStorage.getItem(profileKey));
+    if(data?.items?.default){
+      if(!Object.hasOwn(data.items,data.current)) data.current='default';
+      return data;
+    }
+  }catch{}
+  return {current:'default',frozen:false,resumeAdaptive:false,items:{
+    default:{name:'My Adaptive AI',data:emptyLearning(),revision:0}
+  }};
+}
+function currentLearning(){
+  return {tendencies,defenseLanes,offenseLanes,humanFront,playResults,defensiveMoves,defensiveFronts};
+}
+function loadProfile(){
+  ({tendencies,defenseLanes,offenseLanes,humanFront,playResults,defensiveMoves,defensiveFronts}=
+    structuredClone(profiles.items[profileId].data));
+  learningDirty=false;
+  trial=null;
   activeCall=null;
   defensiveMove=null;
-  defensiveTurnGain=0;
+}
+function writeProfiles(next){
+  try{
+    localStorage.setItem(profileKey,JSON.stringify(next));
+    profiles=next;
+    return true;
+  }catch{
+    profileNotice='Browser storage is unavailable or full. New learning could not be saved.';
+    return false;
+  }
+}
+function saveLearning(){
+  if(!learningDirty) return;
+  const next=readProfiles();
+  const current=profiles.items[profileId];
+  const saved=next.items[profileId];
+  if(saved && saved.revision!==current.revision){
+    profileNotice='This profile was updated in another tab. Save as a new AI to keep this tab’s learning.';
+    return;
+  }
+  next.items[profileId]={name:saved?.name??current.name,data:structuredClone(currentLearning()),revision:current.revision+1};
+  next.current=profileId;
+  next.frozen=frozen;
+  next.resumeAdaptive=true;
+  if(writeProfiles(next)) learningDirty=false;
+}
+function saveProfileSettings(){
+  const next=readProfiles();
+  next.current=profileId;
+  next.frozen=frozen;
+  next.resumeAdaptive=adaptive();
+  writeProfiles(next);
+}
+function editProfile(copy){
+  if(!adaptive()) return;
+  const name=get('profileName').value.trim();
+  if(!name){get('profileStatus').textContent='Enter a profile name first.';return;}
+  const next=readProfiles();
+  if(Object.entries(next.items).some(([id,item])=>(copy || id!==profileId) &&
+    item.name.toLowerCase()===name.toLowerCase())){
+    get('profileStatus').textContent='That name is already in use.';return;
+  }
+  if(copy){
+    next.items[crypto.randomUUID()]={name,data:structuredClone(currentLearning()),revision:0};
+  } else {
+    next.items[profileId].name=name;
+  }
+  const prior=profiles.items[profileId];
+  if(writeProfiles(next)){
+    // Keep the working revision if this tab has unsaved changes from concurrent training.
+    if(learningDirty) profiles.items[profileId]={...prior,name:next.items[profileId].name};
+    get('profileName').value='';
+    profileNotice=copy?'Saved “'+name+'” as a separate AI. Select it before your next match.':'Renamed to “'+name+'”.';
+  }
+  renderProfiles();
+}
+function renderProfiles(){
+  const panel=get('aiProfiles');
+  panel.hidden=!adaptive();
+  if(panel.hidden) return;
+  const select=get('profileSelect');
+  const saved=readProfiles();
+  select.replaceChildren();
+  for(const [id,item] of Object.entries(saved.items)) select.add(new Option(item.name,id));
+  select.value=profileId;
+  select.disabled=!canSwitchProfile();
+  get('profileMode').value=frozen?'frozen':'train';
+  get('profileMode').disabled=!canSwitchProfile();
+  get('profileRestart').hidden=canSwitchProfile();
+  const calls=Object.values(playResults).reduce((sum,result)=>sum+result.attempts,0);
+  const stops=defenseLanes.reduce((sum,lane)=>sum+lane.stops,0);
+  const touchdowns=defenseLanes.reduce((sum,lane)=>sum+lane.td,0);
+  get('learning').textContent=(frozen?'Frozen':'Training')+' · '+tendencies.samples+' tendencies · '+stops+' tackles made · '+touchdowns+' TDs allowed · '+calls+' offensive calls';
+  get('profileStatus').textContent=profileNotice || (frozen?'This match uses the saved learning with updates off.':'Learning saves automatically in this browser.');
+}
+get('profileSelect').onchange=event=>{
+  if(!canSwitchProfile()) return;
+  profiles=readProfiles();
+  profileId=event.target.value;
+  loadProfile();
+  profileNotice='';
+  saveProfileSettings();
+  render();
+};
+get('profileMode').onchange=event=>{
+  if(!canSwitchProfile()) return;
+  frozen=event.target.value==='frozen';
+  profileNotice='';
+  saveProfileSettings();
+  render();
+};
+get('profileSave').onclick=()=>editProfile(true);
+get('profileRename').onclick=()=>editProfile(false);
+get('profileRestart').onclick=()=>{
+  if(phase==='final' || window.confirm('Start a new match? Learned results are saved as you play.')) location.reload();
+};
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+function beginTrial(){
+  activeCall=null;
+  if(!training()) return;
+  learningDirty=true;
+  trial={visited:new Set(),peak:0,front:pieces.filter(p=>p.role==='DL').length};
+  defensiveMove=null;
+  if(offense===0) (defensiveFronts[trial.front]??=laneStats()).attempts++;
   if(offense===1) for(const p of pieces){
     if(p.team===0) humanFront[p.x]+=p.role==='DL'?1:.5;
   }
 }
 function recordAdvance(x,y){
-  if(!adaptive() || !trial) return;
+  if(!training() || !trial) return;
+  learningDirty=true;
   const lanes=offense===0?defenseLanes:offenseLanes;
   const stats=lanes[x];
   if(!trial.visited.has(x)){trial.visited.add(x);stats.attempts++;}
@@ -71,34 +215,33 @@ function recordAdvance(x,y){
   const gain=Math.max(0,progress-trial.peak);
   stats.gain+=gain;
   trial.peak=Math.max(trial.peak,progress);
-  defensiveTurnGain+=gain;
-  if(activeCall) activeCall.peak=Math.max(activeCall.peak,y*forward(offense));
+  if(offense===0) defensiveFronts[trial.front].gain+=gain;
+  if(defensiveMove) defensiveMove.gain+=gain;
+  if(activeCall){
+    const position=y*forward(offense);
+    activeCall.result.gain+=Math.max(0,position-activeCall.peak);
+    activeCall.peak=Math.max(activeCall.peak,position);
+  }
 }
 function recordCall(kind){
-  if(!adaptive() || offense!==1 || !trial) return;
-  finishCall(false);
-  activeCall={kind,start:ball.y*forward(offense),peak:ball.y*forward(offense)};
-}
-function finishCall(td){
-  if(!activeCall) return;
-  const {kind,start,peak}=activeCall;
-  const result=playResults[kind]??=(laneStats());
+  if(!adaptive() || offense!==1) return;
+  if(frozen){activeCall={kind};return;}
+  if(!trial) return;
+  learningDirty=true;
+  const result=playResults[kind]??=laneStats();
   result.attempts++;
-  result.gain+=peak-start;
-  if(td) result.td++;
-  activeCall=null;
+  activeCall={kind,result,peak:ball.y*forward(offense)};
 }
 function recordDefense(td=false,stop=false){
   if(!defensiveMove) return;
-  const result=defensiveMoves[defensiveMove]??=laneStats();
-  result.attempts++;
-  result.gain+=defensiveTurnGain;
-  result.td+=Number(td);
-  result.stops+=Number(stop);
+  learningDirty=true;
+  defensiveMove.td+=Number(td);
+  defensiveMove.stops+=Number(stop);
   defensiveMove=null;
 }
 function finishTrial(td,stop=false){
-  if(!adaptive() || !trial) return;
+  if(!training() || !trial) return;
+  learningDirty=true;
   if(ball){
     const lane=(offense===0?defenseLanes:offenseLanes)[ball.x];
     if(!trial.visited.has(ball.x)) lane.attempts++;
@@ -107,12 +250,11 @@ function finishTrial(td,stop=false){
   }
   if(offense===0){
     const front=defensiveFronts[trial.front]??=laneStats();
-    front.attempts++;
-    front.gain+=trial.peak;
     front.td+=Number(td);
     front.stops+=Number(stop);
     recordDefense(td,stop);
-  } else finishCall(td);
+  } else if(activeCall && td) activeCall.result.td++;
+  activeCall=null;
   trial=null;
 }
 function efficiency(stats){
@@ -137,7 +279,8 @@ let receiving=false;
 const online=()=>gameMode==='Online room';
 const activeTeam=()=>phase==='setup'?setupTeam:phase==='play'?turn:offense;
 function learn(kind,x,weight=1){
-  if(gameMode!=='Adaptive AI' || offense!==0 || turn!==0) return;
+  if(!training() || offense!==0 || turn!==0) return;
+  learningDirty=true;
   tendencies.calls[kind]=(tendencies.calls[kind]||0)+weight;
   tendencies.lanes[x]+=weight;
   tendencies.samples++;
@@ -686,9 +829,11 @@ function computerMove(){
   if(!choice){finishTurn();return;}
   selected=choice.p;
   mode=choice.kind;
-  if(adaptive() && !attacking){
-    defensiveMove=defenseKey(selected,choice.x,choice.y);
-    defensiveTurnGain=0;
+  if(training() && !attacking && trial){
+    const key=defenseKey(selected,choice.x,choice.y);
+    defensiveMove=defensiveMoves[key]??=laneStats();
+    defensiveMove.attempts++;
+    learningDirty=true;
   }
   if(choice.transfer){
     recordCall(choice.transfer);
@@ -745,11 +890,8 @@ function render(){
   }
   get('lobby').hidden=!online();
   get('host').disabled=get('join').disabled=get('roomCode').disabled=roomReady || !!pieces.length;
-  get('learning').hidden=gameMode!=='Adaptive AI';
-  const learnedCalls=Object.values(playResults).reduce((sum,result)=>sum+result.attempts,0);
-  const stops=defenseLanes.reduce((sum,lane)=>sum+lane.stops,0);
-  const touchdowns=defenseLanes.reduce((sum,lane)=>sum+lane.td,0);
-  get('learning').textContent='Adaptive AI · '+stops+' tackles made · '+touchdowns+' TDs allowed · '+learnedCalls+' offensive calls evaluated';
+  saveLearning();
+  renderProfiles();
   if(online() && roomReady && seat===0) connection.send({type:'state',revision:++revision,state:captureState()});
   const board=get('board');
   board.replaceChildren();
@@ -830,6 +972,7 @@ function render(){
         const old=peer;
         peer=null;old?.destroy();clearTimeout(roomTimer);
         roomReady=false;seat=undefined;gameMode=value;solo=value==='Computer'||value==='Adaptive AI';
+        saveProfileSettings();
         startPlacement();
       });
     }
@@ -898,6 +1041,7 @@ startPlacement();
 render();
 </script>
 </html>
+
 
 
 
