@@ -23,7 +23,7 @@
 <p id="moveHelp" class="move-help" hidden></p><div id="coinFlip" hidden><div class="coin-disc" aria-hidden="true"><span id="coinFace"></span></div><strong id="coinLabel"></strong></div><div id="actions"></div>
 <div id="kickbox" hidden><div class="meter"><div class="target" id="target"></div><span class="arrow" id="arrow">▼</span></div><button id="kick">Kick</button></div>
 <details><summary>How to play</summary>
-<p>Choose Computer, Adaptive AI, Pass & Play on one device, or Online room for two devices. Adaptive AI learns from your play calls and the lanes you use during the match. The computer picks its own lineup and positions before each down. During setup, the offense places its line, the defense places five checkers, then they alternate one checker at a time. Choose a checker and tap a highlighted square. Pick RB, TE, or WR as you place each of your five skill players. Up to three RBs use rows 1–2 and must leave the square directly in front of the QB open, WRs use rows 3–4, and up to three TEs use row 4. The five offensive linemen are placed together. The QB starts in one of the three squares directly behind the center. Choose DL, LB, CB, or S as you place each defender. Field 3–5 defensive linemen, who are placed individually, from one square outside either tackle inward. Both lines start at the line of scrimmage. Select a checker, then a highlighted square. Pieces move like chess queens. Opposing pieces that collide without the ball are both removed. WRs can make or take contact until they cross the line of scrimmage. A WR carrying the ball can always be tackled. Choose a preset or Same formation to place checkers automatically on your setup turns.</p>
+<p>Choose Computer, Adaptive AI, Pass & Play on one device, or Online room for two devices. Adaptive AI learns which lanes give up gains and touchdowns, which defensive moves get stops, and which of its own offensive calls work during the match. The computer picks its own lineup and positions before each down. During setup, the offense places its line, the defense places five checkers, then they alternate one checker at a time. Choose a checker and tap a highlighted square. Pick RB, TE, or WR as you place each of your five skill players. Up to three RBs use rows 1–2 and must leave the square directly in front of the QB open, WRs use rows 3–4, and up to three TEs use row 4. The five offensive linemen are placed together. The QB starts in one of the three squares directly behind the center. Choose DL, LB, CB, or S as you place each defender. Field 3–5 defensive linemen, who are placed individually, from one square outside either tackle inward. Both lines start at the line of scrimmage. Select a checker, then a highlighted square. Pieces move like chess queens. Opposing pieces that collide without the ball are both removed. WRs can make or take contact until they cross the line of scrimmage. A WR carrying the ball can always be tackled. Choose a preset or Same formation to place checkers automatically on your setup turns.</p>
 <p>On the snap turn, the QB can keep the ball and end the turn, or hand off, pitch, or throw a screen to an RB who can run immediately. Touching squares, including diagonals, count as a handoff. A gap of one or two squares is a pitch. A larger gap is a screen pass. For a regular forward pass, select Forward pass, then tap a highlighted WR, TE or RB downfield. You get one forward pass per play. Heads completes the pass and the receiver can run immediately. Tails ends the down. A lateral goes sideways or backward to a teammate. You get one lateral per turn. Heads lets the recipient run immediately. Tails is a dropped lateral and ends the down.</p>
 <p>An RB with the ball can run through one teammate. A juke moves one square to the offense’s left and a hurdle jumps an adjacent opponent into the next square. Run the ball-carrying RB next to a defender and tap a labeled landing square. Juke and hurdle share one attempt per down. Heads lets you keep running. Tails leaves the RB in place and ends the turn.</p>
 <p>Reach row 8 on one play. A tackle ends the down and brings all pieces back. You can adjust formations before every down. On fourth down you can kick instead. A touchdown is 6, a field goal is 3, and an extra point is 1. Press Kick or Space when the arrow is in the green. Each team gets four possessions, with extra pairs if tied.</p>
@@ -44,6 +44,94 @@ let coin=null, lateraled=false, rbMoveUsed=false;
 let selected = null, ball = null, passed = false, opening = false, catchRun = false, rbStage = 0, mode = 'move', message = '';
 let kickStart = 0, kickType = '', kickFrame = 0, possessions = 0;
 const tendencies={calls:{}, lanes:Array(8).fill(0), samples:0};
+const laneStats=()=>({attempts:0,gain:0,td:0,stops:0});
+const defenseLanes=Array.from({length:8},laneStats);
+const offenseLanes=Array.from({length:8},laneStats);
+const humanFront=Array(8).fill(0);
+const playResults={}, defensiveMoves={}, defensiveFronts={};
+let trial=null, activeCall=null, defensiveMove=null, defensiveTurnGain=0;
+const adaptive=()=>gameMode==='Adaptive AI';
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+function beginTrial(){
+  if(!adaptive()) return;
+  trial={visited:new Set(),peak:0,front:pieces.filter(p=>p.role==='DL').length};
+  activeCall=null;
+  defensiveMove=null;
+  defensiveTurnGain=0;
+  if(offense===1) for(const p of pieces){
+    if(p.team===0) humanFront[p.x]+=p.role==='DL'?1:.5;
+  }
+}
+function recordAdvance(x,y){
+  if(!adaptive() || !trial) return;
+  const lanes=offense===0?defenseLanes:offenseLanes;
+  const stats=lanes[x];
+  if(!trial.visited.has(x)){trial.visited.add(x);stats.attempts++;}
+  const progress=(y-spot(offense,4))*forward(offense);
+  const gain=Math.max(0,progress-trial.peak);
+  stats.gain+=gain;
+  trial.peak=Math.max(trial.peak,progress);
+  defensiveTurnGain+=gain;
+  if(activeCall) activeCall.peak=Math.max(activeCall.peak,y*forward(offense));
+}
+function recordCall(kind){
+  if(!adaptive() || offense!==1 || !trial) return;
+  finishCall(false);
+  activeCall={kind,start:ball.y*forward(offense),peak:ball.y*forward(offense)};
+}
+function finishCall(td){
+  if(!activeCall) return;
+  const {kind,start,peak}=activeCall;
+  const result=playResults[kind]??=(laneStats());
+  result.attempts++;
+  result.gain+=peak-start;
+  if(td) result.td++;
+  activeCall=null;
+}
+function recordDefense(td=false,stop=false){
+  if(!defensiveMove) return;
+  const result=defensiveMoves[defensiveMove]??=laneStats();
+  result.attempts++;
+  result.gain+=defensiveTurnGain;
+  result.td+=Number(td);
+  result.stops+=Number(stop);
+  defensiveMove=null;
+}
+function finishTrial(td,stop=false){
+  if(!adaptive() || !trial) return;
+  if(ball){
+    const lane=(offense===0?defenseLanes:offenseLanes)[ball.x];
+    if(!trial.visited.has(ball.x)) lane.attempts++;
+    lane.td+=Number(td);
+    lane.stops+=Number(stop);
+  }
+  if(offense===0){
+    const front=defensiveFronts[trial.front]??=laneStats();
+    front.attempts++;
+    front.gain+=trial.peak;
+    front.td+=Number(td);
+    front.stops+=Number(stop);
+    recordDefense(td,stop);
+  } else finishCall(td);
+  trial=null;
+}
+function efficiency(stats){
+  return stats?(stats.gain+10*stats.td-2*stats.stops)/(2+stats.attempts):0;
+}
+function laneDanger(x){
+  if(x<0 || x>=8) return 0;
+  return Math.min(1,tendencies.lanes[x]/10)+clamp(efficiency(defenseLanes[x])*2,-2,8);
+}
+function defenseKey(piece,x,y){
+  return piece.role+'|'+(Math.abs(x-ball.x)<=1?'inside':'outside')+'|'+(y===ball.y?'level':y<ball.y?'ahead':'behind');
+}
+function attackBonus(kind,x,y){
+  const average=humanFront.reduce((sum,weight)=>sum+weight,0)/8;
+  const current=pieces.filter(p=>p.team===0 && Math.abs(p.x-x)<=1 && (p.y-y)*forward(offense)>=0).length;
+  return clamp(efficiency(playResults[kind])*2,-4,9)
+    +clamp(efficiency(offenseLanes[x]),-2,5)
+    +clamp((average-humanFront[x])*.45,-3,3)-current;
+}
 let peer, connection, seat, roomReady=false, revision=0, roomTimer;
 let receiving=false;
 const online=()=>gameMode==='Online room';
@@ -195,15 +283,18 @@ function nextDrive(note){
   }
   beginDown(note);
 }
-function tackled(reason='Tackle'){
+function tackled(reason='Tackle',stop=reason==='Tackle'){
+  finishTrial(false,stop);
   if(down===4){ nextDrive(reason+' on fourth down. Turnover.'); return; }
   down++;
   beginDown(reason+'. Set your formation for the next down.');
 }
 function finishTurn(note=''){
+  if(adaptive() && offense===0 && turn===0) recordDefense();
   selected=null; mode='move'; opening=false; catchRun=false; rbStage=0; lateraled=false; turn=1-turn; message=note; render();
 }
 function awardTD(){
+  finishTrial(true);
   score[offense]+=6;
   startKick('XP');
 }
@@ -282,6 +373,8 @@ function playSquare(x,y,heads,confirmedMove){
     const p=selected,q=legal.q;
     if(mode in transferLabels){
       learn(mode,q.x);
+      recordCall(mode);
+      recordAdvance(q.x,q.y);
       if(mode==='screen') passed=true;
       giveToBack(q,transferLabels[mode]);
       return;
@@ -293,7 +386,9 @@ function playSquare(x,y,heads,confirmedMove){
     if(mode==='pass' || mode==='lateral'){
       const lateral=mode==='lateral';
       learn(mode,q.x);
+      recordCall(mode);
       if(!heads){tackled(lateral?'Tails · Dropped lateral':'Tails · Incomplete pass');return;}
+      recordAdvance(q.x,q.y);
       ball=q;
       if(lateral) lateraled=true;
       else passed=true;
@@ -305,12 +400,16 @@ function playSquare(x,y,heads,confirmedMove){
     }
     if(mode in coinLabels && !heads){finishTurn('Tails. '+(mode==='juke'?'Juke':'Hurdle')+' failed.');return;}
     if(q){
-      if(p===ball || q===ball){tackled();return;}
+      if(p===ball || q===ball){tackled('Tackle',q===ball);return;}
       pieces=pieces.filter(piece=>piece!==p && piece!==q);
       finishTurn('Both checkers are out for this play.');
       return;
     }
-    if(p===ball && (y-p.y)*forward(offense)>0) learn('run',x,Math.abs(y-p.y));
+    if(p===ball){
+      if((y-p.y)*forward(offense)>0) learn('run',x,Math.abs(y-p.y));
+      if(!activeCall) recordCall('run');
+      recordAdvance(x,y);
+    }
     p.x=x;p.y=y;
     if(p.role==='WR' && (p.y-spot(p.team,4))*forward(p.team)>0) p.crossedLos=true;
     if(p===ball && y===spot(offense,8)){awardTD();return;}
@@ -484,13 +583,19 @@ function computerPlace(){
     }
     if(setupTeam===setupOffense && p.role==='QB') value+=4;
     if(gameMode==='Adaptive AI' && setupTeam!==setupOffense){
-      const lane=tendencies.lanes[x]+.4*((tendencies.lanes[x-1]||0)+(tendencies.lanes[x+1]||0));
+      const lane=laneDanger(x)+.3*(laneDanger(x-1)+laneDanger(x+1));
+      const placed=pieces.filter(q=>q.team===setupTeam);
+      const crowded=placed.filter(q=>q.x===x).length;
+      const front=placed.filter(q=>q.role==='DL').length;
+      if(p.role==='DL') value+=clamp(efficiency(defensiveFronts[front])-efficiency(defensiveFronts[front+1]),-3,3);
+      value-=crowded*2;
       const passes=tendencies.calls.pass||0;
       const runs=(tendencies.calls.run||0)+(tendencies.calls.handoff||0)+(tendencies.calls.pitch||0);
-      value+=Math.min(6,lane/2);
+      value+=clamp(lane,-3,8);
       if(p.role==='CB' || p.role==='S') value+=Math.min(4,passes)*(3-y)*.5;
       if(p.role==='DL') value+=Math.min(4,runs/2);
     }
+    if(adaptive() && setupTeam===setupOffense && ['WR','RB','TE'].includes(p.role)) value+=attackBonus(p.role==='RB'?'handoff':'pass',x,y);
     if(!best || value>best.value) best={p,x,y,value};
   }
   if(best){selected=best.p;setupSquare(best.x,best.y);}
@@ -513,6 +618,7 @@ function snap(){
   ball=pieces.find(p=>p.team===offense && p.role==='QB');
   phase='play';
   opening=true;
+  beginTrial();
   selected=ball;
   message='';
   render();
@@ -526,7 +632,7 @@ function computerMove(){
   if(phase==='kick'){kick();return;}
   const attacking=turn===offense;
   const choices=[];
-  function consider(p,kind,handoff=false){
+  function consider(p,kind,transfer=null){
     mode=kind;
     for(const m of moves(p)){
       if(attacking && m.q && kind!=='pass' && kind!=='lateral' && p===ball) continue;
@@ -539,17 +645,22 @@ function computerMove(){
         if(receives && m.y===spot(offense,8)) value+=100;
         if(kind==='juke' || kind==='hurdle') value-=7;
         if(kind==='lateral') value-=10;
+        if(adaptive() && receives){
+          const call=transfer??(kind==='move'||kind==='juke'||kind==='hurdle'?activeCall?.kind??'run':kind);
+          value+=attackBonus(call,m.x,m.y);
+        }
       } else {
         value=m.q===ball ? 1000 : -3*distance+(m.q?5:0);
         if(gameMode==='Adaptive AI' && m.q!==ball){
-          value+=Math.min(5,(tendencies.lanes[m.x]+(tendencies.lanes[m.x-1]||0)/2+(tendencies.lanes[m.x+1]||0)/2)/2);
+          value+=clamp(laneDanger(m.x)+.25*(laneDanger(m.x-1)+laneDanger(m.x+1)),-3,7);
+          value-=clamp(efficiency(defensiveMoves[defenseKey(p,m.x,m.y)]),-3,5);
           if(ball.role==='QB' && (tendencies.calls.pass||0)>0){
             const receivers=pieces.filter(q=>q.team===offense && ['WR','TE'].includes(q.role));
             if(receivers.length) value-=Math.min(3,tendencies.calls.pass)*.35*Math.min(...receivers.map(q=>Math.abs(q.x-m.x)+Math.abs(q.y-m.y)));
           }
         }
       }
-      choices.push({...m,p,kind,handoff,value:value+Math.random()*2});
+      choices.push({...m,p,kind,transfer,value:value+Math.random()*2});
     }
     mode='move';
   }
@@ -561,7 +672,7 @@ function computerMove(){
     for(const rb of pieces.filter(p=>p.team===turn && p.role==='RB')){
       ball=rb;
       opening=false;
-      consider(rb,'move',true);
+      consider(rb,'move',transferType(qb,rb));
       opening=true;
       ball=qb;
     }
@@ -575,9 +686,14 @@ function computerMove(){
   if(!choice){finishTurn();return;}
   selected=choice.p;
   mode=choice.kind;
-  if(choice.handoff){
-    const transfer=transferType(ball,selected);
-    if(transfer==='screen') passed=true;
+  if(adaptive() && !attacking){
+    defensiveMove=defenseKey(selected,choice.x,choice.y);
+    defensiveTurnGain=0;
+  }
+  if(choice.transfer){
+    recordCall(choice.transfer);
+    recordAdvance(selected.x,selected.y);
+    if(choice.transfer==='screen') passed=true;
     ball=selected;opening=false;
   }
   playSquare(choice.x,choice.y);
@@ -630,7 +746,10 @@ function render(){
   get('lobby').hidden=!online();
   get('host').disabled=get('join').disabled=get('roomCode').disabled=roomReady || !!pieces.length;
   get('learning').hidden=gameMode!=='Adaptive AI';
-  get('learning').textContent='Adaptive AI · '+tendencies.samples+' tendencies observed this match';
+  const learnedCalls=Object.values(playResults).reduce((sum,result)=>sum+result.attempts,0);
+  const stops=defenseLanes.reduce((sum,lane)=>sum+lane.stops,0);
+  const touchdowns=defenseLanes.reduce((sum,lane)=>sum+lane.td,0);
+  get('learning').textContent='Adaptive AI · '+stops+' tackles made · '+touchdowns+' TDs allowed · '+learnedCalls+' offensive calls evaluated';
   if(online() && roomReady && seat===0) connection.send({type:'state',revision:++revision,state:captureState()});
   const board=get('board');
   board.replaceChildren();
@@ -779,6 +898,7 @@ startPlacement();
 render();
 </script>
 </html>
+
 
 
 
