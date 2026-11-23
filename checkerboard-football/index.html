@@ -23,8 +23,8 @@
 <div id="kickbox" hidden><div class="meter"><div class="target" id="target"></div><span class="arrow" id="arrow">▼</span></div><button id="kick">Kick</button></div>
 <details><summary>How to play</summary>
 <p>Choose Computer, Adaptive AI, Pass & Play on one device, or Online room for two devices. Adaptive AI learns from your play calls and the lanes you use during the match. The computer picks its own lineup and positions before each down. During setup, the offense places its line, the defense places five checkers, then they alternate one checker at a time. Choose a checker and tap a highlighted square. Pick RB, TE, or WR as you place each of your five skill players. Up to three RBs use rows 1–2 and must leave the square directly in front of the QB open, WRs use rows 3–4, and up to three TEs use row 4. The five offensive linemen are placed together. The QB starts in one of the three squares directly behind the center. Choose DL, LB, CB, or S as you place each defender. Field 3–5 defensive linemen, who are placed individually, from one square outside either tackle inward. Both lines start at the line of scrimmage. Select a checker, then a highlighted square. Pieces move like chess queens. Opposing pieces that collide without the ball are both removed. WRs can make or take contact until they cross the line of scrimmage. A WR carrying the ball can always be tackled. Choose a preset or Same formation to place checkers automatically on your setup turns.</p>
-<p>On the snap turn, the QB can keep the ball and end the turn, or hand off, pitch, or throw a screen to an RB who can run immediately. Touching squares, including diagonals, count as a handoff. A gap of one or two squares is a pitch. A larger gap is a screen pass. For a regular forward pass, select Forward pass, then tap a highlighted WR, TE or RB downfield. You get one forward pass per play. After a catch, the receiver can run immediately or end the turn.</p>
-<p>An RB with the ball can run through one teammate. A juke moves one square to the offense’s left and a hurdle jumps an adjacent opponent into the next square. Select the ball-carrying RB and tap a labeled landing square. Heads succeeds. Tails leaves the RB in place and ends the turn.</p>
+<p>On the snap turn, the QB can keep the ball and end the turn, or hand off, pitch, or throw a screen to an RB who can run immediately. Touching squares, including diagonals, count as a handoff. A gap of one or two squares is a pitch. A larger gap is a screen pass. For a regular forward pass, select Forward pass, then tap a highlighted WR, TE or RB downfield. You get one forward pass per play. Heads completes the pass and the receiver can run immediately. Tails ends the down.</p>
+<p>An RB with the ball can run through one teammate. A juke moves one square to the offense’s left and a hurdle jumps an adjacent opponent into the next square. Run the ball-carrying RB next to a defender and tap a labeled landing square. You get one attempt per turn. Heads lets you keep running. Tails leaves the RB in place and ends the turn.</p>
 <p>Reach row 8 on one play. A tackle ends the down and brings all pieces back. You can adjust formations before every down. On fourth down you can kick instead. A touchdown is 6, a field goal is 3, and an extra point is 1. Press Kick or Space when the arrow is in the green. Each team gets four possessions, with extra pairs if tied.</p>
 </details>
 </aside></div>
@@ -39,7 +39,7 @@ const formations = [null,null];
 let reserve = [], front = 0, queued = [[],[]];
 let gameMode="Computer", solo = true, setupOffense = 0, aiTimer, betweenDowns=false;
 let pieces = [], offense = 0, turn = 0, down = 1, phase = 'setup', setupTeam = 0;
-let selected = null, ball = null, passed = false, opening = false, catchRun = false, mode = 'move', message = '';
+let selected = null, ball = null, passed = false, opening = false, catchRun = false, rbStage = 0, mode = 'move', message = '';
 let kickStart = 0, kickType = '', kickFrame = 0, possessions = 0;
 const tendencies={calls:{}, lanes:Array(8).fill(0), samples:0};
 let peer, connection, seat, roomReady=false, revision=0, roomTimer;
@@ -57,12 +57,12 @@ function captureState(){
     piece:pieces.indexOf(selected), reserve:reserve.indexOf(selected.slot??selected), role:selected.role
   };
   return {pieces,reserve,front,queued,setupOffense,setupTeam,betweenDowns,offense,turn,down,phase,
-    passed,opening,catchRun,mode,message,kickType,possessions,score,choice,carrier:pieces.indexOf(ball)};
+    passed,opening,catchRun,rbStage,mode,message,kickType,possessions,score,choice,carrier:pieces.indexOf(ball)};
 }
 function receiveState(state){
   const prior=phase;
   ({pieces,reserve,front,queued,setupOffense,setupTeam,betweenDowns,offense,turn,down,phase,
-    passed,opening,catchRun,mode,message,kickType,possessions}=state);
+    passed,opening,catchRun,rbStage,mode,message,kickType,possessions}=state);
   score.splice(0,2,...state.score);
   ball=pieces[state.carrier]??null;
   const choice=state.choice;
@@ -92,7 +92,7 @@ function connectRoom(host){
   seat=host?0:1;
   roomReady=false;
   revision=0;
-  const roomId='daft-checkerboard-football-v4-'+code;
+  const roomId='daft-checkerboard-football-v5-'+code;
   const current=new Peer(host?roomId:undefined);
   peer=current;
   get('roomCode').value=code;
@@ -170,7 +170,7 @@ function arrange(){
 function resetPlay(note=''){
   pieces = formations[offense].map(p=>({...p}));
   ball = pieces.find(p=>p.team===offense && p.role==='C');
-  turn=offense; selected=null; passed=false; opening=false; catchRun=false; mode='move'; phase='snap'; message=note;
+  turn=offense; selected=null; passed=false; opening=false; catchRun=false; rbStage=0; mode='move'; phase='snap'; message=note;
   render();
 }
 function beginDown(note){
@@ -192,21 +192,22 @@ function nextDrive(note){
   }
   beginDown(note);
 }
-function tackled(){
-  if(down===4){ nextDrive('Tackled on fourth down. Turnover.'); return; }
+function tackled(reason='Tackle'){
+  if(down===4){ nextDrive(reason+' on fourth down. Turnover.'); return; }
   down++;
-  beginDown('Tackle. Set your formation for the next down.');
+  beginDown(reason+'. Set your formation for the next down.');
 }
 function finishTurn(note=''){
-  selected=null; mode='move'; opening=false; catchRun=false; turn=1-turn; message=note; render();
+  selected=null; mode='move'; opening=false; catchRun=false; rbStage=0; turn=1-turn; message=note; render();
 }
 function awardTD(){
   score[offense]+=6;
   startKick('XP');
 }
+const nextToDefender=p=>pieces.some(q=>q.team!==p.team && Math.max(Math.abs(q.x-p.x),Math.abs(q.y-p.y))===1);
 const canContact=p=>p.role!=='WR' || p===ball || !p.crossedLos;
 function moves(p,kind=mode){
-  if(!p || phase!=='play' || p.team!==turn || (catchRun && p!==ball)) return [];
+  if(!p || phase!=='play' || p.team!==turn || ((catchRun || rbStage) && p!==ball)) return [];
   if(kind==='pass' || kind in transferLabels){
     if(p!==ball || p.role!=='QB' || p.team!==offense) return [];
     return pieces.filter(q=>{
@@ -217,6 +218,8 @@ function moves(p,kind=mode){
     }).map(q=>({x:q.x,y:q.y,q}));
   }
   if(opening && turn===offense && kind==='move') return [];
+  if(rbStage===1 && kind==='move') return [];
+  if((kind==='juke' || kind==='hurdle') && (rbStage===2 || p!==ball || p.role!=='RB' || !nextToDefender(p))) return [];
   if(kind==='juke'){
     const x=p.x+forward(offense),y=p.y;
     return inside(x,y) && !at(x,y) ? [{x,y}] : [];
@@ -265,10 +268,11 @@ function playSquare(x,y){
     }
     if(mode==='pass'){
       learn('pass',q.x);
+      if(Math.random()<.5){tackled('Tails · Incomplete pass');return;}
       ball=q; passed=true;
       if(ball.y===spot(offense,8)){awardTD();return;}
       opening=false;catchRun=true;selected=q;mode='move';
-      message='Pass complete to '+q.role+'. Pick a square to run or end the turn.';
+      message='Heads! Pass complete to '+q.role+'. Pick a square to run or end the turn.';
       render();
       return;
     }
@@ -283,11 +287,26 @@ function playSquare(x,y){
     p.x=x;p.y=y;
     if(p.role==='WR' && (p.y-spot(p.team,4))*forward(p.team)>0) p.crossedLos=true;
     if(p===ball && y===spot(offense,8)){awardTD();return;}
-    finishTurn(mode==='move'?'':'Heads! '+(mode==='juke'?'Juke':'Hurdle')+' successful.');
+    if(mode==='juke' || mode==='hurdle'){
+      message='Heads! '+(mode==='juke'?'Juke':'Hurdle')+' successful. Keep running or end the turn.';
+      rbStage=2;
+      mode='move';
+      selected=p;
+      render();
+      return;
+    }
+    if(p===ball && p.role==='RB' && rbStage===0 && (moves(p,'juke').length || moves(p,'hurdle').length)){
+      rbStage=1;
+      selected=p;
+      message='Defender ahead. Try a juke or hurdle, or end the turn.';
+      render();
+      return;
+    }
+    finishTurn();
     return;
   }
   const p=at(x,y);
-  if(p?.team===turn && (!catchRun || p===ball)){selected=p===selected?null:p;mode='move';render();}
+  if(p?.team===turn && (!(catchRun || rbStage) || p===ball)){selected=p===selected?null:p;mode='move';render();}
 }
 const isOL = p => p.role==='OL' || p.role==='C';
 function allowedSetupRow(piece,x,y,centerX=pieces.find(p=>p.team===setupOffense && p.role==='C')?.x){
@@ -584,7 +603,7 @@ function render(){
   const highlights=moves(selected);
   const specials=specialMoves();
   const rbTurn=phase==='play' && turn===offense && ball?.role==='RB';
-  get('moveHelp').hidden=blocked || aiTurn || !rbTurn;
+  get('moveHelp').hidden=blocked || aiTurn || !rbTurn || rbStage===2;
   get('moveHelp').textContent=specials.length
     ? 'Tap a labeled square to flip the coin. Tails leaves the RB in place and ends the turn.'
     : 'Juke needs an empty square to the RB’s left. Hurdle needs an adjacent defender and an empty square just beyond.';
@@ -720,4 +739,5 @@ startPlacement();
 render();
 </script>
 </html>
+
 
