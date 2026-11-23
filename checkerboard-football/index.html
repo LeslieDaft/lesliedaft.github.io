@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checkerboard Football</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101b17;color:#fff5da;font:16px system-ui}main{max-width:960px;margin:auto;padding:20px}h1{font-size:clamp(28px,6vw,52px);letter-spacing:-.055em;margin:0 0 12px}.score{display:flex;justify-content:space-between;gap:10px;background:#21342d;padding:12px 16px;border-radius:10px;font-weight:800}.layout{display:grid;grid-template-columns:minmax(0,560px) 1fr;gap:18px;margin-top:14px}.field{display:grid;grid-template-columns:repeat(8,1fr);border:3px solid #829985;border-radius:8px;overflow:hidden}.cell{position:relative;aspect-ratio:1;padding:0;border:1px solid #ffffff13;background:#355e49;color:white;display:grid;place-items:center}.dark{background:#2b503d}.end{background:#354960}.end.dark{background:#2b3c51}.line{border-bottom:3px solid #e3cb8b}.token{width:83%;height:83%;display:grid;place-items:center;border-radius:50%;background:#f3e8cb;color:#202722;border:3px double #a99a78;font-size:clamp(9px,2.7vw,15px);font-weight:900;box-shadow:0 3px 4px #0007}.black{background:#252c35;color:#fff;border-color:#9aa9bb}.ball{box-shadow:0 0 0 2px #ffcc60}.ball::after{content:'🏈';position:absolute;bottom:4%;right:3%;font-size:clamp(11px,3vw,19px)}.selected{outline:3px solid #ffe18b;outline-offset:-3px}.legal::after{content:'';position:absolute;inset:10%;border:2px dashed #ffde80;border-radius:8px;pointer-events:none}.row{position:absolute;top:2px;left:2px;font-size:9px;color:#fff9;pointer-events:none}aside{background:#1b2c25;padding:14px;border-radius:10px}#status{min-height:44px;margin:0 0 10px;font-weight:700}button,select{font:inherit}button{cursor:pointer}button:focus-visible{outline:3px solid #fff}#actions{display:flex;gap:7px;flex-wrap:wrap}#actions button,#kick,#new{background:#e5c77d;color:#202417;border:0;border-radius:6px;padding:8px 11px;font-weight:800}button:disabled{opacity:.45;cursor:default}.field button:disabled{opacity:1}details{margin-top:14px;color:#e0e9dd}summary{cursor:pointer}p{line-height:1.4}.meter{height:34px;position:relative;background:#324a3e;border-radius:5px;margin:12px 0;overflow:hidden}.target{position:absolute;height:100%;background:#6fbc7f}.arrow{position:absolute;top:1px;transform:translateX(-50%);font-size:21px;color:#fff}label{display:inline-flex;flex-direction:column;align-items:center;gap:4px}select{background:#f3e8cb;color:#202722;border-radius:5px;padding:4px}#setup{margin:0 0 10px}#formation{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}#kickbox[hidden],#setup[hidden]{display:none}@media(max-width:720px){.layout{grid-template-columns:1fr;gap:10px}main{max-width:560px;padding:12px}}
+</style>
+<main>
+<a href="../" style="color:inherit">← Daft Arcade</a>
+<h1>Checkerboard Football</h1>
+<div id="lobby" hidden>
+  <button id="host">Create room</button>
+  <label>Room code <input id="roomCode" maxlength="6" autocomplete="off" style="width:8ch"></label>
+  <button id="join">Join room</button>
+  <p id="network" role="status">Create a room or enter a friend's code.</p>
+</div>
+<p id="learning" hidden></p>
+<div class="score"><span id="white"></span><span id="drive"></span><span id="black"></span></div>
+<div class="layout"><div id="board" class="field" aria-label="Football checkerboard"></div><aside>
+<p id="status" aria-live="polite"></p>
+<div id="setup" hidden><div id="formation"></div></div>
+<div id="actions"></div>
+<div id="kickbox" hidden><div class="meter"><div class="target" id="target"></div><span class="arrow" id="arrow">▼</span></div><button id="kick">Kick</button></div>
+<details><summary>How to play</summary>
+<p>Choose Computer, Adaptive AI, Pass & Play on one device, or Online room for two devices. Adaptive AI learns from your play calls and the lanes you use during the match. The computer picks its own lineup and positions before each down. During setup, the offense places its line, the defense places five checkers, then they alternate one checker at a time. Choose a checker and tap a highlighted square. Pick RB, TE, or WR as you place each of your five skill players. Up to three RBs use rows 1–2 and must leave the square directly in front of the QB open, WRs use rows 3–4, and up to three TEs use row 4. The five offensive linemen are placed together. The QB starts in one of the three squares directly behind the center. The 3–5 defensive linemen move individually, from one square outside either tackle inward. Both lines start at the line of scrimmage. Select a checker, then a highlighted square. Pieces move like chess queens. Opposing pieces that collide without the ball are both removed. WRs are immune to contact unless they have the ball.</p>
+<p>On the snap turn, the QB can keep the ball and end the turn, or hand off, pitch, or throw a screen to an RB who can run immediately. Touching squares, including diagonals, count as a handoff. A gap of one or two squares is a pitch. A larger gap is a screen pass. For a regular forward pass, select Forward pass, then tap a highlighted WR, TE or RB downfield. You get one forward pass per play. After a catch, the receiver can run immediately or end the turn.</p>
+<p>An RB with the ball can run through one teammate. A juke moves one square to the offense’s left and a hurdle jumps an adjacent opponent into the next square. Choose one per turn. Heads succeeds. Tails ends the turn.</p>
+<p>Reach row 8 on one play. A tackle ends the down and brings all pieces back. You can adjust formations before every down. On fourth down you can kick instead. A touchdown is 6, a field goal is 3, and an extra point is 1. Press Kick or Space when the arrow is in the green. Each team gets four possessions, with extra pairs if tied.</p>
+</details>
+</aside></div>
+</main>
+<script src="../assets/peerjs-1.5.5.min.js"></script>
+<script>
+const get = id => document.getElementById(id);
+const names = ['White', 'Black'];
+const score = [0,0];
+const directions = [-1,0,1].flatMap(x => [-1,0,1].map(y => [x,y])).filter(([x,y]) => x || y);
+const formations = [null,null], dCounts = [4,4];
+let reserve = [], front = 0;
+let gameMode="Computer", solo = true, setupOffense = 0, aiTimer, betweenDowns=false;
+let pieces = [], offense = 0, turn = 0, down = 1, phase = 'setup', setupTeam = 0;
+let selected = null, ball = null, passed = false, opening = false, catchRun = false, mode = 'move', message = '';
+let kickStart = 0, kickType = '', kickFrame = 0, possessions = 0;
+const tendencies={calls:{}, lanes:Array(8).fill(0), samples:0};
+let peer, connection, seat, roomReady=false, revision=0, roomTimer;
+let receiving=false;
+const online=()=>gameMode==='Online room';
+const activeTeam=()=>phase==='setup'?setupTeam:phase==='play'?turn:offense;
+function learn(kind,x,weight=1){
+  if(gameMode!=='Adaptive AI' || offense!==0 || turn!==0) return;
+  tendencies.calls[kind]=(tendencies.calls[kind]||0)+weight;
+  tendencies.lanes[x]+=weight;
+  tendencies.samples++;
+}
+function captureState(){
+  const choice=selected && {
+    piece:pieces.indexOf(selected), reserve:reserve.indexOf(selected.slot??selected), role:selected.role
+  };
+  return {pieces,reserve,front,setupOffense,setupTeam,betweenDowns,offense,turn,down,phase,
+    passed,opening,catchRun,mode,message,kickType,possessions,score,dCounts,choice,carrier:pieces.indexOf(ball)};
+}
+function receiveState(state){
+  const prior=phase;
+  ({pieces,reserve,front,setupOffense,setupTeam,betweenDowns,offense,turn,down,phase,
+    passed,opening,catchRun,mode,message,kickType,possessions}=state);
+  score.splice(0,2,...state.score);
+  dCounts.splice(0,2,...state.dCounts);
+  ball=pieces[state.carrier]??null;
+  const choice=state.choice;
+  const slot=choice && reserve[choice.reserve];
+  selected=choice?(pieces[choice.piece]??(slot&&(slot.role===choice.role?slot:{...slot,role:choice.role,slot}))??null):null;
+  if(phase==='kick' && prior!=='kick'){
+    kickStart=performance.now();
+    drawKickTarget();
+    kickFrame=requestAnimationFrame(animateKick);
+  } else if(prior==='kick' && phase!=='kick') cancelAnimationFrame(kickFrame);
+  render();
+}
+function dispatch(kind,value,apply){
+  if(!online() || receiving){apply();return;}
+  if(!roomReady || activeTeam()!==seat) return;
+  if(seat===1){connection.send({type:'action',kind,value,revision});return;}
+  apply();
+}
+function connectRoom(host){
+  if(!window.Peer){get('network').textContent='Room service could not load.';return;}
+  const code=host?Array.from(crypto.getRandomValues(new Uint8Array(6)),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join(''):get('roomCode').value.trim().toUpperCase();
+  if(!/^[A-Z2-9]{6}$/.test(code)){get('network').textContent='Enter a six-character room code.';return;}
+  const oldPeer=peer;
+  peer=null;
+  oldPeer?.destroy();
+  clearTimeout(roomTimer);
+  seat=host?0:1;
+  roomReady=false;
+  revision=0;
+  const roomId='daft-checkerboard-football-v1-'+code;
+  const current=new Peer(host?roomId:undefined);
+  peer=current;
+  get('roomCode').value=code;
+  get('network').textContent=host?'Room '+code+' · Waiting for a friend…':'Joining '+code+'…';
+  function status(message){
+    if(peer!==current)return;
+    clearTimeout(roomTimer);
+    roomReady=false;
+    get('network').textContent=message;
+    render();
+  }
+  roomTimer=setTimeout(()=>status('Connection timed out. Try again.'),20000);
+  function attach(link){
+    if(peer!==current || roomReady){link.close();return;}
+    connection=link;
+    link.on('open',()=>{
+      if(peer!==current || (roomReady && connection!==link)){link.close();return;}
+      connection=link;
+      clearTimeout(roomTimer);
+      roomReady=true;
+      get('network').textContent='Room '+code+' · You are '+names[seat];
+      render();
+    });
+    link.on('data',data=>{
+      if(peer!==current || connection!==link || !roomReady || !data) return;
+      if(!host && data.type==='state'){
+        revision=data.revision;
+        receiveState(data.state);
+      } else if(host && data.type==='action' && data.revision===revision && activeTeam()===1){
+        const {kind,value}=data;
+        receiving=true;
+        try{
+          if(kind==='square' && Number.isInteger(value) && value>=0 && value<64){
+            if(phase==='setup') setupSquare(value%8,value>>3);
+            else if(phase==='play') playSquare(value%8,value>>3);
+          } else if(kind==='button' && Number.isInteger(value)){
+            const button=get('actions').children[value];
+            if(button && !button.disabled) button.click();
+          } else if(kind==='front' && phase==='setup' && setupTeam!==setupOffense && front===0 && [3,4,5].includes(value)){
+            setDefensiveCount(value);
+          } else if(kind==='kick' && phase==='kick' && Number.isFinite(value) && value>=0 && value<=1) kick(value);
+        } finally {receiving=false;}
+      }
+    });
+    link.on('close',()=>{if(connection===link) status('Friend disconnected. Reload to start a new match.');});
+    link.on('error',()=>{if(connection===link) status('Room connection failed.');});
+  }
+  current.on('error',()=>status('Room unavailable. Check the code and try again.'));
+  if(host) current.on('connection',attach);
+  else current.on('open',()=>attach(current.connect(roomId,{reliable:true})));
+  render();
+}
+get('host').onclick=()=>connectRoom(true);
+get('join').onclick=()=>connectRoom(false);
+const inside = (x,y) => x >= 0 && x < 8 && y >= 0 && y < 8;
+const at = (x,y) => pieces.find(p => p.x === x && p.y === y);
+const spot = (team,row) => team === 0 ? 8-row : row-1;
+const forward = team => team === 0 ? -1 : 1;
+function transferType(qb,rb){
+  const distance=Math.max(Math.abs(qb.x-rb.x),Math.abs(qb.y-rb.y));
+  return distance===1?'handoff':distance<=3?'pitch':'screen';
+}
+const transferLabels={handoff:'Handoff',pitch:'Pitch',screen:'Screen pass'};
+function arrange(onlyTeam=null){
+  pieces = onlyTeam===null ? [] : pieces.filter(p=>p.team!==onlyTeam);
+  for(let team=0;team<2;team++){
+    if(onlyTeam!==null && team!==onlyTeam) continue;
+    const put = (role,x,row) => pieces.push({role,x,y:spot(team,row),team});
+    if(team!==setupOffense){
+      const center=pieces.find(p=>p.team===setupOffense && p.role==='C')?.x ?? 3;
+      const front=[0,1,-1,2,-2].map(offset=>center+offset);
+      front.slice(0,dCounts[team]).forEach(x=>put('DL',x,4));
+      const linebackers=7-dCounts[team];
+      [2,5,3,4].slice(0,linebackers).forEach(x=>put('LB',x,3));
+      [0,7].forEach(x=>put('CB',x,3));
+      [2,5].forEach(x=>put('S',x,2));
+      continue;
+    }
+    [1,2,3,4,5].forEach(x=>put(x===3?'C':'OL',x,4));
+    put('QB',3,3);
+    for(let i=0;i<5;i++) put('FLEX',i+1,2);
+  }
+}
+function resetPlay(note=''){
+  pieces = formations[offense].map(p=>({...p}));
+  ball = pieces.find(p=>p.team===offense && p.role==='C');
+  turn=offense; selected=null; passed=false; opening=false; catchRun=false; mode='move'; phase='snap'; message=note;
+  render();
+}
+function beginDown(note){
+  setupOffense=offense;
+  setupTeam=solo?0:offense;
+  startPlacement();
+  selected=null;
+  ball=null;
+  phase='setup';
+  betweenDowns=true;
+  message=note;
+  render();
+}
+function nextDrive(note){
+  possessions++;
+  offense=1-offense; down=1;
+  if(possessions>=8 && possessions%2===0 && score[0]!==score[1]){
+    phase='final'; selected=null; message=note; render(); return;
+  }
+  beginDown(note);
+}
+function tackled(){
+  if(down===4){ nextDrive('Tackled on fourth down. Turnover.'); return; }
+  down++;
+  beginDown('Tackle. Set your formation for the next down.');
+}
+function finishTurn(note=''){
+  selected=null; mode='move'; opening=false; catchRun=false; turn=1-turn; message=note; render();
+}
+function awardTD(){
+  score[offense]+=6;
+  startKick('XP');
+}
+function moves(p){
+  if(!p || phase!=='play' || p.team!==turn || (catchRun && p!==ball)) return [];
+  if(mode==='pass' || mode in transferLabels){
+    if(p!==ball || p.role!=='QB' || p.team!==offense) return [];
+    return pieces.filter(q=>{
+      if(q.team!==offense) return false;
+      const advance=(q.y-p.y)*forward(offense);
+      if(mode in transferLabels) return opening && q.role==='RB' && transferType(p,q)===mode;
+      return advance>0 && ['RB','TE','WR'].includes(q.role);
+    }).map(q=>({x:q.x,y:q.y,q}));
+  }
+  if(opening && turn===offense && mode==='move') return [];
+  if(mode==='juke'){
+    const x=p.x+forward(offense),y=p.y;
+    return inside(x,y) && !at(x,y) ? [{x,y}] : [];
+  }
+  if(mode==='hurdle'){
+    return directions.flatMap(([dx,dy])=>{
+      const q=at(p.x+dx,p.y+dy),x=p.x+2*dx,y=p.y+2*dy;
+      return q && q.team!==p.team && inside(x,y) && !at(x,y) ? [{x,y}] : [];
+    });
+  }
+  return directions.flatMap(([dx,dy])=>{
+    const ray=[];
+    let gap=false;
+    for(let x=p.x+dx,y=p.y+dy;inside(x,y);x+=dx,y+=dy){
+      const q=at(x,y);
+      if(!q){ray.push({x,y});continue;}
+      if(q.team===p.team){
+        if(p===ball && p.role==='RB' && !gap){gap=true;continue;}
+        break;
+      }
+      if((p.role!=='WR' || p===ball) && (q.role!=='WR' || q===ball)) ray.push({x,y,q});
+      break;
+    }
+    return ray;
+  });
+}
+function playSquare(x,y){
+  const legal=moves(selected).find(m=>m.x===x && m.y===y);
+  if(legal){
+    const p=selected,q=legal.q;
+    if(mode in transferLabels){
+      learn(mode,q.x);
+      if(mode==='screen') passed=true;
+      giveToBack(q,transferLabels[mode]);
+      return;
+    }
+    if(mode==='pass'){
+      learn('pass',q.x);
+      ball=q; passed=true;
+      if(ball.y===spot(offense,8)){awardTD();return;}
+      opening=false;catchRun=true;selected=q;mode='move';
+      message='Pass complete to '+q.role+'. Pick a square to run or end the turn.';
+      render();
+      return;
+    }
+    if(mode!=='move' && Math.random()<.5){finishTurn('Tails. '+(mode==='juke'?'Juke':'Hurdle')+' failed.');return;}
+    if(q){
+      if(p===ball || q===ball){tackled();return;}
+      pieces=pieces.filter(piece=>piece!==p && piece!==q);
+      finishTurn('Both checkers are out for this play.');
+      return;
+    }
+    if(p===ball && (y-p.y)*forward(offense)>0) learn('run',x,Math.abs(y-p.y));
+    p.x=x;p.y=y;
+    if(p===ball && y===spot(offense,8)){awardTD();return;}
+    finishTurn(mode==='move'?'':'Heads. Move successful.');
+    return;
+  }
+  const p=at(x,y);
+  if(p?.team===turn && (!catchRun || p===ball)){selected=p===selected?null:p;mode='move';render();}
+}
+const isOL = p => p.role==='OL' || p.role==='C';
+function allowedSetupRow(piece,x,y,centerX=pieces.find(p=>p.team===setupOffense && p.role==='C')?.x){
+  if(!inside(x,y)) return false;
+  const row=piece.team===0?8-y:y+1;
+  if(piece.role==='DL'){
+    return row===4 && Math.abs(x-centerX)<=3;
+  }
+  if(piece.role==='QB') return row>=1 && row<=3 && x===centerX;
+  if(piece.role==='TE' || isOL(piece)) return row===4;
+  if(piece.role==='RB') return row===1 || row===2;
+  if(piece.role==='WR') return row===3 || row===4;
+  if(piece.team!==setupOffense) return row>=1 && row<=3;
+  return row>=1 && row<=4;
+}
+function startPlacement(){
+  setupTeam=setupOffense;
+  front=0;
+  selected=null;
+  if(solo && setupOffense===0) dCounts[1]=3+Math.floor(Math.random()*3);
+  arrange();
+  reserve=pieces;
+  pieces=[];
+}
+function canPlace(piece,x,y){
+  if(!piece || at(x,y)) return false;
+  if(!pieces.length && !isOL(piece)) return false;
+  if(isOL(piece)) return y===spot(setupTeam,4) && x>=2 && x<=5;
+  if(!allowedSetupRow(piece,x,y)) return false;
+  if(piece.team===setupOffense){
+    const center=pieces.find(p=>p.role==='C');
+    const qb=pieces.find(p=>p.role==='QB');
+    const backs=pieces.filter(p=>p.role==='RB');
+    const direction=forward(piece.team);
+    if(piece.role==='RB' && qb && x===qb.x && y===qb.y+direction) return false;
+    if(piece.role==='QB' && backs.some(p=>p.x===x && p.y===y+direction)) return false;
+    if(!qb && piece.role!=='QB'){
+      const available=[1,2,3].map(row=>spot(piece.team,row)).some(qy=>
+        !at(center.x,qy) && (x!==center.x || y!==qy) &&
+        backs.every(p=>p.x!==center.x || p.y!==qy+direction) &&
+        (piece.role!=='RB' || x!==center.x || y!==qy+direction));
+      if(!available) return false;
+    }
+  }
+  return true;
+}
+function setupSquare(x,y){
+  if(!canPlace(selected,x,y)) return;
+  const p=selected;
+  if(isOL(p)){
+    const line=reserve.filter(q=>q.team===setupTeam && isOL(q));
+    line.forEach((q,i)=>{q.x=x+i-2;q.y=y;});
+    pieces.push(...line);
+    reserve=reserve.filter(q=>!line.includes(q));
+  } else {
+    p.x=x;p.y=y;
+    pieces.push(p);
+    reserve=reserve.filter(q=>q!==(p.slot??p));
+    if(setupTeam!==setupOffense) front++;
+  }
+  selected=null;
+  message='';
+  if(!reserve.length){configureNext();return;}
+  if(setupTeam===setupOffense || front>=5){
+    const other=1-setupTeam;
+    if(reserve.some(q=>q.team===other)) setupTeam=other;
+  }
+  render();
+}
+function placementChoices(){
+  const bench=reserve.filter(p=>p.team===setupTeam);
+  if(!pieces.length) return bench.filter(p=>p.role==='C');
+  const choices=bench.filter(p=>p.role!=='FLEX');
+  const slot=bench.find(p=>p.role==='FLEX');
+  if(slot){
+    for(const role of ['RB','TE','WR']){
+      const count=pieces.filter(p=>p.team===setupTeam && p.role===role).length;
+      if(role==='WR' || count<3) choices.push({...slot,role,slot});
+    }
+  }
+  return choices;
+}
+function computerPlace(){
+  const candidates=placementChoices();
+  let best=null;
+  for(const p of candidates) for(let y=0;y<8;y++) for(let x=0;x<8;x++){
+    if(!canPlace(p,x,y)) continue;
+    const qb=pieces.find(q=>q.role==='QB');
+    const center=pieces.find(q=>q.role==='C');
+    let value=6-Math.abs(x-p.x)-Math.abs(y-p.y)+Math.random()*3;
+    if(setupTeam!==setupOffense && p.role==='DL'){
+      value+=4-Math.abs(x-(qb??center).x);
+    }
+    if(setupTeam===setupOffense && p.role==='QB') value+=4;
+    if(gameMode==='Adaptive AI' && setupTeam!==setupOffense){
+      const lane=tendencies.lanes[x]+.4*((tendencies.lanes[x-1]||0)+(tendencies.lanes[x+1]||0));
+      const passes=tendencies.calls.pass||0;
+      const runs=(tendencies.calls.run||0)+(tendencies.calls.handoff||0)+(tendencies.calls.pitch||0);
+      value+=Math.min(6,lane/2);
+      if(p.role==='CB' || p.role==='S') value+=Math.min(4,passes)*(3-y)*.5;
+      if(p.role==='DL') value+=Math.min(4,runs/2);
+    }
+    if(!best || value>best.value) best={p,x,y,value};
+  }
+  if(best){selected=best.p;setupSquare(best.x,best.y);}
+}
+function giveToBack(back,label){
+  ball=back;
+  selected=back;
+  opening=false;
+  mode='move';
+  message=label+' to RB. Pick a square to run.';
+  if(back.y===spot(offense,8)) awardTD();
+  else render();
+}
+function configureNext(){
+  formations[setupOffense]=pieces.map(p=>({...p}));
+  betweenDowns=false;
+  resetPlay();
+}
+function snap(){
+  ball=pieces.find(p=>p.team===offense && p.role==='QB');
+  phase='play';
+  opening=true;
+  selected=ball;
+  message='';
+  render();
+}
+function computerMove(){
+  if(phase==='snap'){
+    if(down===4){startKick('FG');return;}
+    snap();
+    return;
+  }
+  if(phase==='kick'){kick();return;}
+  const attacking=turn===offense;
+  const choices=[];
+  function consider(p,kind,handoff=false){
+    mode=kind;
+    for(const m of moves(p)){
+      if(attacking && m.q && kind!=='pass' && p===ball) continue;
+      const advances=(m.y-p.y)*forward(offense);
+      const distance=Math.max(Math.abs(m.x-ball.x),Math.abs(m.y-ball.y));
+      let value;
+      if(attacking){
+        const receives=kind==='pass' || p===ball;
+        value=receives ? 12+advances*4 : m.q ? 8 : advances;
+        if(receives && m.y===spot(offense,8)) value+=100;
+        if(kind==='juke' || kind==='hurdle') value-=7;
+      } else {
+        value=m.q===ball ? 1000 : -3*distance+(m.q?5:0);
+        if(gameMode==='Adaptive AI' && m.q!==ball){
+          value+=Math.min(5,(tendencies.lanes[m.x]+(tendencies.lanes[m.x-1]||0)/2+(tendencies.lanes[m.x+1]||0)/2)/2);
+          if(ball.role==='QB' && (tendencies.calls.pass||0)>0){
+            const receivers=pieces.filter(q=>q.team===offense && ['WR','TE'].includes(q.role));
+            if(receivers.length) value-=Math.min(3,tendencies.calls.pass)*.35*Math.min(...receivers.map(q=>Math.abs(q.x-m.x)+Math.abs(q.y-m.y)));
+          }
+        }
+      }
+      choices.push({...m,p,kind,handoff,value:value+Math.random()*2});
+    }
+    mode='move';
+  }
+  pieces.filter(p=>p.team===turn).forEach(p=>consider(p,'move'));
+  if(attacking && ball.role==='QB' && !passed) consider(ball,'pass');
+  if(attacking && opening && ball.role==='QB'){
+    const qb=ball;
+    for(const rb of pieces.filter(p=>p.team===turn && p.role==='RB')){
+      ball=rb;
+      opening=false;
+      consider(rb,'move',true);
+      opening=true;
+      ball=qb;
+    }
+  }
+  if(attacking && ball.role==='RB'){
+    consider(ball,'juke');
+    consider(ball,'hurdle');
+  }
+  choices.sort((a,b)=>b.value-a.value);
+  const choice=choices[0];
+  if(!choice){finishTurn();return;}
+  selected=choice.p;
+  mode=choice.kind;
+  if(choice.handoff){
+    const transfer=transferType(ball,selected);
+    if(transfer==='screen') passed=true;
+    ball=selected;opening=false;
+  }
+  playSquare(choice.x,choice.y);
+}
+function action(label,fn,disabled=false){
+  const b=document.createElement('button');
+  const index=get('actions').children.length;
+  b.textContent=label;b.onclick=()=>dispatch('button',index,fn);b.disabled=disabled || (online() && (!roomReady || (seat===1 && activeTeam()!==1)));
+  get('actions').append(b);
+}
+function startKick(type){
+  phase='kick'; kickType=type; selected=null; kickStart=performance.now();
+  drawKickTarget();
+  message=type==='XP'?'Touchdown! Kick the extra point.':'Fourth down field goal.';
+  render(); kickFrame=requestAnimationFrame(animateKick);
+}
+function drawKickTarget(){
+  get('target').style.width=kickType==='FG'?'25%':'50%';
+  get('target').style.left=kickType==='FG'?'37.5%':'25%';
+}
+function kickPosition(now){
+  const cycle=((now-kickStart)%1600)/800;
+  return cycle<=1?cycle:2-cycle;
+}
+function animateKick(now){
+  get('arrow').style.left=100*kickPosition(now)+'%';
+  if(phase==='kick') kickFrame=requestAnimationFrame(animateKick);
+}
+function kick(position=kickPosition(performance.now())){
+  if(phase!=='kick') return;
+  cancelAnimationFrame(kickFrame);
+  const good=Math.abs(position-.5)<=(kickType==='FG'?.125:.25);
+  if(good) score[offense]+=kickType==='FG'?3:1;
+  nextDrive((kickType==='FG'?'Field goal':'Extra point')+(good?' good!':' missed.'));
+}
+get('kick').onclick=()=>dispatch('kick',kickPosition(performance.now()),kick);
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space' && phase==='kick' && !(solo && offense===1) && !e.repeat){e.preventDefault();dispatch('kick',kickPosition(performance.now()),kick);}
+});
+function setDefensiveCount(value){
+  dCounts[setupTeam]=Number(value);
+  selected=null;
+  const placed=pieces;
+  pieces=placed.slice();
+  arrange(setupTeam);
+  reserve=[...reserve.filter(p=>p.team!==setupTeam),...pieces.filter(p=>p.team===setupTeam)];
+  pieces=placed;
+  render();
+}
+function render(){
+  clearTimeout(aiTimer);
+  const aiTurn=solo && ((phase==='setup' && setupTeam===1) || (phase==='play' && turn===1) || (['snap','kick'].includes(phase) && offense===1));
+  const blocked=online() && (!roomReady || seat!==activeTeam());
+  get('lobby').hidden=!online();
+  get('host').disabled=get('join').disabled=get('roomCode').disabled=roomReady || !!pieces.length;
+  get('learning').hidden=gameMode!=='Adaptive AI';
+  get('learning').textContent='Adaptive AI · '+tendencies.samples+' tendencies observed this match';
+  if(online() && roomReady && seat===0) connection.send({type:'state',revision:++revision,state:captureState()});
+  const board=get('board');
+  board.replaceChildren();
+  const highlights=moves(selected);
+  get('white').textContent='White '+score[0];
+  get('black').textContent='Black '+score[1];
+  get('drive').textContent=phase==='setup'?'Formation':phase==='final'?'Final':names[offense]+' ball · '+['1st','2nd','3rd','4th'][down];
+  const prompts={
+    setup:names[setupTeam]+(setupTeam===setupOffense?' offense':' defense')+' · '+(!pieces.length?'Place the offensive line.':front<5?'Place defender '+(front+1)+' of 5.':'Place one checker.'),
+    snap:names[offense]+', snap to your QB.',
+    play:names[turn]+' to move · '+(turn===offense?'Offense':'Defense')+(mode!=='move'?' · Choose a '+mode+' target':''),
+    kick:'Time your kick.',
+    final:names[score[0]>score[1]?0:1]+' wins!'
+  };
+  get('status').textContent=[message,aiTurn?'Computer is playing…':online() && !roomReady?'Connect to a friend to begin.':prompts[phase]].filter(Boolean).join(' ');
+  get('kickbox').hidden=phase!=='kick';
+  get('setup').hidden=phase!=='setup';
+  get('actions').replaceChildren();
+  get('actions').inert=blocked;
+  for(let y=0;y<8;y++) for(let x=0;x<8;x++){
+    const p=at(x,y), s=document.createElement('button');
+    const row=(phase==='setup'?setupTeam:offense)===0?8-y:y+1;
+    s.className=['cell',(x+y)%2?'dark':'',y===0||y===7?'end':'',y===3?'line':'',p && p===selected?'selected':'',(phase==='setup'?canPlace(selected,x,y):highlights.some(m=>m.x===x&&m.y===y))?'legal':''].join(' ');
+    s.setAttribute('aria-label','Row '+row+', column '+(x+1)+(p?', '+names[p.team]+' '+p.role+(p===ball?' with ball':''):''));
+    s.disabled=blocked || aiTurn || (phase!=='play' && phase!=='setup');
+    s.onclick=()=>dispatch('square',y*8+x,()=>phase==='setup'?setupSquare(x,y):playSquare(x,y));
+    if(x===0){const n=document.createElement('span');n.className='row';n.textContent=row;s.append(n);}
+    if(p){const t=document.createElement('span');t.className='token '+(p.team?'black ':'')+(p===ball?'ball':'');t.textContent=p.role;s.append(t);}
+    board.append(s);
+  }
+  get('kick').disabled=aiTurn || blocked;
+  if(aiTurn){
+    get('formation').replaceChildren();
+    aiTimer=setTimeout(phase==='setup'?computerPlace:computerMove,phase==='kick'?400+Math.random()*650:430);
+    return;
+  }
+  if(phase==='setup'){
+    const form=get('formation');form.replaceChildren();
+    function selectSetting(title,values,value,change){
+      const label=document.createElement('label'),select=document.createElement('select');
+      label.textContent=title;
+      for(const option of values) select.add(new Option(option,option));
+      select.value=value;
+      select.onchange=()=>{
+        change(select.value);
+        render();
+        [...form.querySelectorAll('select')].find(item=>item.parentNode.firstChild.textContent===title)?.focus();
+      };
+      label.append(select);
+      form.append(label);
+      return select;
+    }
+    if(!betweenDowns && setupOffense===0 && !pieces.length && !roomReady){
+      selectSetting('Mode',['Computer','Adaptive AI','Pass & Play','Online room'],gameMode,value=>{
+        if(value===gameMode)return;
+        const old=peer;
+        peer=null;old?.destroy();clearTimeout(roomTimer);
+        roomReady=false;seat=undefined;gameMode=value;solo=value==='Computer'||value==='Adaptive AI';
+        startPlacement();
+      });
+    }
+    if(setupTeam!==setupOffense && front===0){
+      const select=selectSetting('Defensive linemen',[3,4,5],dCounts[setupTeam],value=>{
+        dispatch('front',Number(value),()=>setDefensiveCount(value));
+      });
+      select.disabled=blocked;
+    }
+    const available=placementChoices();
+    for(const p of available){
+      const label=isOL(p)?'Offensive line':p.role;
+      action((selected===p || (p.slot && selected?.role===p.role))?label+' ✓':label,()=>{selected=p;render();},!Array.from({length:64},(_,i)=>i).some(i=>canPlace(p,i%8,i>>3)));
+    }
+  }
+  if(phase==='snap'){
+    action('Snap',snap);
+    if(down===4) action('Kick field goal',()=>startKick('FG'));
+  }
+  if(phase==='play'){
+    if(turn===offense && opening && ball.role==='QB'){
+      for(const [kind,label] of Object.entries(transferLabels)){
+        const previous=mode;
+        mode=kind;
+        const available=moves(ball).length>0;
+        mode=previous;
+        action(mode===kind?'Cancel '+kind:label+' to RB',()=>{
+          selected=ball;mode=mode===kind?'move':kind;render();
+        },!available);
+      }
+    }
+    if(turn===offense && ball.role==='QB' && !passed){
+      action(mode==='pass'?'Cancel pass':'Forward pass',()=>{
+        selected=ball;mode=mode==='pass'?'move':'pass';render();
+      });
+    }
+    if(turn===offense && ball.role==='RB'){
+      for(const ability of ['juke','hurdle']){
+        action((mode===ability?'Cancel ': '')+ability,()=>{
+          selected=ball;mode=mode===ability?'move':ability;render();
+        });
+      }
+    }
+    action(opening?'Keep ball · End turn':'End turn',()=>finishTurn());
+  }
+  if(phase==='final' && !online()) action('New game',()=>location.reload());
+}
+startPlacement();
+render();
+</script>
+</html>
