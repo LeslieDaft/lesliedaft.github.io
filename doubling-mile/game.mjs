@@ -1,7 +1,7 @@
 import { speedAt } from './physics.mjs?v=2';
 
 const $ = (selector) => document.querySelector(selector);
-const canvas = $('canvas');
+const canvas = $('.stage canvas');
 const ctx = canvas.getContext('2d');
 const mode = $('#mode');
 const value = $('#value');
@@ -57,6 +57,7 @@ mode.addEventListener('change', () => {
   }
 });
 value.addEventListener('input', () => {
+  if (value.validity.valid) settings[selected] = value.valueAsNumber;
   if (state === 'ready' && value.validity.valid) {
     setting = value.valueAsNumber;
     updateHud();
@@ -67,6 +68,7 @@ $('form').addEventListener('submit', (event) => {
   event.preventDefault();
   active = mode.value;
   setting = value.valueAsNumber;
+  settings[active] = setting;
   time = distance = 0;
   roadPhase = buildingPhase = 0;
   resetTraffic();
@@ -238,9 +240,93 @@ function frame(now) {
   }
   last = now;
   render();
+  if (now - lastGraph >= 150) { drawComparison(); lastGraph = now; }
   requestAnimationFrame(frame);
 }
 
+const curves = [
+  ['constant','Constant','#f9db78'], ['accel','Acceleration','#66d9ff'],
+  ['exp','Exponential','#7bea98'], ['super','Super exponential','#f29ce4']
+];
+const curveFields = [...document.querySelectorAll('[data-curve]')];
+const scaleField = $('#graph-scale');
+const fmt = n => !Number.isFinite(n) ? 'Limit' : n >= 1e5 || (n > 0 && n < .001) ? n.toExponential(2) : Number(n.toPrecision(4)).toString();
+let lastGraph = -Infinity;
+for (const field of curveFields) field.addEventListener('input', () => {
+  if (!field.validity.valid || field.value === '') return;
+  const key = field.dataset.curve;
+  settings[key] = field.valueAsNumber;
+  if (selected === key) {
+    value.value = settings[key];
+    if (state === 'ready') { setting = settings[key]; updateHud(); }
+  }
+  drawComparison();
+});
+scaleField.addEventListener('change', drawComparison);
+function samples(key, param, end) {
+  const count = 200, dt = end / count;
+  let miles = 0;
+  return Array.from({length:count+1}, (_, i) => {
+    const t = i * dt, v = speedAt(key,param,t);
+    if (i) {
+      const a = speedAt(key,param,t-dt), b = speedAt(key,param,t-dt/2);
+      miles += (a*(dt/21600) + b*(dt/5400) + v*(dt/21600));
+    }
+    return {t,v,d:miles};
+  });
+}
+function chart(canvas, series, key, end) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!w || !h) return;
+  const ratio = Math.min(2,devicePixelRatio || 1);
+  const cw = Math.round(w*ratio), ch = Math.round(h*ratio);
+  if(canvas.width!==cw || canvas.height!==ch){canvas.width=cw;canvas.height=ch;}
+  const c = canvas.getContext('2d');
+  c.setTransform(ratio,0,0,ratio,0,0); c.clearRect(0,0,w,h);
+  const log = scaleField.value === 'log';
+  const trans = v => log ? Math.log10(1+v) : v;
+  const vals = series.flatMap(s=>s.points.map(p=>p[key]).filter(Number.isFinite).map(trans));
+  const max = Math.max(1,...vals), left=70, right=w-12, top=12, bottom=h-28;
+  c.font='11px system-ui'; c.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const f=i/4,y=bottom-f*(bottom-top);
+    c.strokeStyle='#34465e';c.beginPath();c.moveTo(left,y);c.lineTo(right,y);c.stroke();
+    c.fillStyle='#b9cde6';c.textAlign='right';c.fillText(fmt(log?10**(max*f)-1:max*f),left-5,y+4);
+    const x=left+f*(right-left);
+    c.textAlign='center';c.fillText(fmt(end*f),x,bottom+18);
+  }
+  for(const s of series){
+    c.strokeStyle=s.color;c.lineWidth=2;c.beginPath();let first=true;
+    for(const p of s.points){
+      if(!Number.isFinite(p[key])) break;
+      const x=left+p.t/end*(right-left),y=bottom-trans(p[key])/max*(bottom-top);
+      if(first){c.moveTo(x,y);first=false;}else c.lineTo(x,y);
+    }
+    c.stroke();
+  }
+}
+function drawComparison(){
+  const end=state==='ready'?10:Math.max(.001,time);
+  for(const field of curveFields){
+    const key=field.dataset.curve;
+    field.disabled=state!=='ready' && key===active;
+    if(document.activeElement!==field || field.disabled) field.value=field.disabled?setting:settings[key];
+  }
+  const series=curves.map(([key,label,color])=>({label,color,key,points:samples(key,state!=='ready'&&key===active?setting:settings[key],end)}));
+  // The active run's distance is already integrated at the simulation's finer timestep.
+  if(state!=='ready' && time>0) {
+    const s=series.find(s=>s.key===active);
+    s.points[s.points.length-1].d=distance/1609.344;
+  }
+  chart($('#speed-chart'),series,'v',end);
+  chart($('#distance-chart'),series,'d',end);
+  $('#graph-time').textContent=(state==='ready'?'Preview: ':'Elapsed: ')+fmt(state==='ready'?end:time)+' s';
+  $('#curve-values').innerHTML=series.map(s=>{
+    const p=s.points[s.points.length-1];
+    return '<tr><th scope="row" style="color:'+s.color+'">'+s.label+(state!=='ready'&&s.key===active?' (driving)':'')+'</th><td>'+fmt(p.v)+'</td><td>'+fmt(p.d)+'</td></tr>';
+  }).join('');
+}
 resetTraffic();
 updateHud();
+drawComparison();
 requestAnimationFrame(frame);
